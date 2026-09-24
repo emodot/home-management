@@ -6,6 +6,8 @@ import {
   getProfile,
   getProviderTotals,
   getReceiptUrls,
+  getTask,
+  getTaskCompletion,
   listBudgets,
   listCategories,
   listExpenses,
@@ -14,9 +16,12 @@ import {
   listPendingExpenses,
   listPendingInvites,
   listProviders,
+  listProviderTasks,
   listReceipts,
   listRecentlyDeleted,
   listRecurringExpenses,
+  listTaskHistory,
+  listTasks,
   type ExpenseFilters,
 } from '@home/shared'
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
@@ -140,4 +145,37 @@ export const providerTotalsQuery = (
       range.to ?? null,
     ],
     queryFn: () => getProviderTotals(supabase, householdId, range),
+  })
+
+export const tasksKey = (householdId: string) => [...householdKey(householdId), 'tasks'] as const
+
+export const tasksQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...tasksKey(householdId), 'list'],
+    queryFn: () => listTasks(supabase, householdId),
+  })
+
+export const taskQuery = (householdId: string, taskId: string) =>
+  queryOptions({
+    queryKey: [...tasksKey(householdId), 'detail', taskId],
+    queryFn: () => getTask(supabase, taskId),
+  })
+
+export const providerTasksQuery = (householdId: string, providerId: string) =>
+  queryOptions({
+    queryKey: [...tasksKey(householdId), 'provider', providerId],
+    queryFn: () => listProviderTasks(supabase, householdId, providerId),
+  })
+
+/** Under expensesKey too, because it lists the expenses logged for each completion. */
+export const taskHistoryQuery = (householdId: string, taskId: string) =>
+  queryOptions({
+    queryKey: [...expensesKey(householdId), 'task-history', taskId],
+    queryFn: () => listTaskHistory(supabase, taskId),
+  })
+
+export const taskCompletionQuery = (householdId: string, completionId: string) =>
+  queryOptions({
+    queryKey: [...tasksKey(householdId), 'completion', completionId],
+    queryFn: () => getTaskCompletion(supabase, completionId),
   })

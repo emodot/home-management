@@ -30,6 +30,8 @@ import {
   recentlyDeletedLoader,
   recurringLoader,
   signInLoader,
+  taskDetailLoader,
+  tasksLoader,
 } from '@/routes/loaders'
 import { MembersPage } from '@/routes/members'
 import { MorePage } from '@/routes/more'
@@ -43,6 +45,9 @@ import { RecentlyDeletedPage } from '@/routes/recently-deleted'
 import { RecurringPage } from '@/routes/recurring'
 import { EditRecurringPage, NewRecurringPage } from '@/routes/recurring-form'
 import { SignInPage } from '@/routes/sign-in'
+import { TaskDetailPage } from '@/routes/task-detail'
+import { EditTaskPage, NewTaskPage } from '@/routes/task-form'
+import { TasksPage } from '@/routes/tasks'
 
 export const router = createBrowserRouter([
   {
@@ -84,6 +89,14 @@ export const router = createBrowserRouter([
                   },
                   { path: 'insights', loader: insightsLoader, element: <InsightsPage /> },
                   { path: 'budgets', loader: budgetsLoader, element: <BudgetsPage /> },
+                  { path: 'tasks', loader: tasksLoader, element: <TasksPage /> },
+                  { path: 'tasks/new', loader: tasksLoader, element: <NewTaskPage /> },
+                  { path: 'tasks/:taskId', loader: taskDetailLoader, element: <TaskDetailPage /> },
+                  {
+                    path: 'tasks/:taskId/edit',
+                    loader: taskDetailLoader,
+                    element: <EditTaskPage />,
+                  },
                   { path: 'providers', loader: providersLoader, element: <ProvidersPage /> },
                   { path: 'providers/new', loader: providersLoader, element: <NewProviderPage /> },
                   {

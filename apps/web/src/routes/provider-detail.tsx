@@ -1,4 +1,6 @@
 import {
+  describeDue,
+  describeSchedule,
   formatDate,
   formatMoney,
   formatPhone,
@@ -24,7 +26,7 @@ import { Button } from '@/components/ui/button'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useCategoryLookup } from '@/hooks/use-lookups'
 import { useDeleteProvider, useProviderLookup, useRestoreProvider } from '@/hooks/use-providers'
-import { expenseListQuery, providerTotalsQuery } from '@/lib/queries'
+import { expenseListQuery, providerTasksQuery, providerTotalsQuery } from '@/lib/queries'
 
 export function ProviderDetailPage() {
   const { providerId = '' } = useParams()
@@ -41,6 +43,8 @@ export function ProviderDetailPage() {
     useSuspenseInfiniteQuery(expenseListQuery(household.id, { provider: providerId })).data
       .pages[0] ?? []
   const categories = useCategoryLookup(household.id)
+  const tasks = useSuspenseQuery(providerTasksQuery(household.id, providerId)).data
+  const today = todayIn(household.timezone)
   const remove = useDeleteProvider(household.id)
   const restore = useRestoreProvider(household.id)
   const navigate = useNavigate()
@@ -190,7 +194,24 @@ export function ProviderDetailPage() {
           </ul>
         )}
       </section>
-      {/* Tasks linked to this provider are added with tasks (M7). */}
+      {tasks.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-semibold">Tasks</h2>
+          <ul className="divide-y rounded-xl border">
+            {tasks.map((t) => (
+              <li key={t.id}>
+                <Link to={`/tasks/${t.id}`} className="flex flex-col px-3 py-3 hover:bg-muted/50">
+                  <span className="truncate font-medium">{t.title}</span>
+                  <span className="truncate text-sm text-muted-foreground">
+                    {describeDue({ nextDueOn: t.next_due_on, isActive: t.is_active }, today)} ·{' '}
+                    {describeSchedule(t.schedule_type, t.frequency, t.interval_count)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

@@ -58,10 +58,10 @@ export function BottomNav() {
   )
 }
 
-/** Floating "add expense" button, hidden where it would be redundant. */
+/** Floating "add expense" button, hidden on forms where it would cover fields. */
 export function AddExpenseButton() {
   const { pathname } = useLocation()
-  if (pathname === '/expenses/new' || pathname.endsWith('/edit')) return null
+  if (pathname.endsWith('/new') || pathname.endsWith('/edit')) return null
   return (
     <Link
       to="/expenses/new"

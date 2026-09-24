@@ -24,6 +24,8 @@ export interface Expense {
   /** Set when the expense was generated from a recurring bill. */
   recurringExpenseId: string | null
   providerId: string | null
+  /** Set when the expense was logged after completing a task. */
+  taskCompletionId: string | null
 }
 
 type ExpenseListRow = Tables<'expense_list'>
@@ -54,6 +56,7 @@ export function toExpense(row: ExpenseListRow): Expense {
     receiptCount: row.receipt_count ?? 0,
     recurringExpenseId: row.recurring_expense_id,
     providerId: row.provider_id,
+    taskCompletionId: row.task_completion_id,
   }
 }
 
@@ -150,16 +153,21 @@ function toColumns(input: ExpenseInput) {
   }
 }
 
-/** Creates an expense and returns its id. */
+/** Creates an expense and returns its id, optionally linked to a task completion. */
 export async function createExpense(
   client: HomeClient,
   householdId: string,
   input: ExpenseInput,
+  link: { taskCompletionId?: string } = {},
 ): Promise<string> {
   const row = unwrap(
     await client
       .from('expenses')
-      .insert({ household_id: householdId, ...toColumns(input) })
+      .insert({
+        household_id: householdId,
+        ...toColumns(input),
+        ...(link.taskCompletionId && { task_completion_id: link.taskCompletionId }),
+      })
       .select('id')
       .single(),
   )
@@ -191,6 +199,7 @@ export async function setExpenseDeleted(
 export interface DeletedItems {
   expenses: Expense[]
   providers: Tables<'providers'>[]
+  tasks: Tables<'tasks'>[]
   receipts: (Tables<'expense_receipts'> & { expense: { description: string } })[]
 }
 
@@ -201,7 +210,7 @@ export async function listRecentlyDeleted(
   days = 30,
 ): Promise<DeletedItems> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
-  const [expenses, receipts, providers] = await Promise.all([
+  const [expenses, receipts, providers, tasks] = await Promise.all([
     client
       .from('expense_list')
       .select('*')
@@ -222,10 +231,17 @@ export async function listRecentlyDeleted(
       .eq('household_id', householdId)
       .gte('deleted_at', since)
       .order('deleted_at', { ascending: false }),
+    client
+      .from('tasks')
+      .select('*')
+      .eq('household_id', householdId)
+      .gte('deleted_at', since)
+      .order('deleted_at', { ascending: false }),
   ])
   return {
     expenses: unwrap(expenses).map(toExpense),
     providers: unwrap(providers),
+    tasks: unwrap(tasks),
     receipts: unwrap(receipts).map((r) => ({
       ...r,
       expense: { description: r.expense.description },

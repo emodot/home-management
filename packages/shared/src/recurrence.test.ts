@@ -32,6 +32,19 @@ describe('nextDueDate', () => {
     ).toBe('2026-03-31')
   })
 
+  it('fixed schedules completed late skip to the first date after completion', () => {
+    expect(
+      nextDueDate({
+        scheduleType: 'fixed',
+        frequency: 'monthly',
+        intervalCount: 1,
+        previousDueOn: '2026-03-31',
+        completedOn: '2026-05-10',
+        startOn: '2026-01-31',
+      }),
+    ).toBe('2026-05-31')
+  })
+
   it('after_completion schedules advance from the completion date', () => {
     expect(
       nextDueDate({

@@ -106,8 +106,14 @@ export function useCreateExpense(householdId: string) {
   const queryClient = useQueryClient()
   const openExpense = useOpenExpense()
   return useMutation({
-    mutationFn: ({ input }: { input: ExpenseInput; files: PreparedReceipt[] }) =>
-      createExpense(supabase, householdId, input),
+    mutationFn: ({
+      input,
+      taskCompletionId,
+    }: {
+      input: ExpenseInput
+      files: PreparedReceipt[]
+      taskCompletionId?: string
+    }) => createExpense(supabase, householdId, input, { taskCompletionId }),
     onSuccess: async (expenseId, { files }) => {
       await queryClient.invalidateQueries({ queryKey: expensesKey(householdId) })
       void uploadReceiptsInBackground(queryClient, householdId, expenseId, files, openExpense)

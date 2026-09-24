@@ -37,8 +37,10 @@ export function advanceDate(
 }
 
 /**
- * The next due date after an occurrence.
- * - fixed: from the previous due date, regardless of when it was done (anchored to `startOn`'s day).
+ * The next due date after an occurrence. Mirrors public.complete_task().
+ * - fixed: steps along the schedule from the previous due date (anchored to `startOn`'s day),
+ *   regardless of when it was done, to the first date after the completion — so a late completion
+ *   doesn't leave already-missed repeats overdue.
  * - after_completion: from the completion date.
  * - once: no next date.
  */
@@ -61,7 +63,11 @@ export function nextDueDate({
   if (scheduleType === 'after_completion') {
     return advanceDate(completedOn ?? previousDueOn, frequency, intervalCount)
   }
-  return advanceDate(previousDueOn, frequency, intervalCount, parts(startOn ?? previousDueOn).d)
+  const anchor = parts(startOn ?? previousDueOn).d
+  let next = advanceDate(previousDueOn, frequency, intervalCount, anchor)
+  while (completedOn && next <= completedOn)
+    next = advanceDate(next, frequency, intervalCount, anchor)
+  return next
 }
 
 /** The next `count` due dates starting at `nextDueOn` (for previews). */

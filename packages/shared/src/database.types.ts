@@ -175,6 +175,7 @@ export type Database = {
           provider_id: string | null
           recurring_expense_id: string | null
           status: string
+          task_completion_id: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -194,6 +195,7 @@ export type Database = {
           provider_id?: string | null
           recurring_expense_id?: string | null
           status?: string
+          task_completion_id?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -213,6 +215,7 @@ export type Database = {
           provider_id?: string | null
           recurring_expense_id?: string | null
           status?: string
+          task_completion_id?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -534,6 +537,142 @@ export type Database = {
           },
         ]
       }
+      task_completions: {
+        Row: {
+          completed_by: string | null
+          completed_on: string
+          created_at: string
+          due_on: string
+          household_id: string
+          id: string
+          notes: string | null
+          task_id: string
+        }
+        Insert: {
+          completed_by?: string | null
+          completed_on: string
+          created_at?: string
+          due_on: string
+          household_id: string
+          id?: string
+          notes?: string | null
+          task_id: string
+        }
+        Update: {
+          completed_by?: string | null
+          completed_on?: string
+          created_at?: string
+          due_on?: string
+          household_id?: string
+          id?: string
+          notes?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_completions_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_completions_household_id_task_id_fkey"
+            columns: ["household_id", "task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["household_id", "id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          created_by: string | null
+          default_category_id: string | null
+          deleted_at: string | null
+          description: string | null
+          frequency: string | null
+          household_id: string
+          id: string
+          interval_count: number
+          is_active: boolean
+          next_due_on: string
+          provider_id: string | null
+          reminder_days_before: number
+          schedule_type: string
+          start_on: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          default_category_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          frequency?: string | null
+          household_id: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          next_due_on: string
+          provider_id?: string | null
+          reminder_days_before?: number
+          schedule_type: string
+          start_on: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          default_category_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          frequency?: string | null
+          household_id?: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          next_due_on?: string
+          provider_id?: string | null
+          reminder_days_before?: number
+          schedule_type?: string
+          start_on?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_household_id_default_category_id_fkey"
+            columns: ["household_id", "default_category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["household_id", "id"]
+          },
+          {
+            foreignKeyName: "tasks_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_household_id_provider_id_fkey"
+            columns: ["household_id", "provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["household_id", "id"]
+          },
+        ]
+      }
     }
     Views: {
       expense_list: {
@@ -555,6 +694,7 @@ export type Database = {
           recurring_expense_id: string | null
           search_text: string | null
           status: string | null
+          task_completion_id: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -577,6 +717,10 @@ export type Database = {
       }
     }
     Functions: {
+      complete_task: {
+        Args: { p_completed_on?: string; p_notes?: string; p_task_id: string }
+        Returns: string
+      }
       create_household: {
         Args: { household_name: string }
         Returns: {
@@ -668,6 +812,10 @@ export type Database = {
           p_category_id: string
           p_household_id: string
         }
+        Returns: undefined
+      }
+      undo_task_completion: {
+        Args: { p_completion_id: string }
         Returns: undefined
       }
       shares_household_with: {

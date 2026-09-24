@@ -1,5 +1,6 @@
 import {
   ChartColumnIcon,
+  ClipboardCheckIcon,
   EllipsisIcon,
   HardHatIcon,
   PiggyBankIcon,
@@ -23,8 +24,9 @@ const isExpensesPath = (pathname: string) => pathname === '/' || pathname.starts
 
 export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/', label: 'Expenses', icon: ReceiptTextIcon, matches: isExpensesPath },
-  { to: '/insights', label: 'Insights', icon: ChartColumnIcon },
+  { to: '/tasks', label: 'Tasks', icon: ClipboardCheckIcon },
   { to: '/providers', label: 'Providers', icon: HardHatIcon },
+  { to: '/insights', label: 'Insights', icon: ChartColumnIcon },
   { to: '/recurring', label: 'Recurring bills', icon: RepeatIcon },
   { to: '/budgets', label: 'Budgets', icon: PiggyBankIcon },
   { to: '/categories', label: 'Categories', icon: TagsIcon },
@@ -35,7 +37,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
 // Tasks and Providers join this list in their milestones.
 export const BOTTOM_ITEMS: NavItem[] = [
   { to: '/', label: 'Expenses', icon: ReceiptTextIcon, matches: isExpensesPath },
-  { to: '/insights', label: 'Insights', icon: ChartColumnIcon },
+  { to: '/tasks', label: 'Tasks', icon: ClipboardCheckIcon },
   { to: '/providers', label: 'Providers', icon: HardHatIcon },
   {
     to: '/more',
@@ -44,6 +46,7 @@ export const BOTTOM_ITEMS: NavItem[] = [
     matches: (p) =>
       [
         '/more',
+        '/insights',
         '/recurring',
         '/budgets',
         '/categories',

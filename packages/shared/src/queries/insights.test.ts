@@ -21,6 +21,7 @@ const expense: Expense = {
   receiptCount: 2,
   recurringExpenseId: null,
   providerId: 'p1',
+  taskCompletionId: null,
 }
 
 describe('expensesToCsv', () => {

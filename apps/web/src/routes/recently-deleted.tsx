@@ -4,17 +4,19 @@ import { FileTextIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRestoreExpense, useRestoreReceipt } from '@/hooks/use-expenses'
 import { useRestoreProvider } from '@/hooks/use-providers'
+import { useRestoreTask } from '@/hooks/use-tasks'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { recentlyDeletedQuery } from '@/lib/queries'
 
 export function RecentlyDeletedPage() {
   const household = useActiveHousehold()
-  const { expenses, receipts, providers } = useSuspenseQuery(
+  const { expenses, receipts, providers, tasks } = useSuspenseQuery(
     recentlyDeletedQuery(household.id),
   ).data
   const restoreExpense = useRestoreExpense(household.id)
   const restoreReceipt = useRestoreReceipt(household.id)
   const restoreProvider = useRestoreProvider(household.id)
+  const restoreTask = useRestoreTask(household.id)
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
@@ -25,12 +27,15 @@ export function RecentlyDeletedPage() {
         </p>
       </div>
 
-      {expenses.length === 0 && receipts.length === 0 && providers.length === 0 ? (
+      {expenses.length === 0 &&
+      receipts.length === 0 &&
+      providers.length === 0 &&
+      tasks.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-12 text-center">
           <Trash2Icon className="size-8 text-muted-foreground" aria-hidden />
           <p className="font-medium">Nothing here</p>
           <p className="text-sm text-muted-foreground">
-            Expenses, receipts and providers you delete will show up here for 30 days.
+            Expenses, receipts, providers and tasks you delete will show up here for 30 days.
           </p>
         </div>
       ) : (
@@ -53,6 +58,27 @@ export function RecentlyDeletedPage() {
                       size="sm"
                       onClick={() => restoreExpense.mutate(expense)}
                     >
+                      <RotateCcwIcon aria-hidden />
+                      Restore
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {tasks.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2 className="font-semibold">Tasks</h2>
+              <ul className="divide-y rounded-xl border">
+                {tasks.map((task) => (
+                  <li key={task.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{task.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        deleted {formatRelativeTime(task.deleted_at ?? '')}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => restoreTask.mutate(task)}>
                       <RotateCcwIcon aria-hidden />
                       Restore
                     </Button>

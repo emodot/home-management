@@ -1,9 +1,10 @@
 import { formatDate, formatMoney, formatRelativeTime } from '@home/shared'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import {
   ArrowLeftIcon,
   CalendarIcon,
   CheckIcon,
+  ClipboardCheckIcon,
   RepeatIcon,
   PencilIcon,
   RotateCcwIcon,
@@ -21,7 +22,7 @@ import { useDeleteExpense, useRestoreExpense, useSkipExpense } from '@/hooks/use
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useCategoryLookup, useMemberNames } from '@/hooks/use-lookups'
 import { useProviderLookup } from '@/hooks/use-providers'
-import { expenseQuery, receiptsQuery } from '@/lib/queries'
+import { expenseQuery, receiptsQuery, taskCompletionQuery } from '@/lib/queries'
 
 export function ExpenseDetailPage() {
   const { expenseId = '' } = useParams()
@@ -35,6 +36,10 @@ export function ExpenseDetailPage() {
   const restoreExpense = useRestoreExpense(household.id)
   const skipExpense = useSkipExpense(household.id)
   const [confirming, setConfirming] = useState(false)
+  const linkedTask = useQuery({
+    ...taskCompletionQuery(household.id, expense?.taskCompletionId ?? ''),
+    enabled: !!expense?.taskCompletionId,
+  }).data
   const navigate = useNavigate()
 
   if (!expense) throw new Response('Expense not found', { status: 404 })
@@ -137,6 +142,15 @@ export function ExpenseDetailPage() {
             <CalendarIcon className="size-4" aria-hidden />
             {formatDate(expense.occurredOn, { dateStyle: 'full' })}
           </span>
+          {linkedTask && (
+            <Link
+              to={`/tasks/${linkedTask.task.id}`}
+              className="flex items-center gap-1.5 underline-offset-4 hover:underline"
+            >
+              <ClipboardCheckIcon className="size-4" aria-hidden />
+              Task: {linkedTask.task.title}
+            </Link>
+          )}
           {expense.recurringExpenseId && (
             <Link
               to="/recurring"
