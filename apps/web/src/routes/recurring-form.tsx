@@ -16,6 +16,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { CategoryIcon } from '@/components/category-icon'
+import { ProviderCombobox } from '@/components/provider-combobox'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -56,6 +57,7 @@ function RecurringExpenseForm({ existing }: { existing?: RecurringExpense }) {
           amount: formatAmountInput(existing.amount_minor),
           categoryId: existing.category_id,
           paidBy: existing.paid_by,
+          providerId: existing.provider_id,
           frequency: existing.frequency,
           intervalCount: String(existing.interval_count),
           nextDueOn: existing.next_due_on,
@@ -65,6 +67,7 @@ function RecurringExpenseForm({ existing }: { existing?: RecurringExpense }) {
           amount: '',
           categoryId: '',
           paidBy: user.id,
+          providerId: null,
           frequency: 'monthly',
           intervalCount: '1',
           nextDueOn: todayIn(household.timezone),
@@ -167,6 +170,22 @@ function RecurringExpenseForm({ existing }: { existing?: RecurringExpense }) {
             )}
           />
           <FieldError errors={[errors.categoryId]} />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="providerId">Provider (optional)</FieldLabel>
+          <Controller
+            control={form.control}
+            name="providerId"
+            render={({ field }) => (
+              <ProviderCombobox
+                id="providerId"
+                householdId={household.id}
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
         </Field>
 
         <div className="grid grid-cols-[1fr_auto] gap-3">

@@ -20,8 +20,9 @@ import { CategoryIcon } from '@/components/category-icon'
 import { Button } from '@/components/ui/button'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useCategoryLookup } from '@/hooks/use-lookups'
+import { useProviderLookup } from '@/hooks/use-providers'
 import { selectedMonth } from '@/lib/insights'
-import { budgetsQuery, categoryTotalsQuery } from '@/lib/queries'
+import { budgetsQuery, categoryTotalsQuery, providerTotalsQuery } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 
 const sum = (totals: CategoryTotal[]) => totals.reduce((acc, t) => acc + t.totalMinor, 0)
@@ -61,6 +62,11 @@ export function InsightsPage() {
   const previousTotals = useSuspenseQuery(categoryTotalsQuery(household.id, previousRange)).data
   const budgets = useSuspenseQuery(budgetsQuery(household.id)).data
   const categories = useCategoryLookup(household.id)
+  const providers = useProviderLookup(household.id)
+  const topProviders = [...useSuspenseQuery(providerTotalsQuery(household.id, range)).data]
+    .sort((a, b) => b.totalMinor - a.totalMinor)
+    .slice(0, 5)
+  const topProviderMax = topProviders[0]?.totalMinor ?? 0
 
   const total = sum(totals)
   const previousTotal = sum(previousTotals)
@@ -184,6 +190,49 @@ export function InsightsPage() {
                       </div>
                       <span className="w-24 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
                         {share}% · {t.expenseCount} {t.expenseCount === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </Card>
+
+      <Card title="Top providers">
+        {topProviders.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            No spending with providers in {formatMonth(month)}. Choose a provider when you add an
+            expense to see who you spend the most with.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {topProviders.map((t) => {
+              const provider = providers.get(t.providerId)
+              return (
+                <li key={t.providerId}>
+                  <Link
+                    to={expensesLink({ provider: t.providerId })}
+                    className="-mx-2 flex flex-col gap-1.5 rounded-md px-2 py-2 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none"
+                  >
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="min-w-0 flex-1 truncate font-medium">
+                        {provider?.name ?? 'Unknown provider'}
+                      </span>
+                      <span className="font-semibold tabular-nums">
+                        {formatMoney(t.totalMinor, household.currency)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-2.5 flex-1">
+                        <div
+                          className="h-full min-w-1 rounded-r-[4px] bg-viz-bar"
+                          style={{ width: `${(t.totalMinor / topProviderMax) * 100}%` }}
+                        />
+                      </div>
+                      <span className="w-24 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
+                        {t.expenseCount} {t.expenseCount === 1 ? 'item' : 'items'}
                       </span>
                     </div>
                   </Link>

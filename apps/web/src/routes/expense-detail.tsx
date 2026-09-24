@@ -13,12 +13,14 @@ import {
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { CategoryIcon } from '@/components/category-icon'
+import { ContactButtons } from '@/components/contact-buttons'
 import { ConfirmExpenseDialog } from '@/components/pending-expenses'
 import { ReceiptGallery } from '@/components/receipt-gallery'
 import { Button } from '@/components/ui/button'
 import { useDeleteExpense, useRestoreExpense, useSkipExpense } from '@/hooks/use-expenses'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useCategoryLookup, useMemberNames } from '@/hooks/use-lookups'
+import { useProviderLookup } from '@/hooks/use-providers'
 import { expenseQuery, receiptsQuery } from '@/lib/queries'
 
 export function ExpenseDetailPage() {
@@ -28,6 +30,7 @@ export function ExpenseDetailPage() {
   const receipts = useSuspenseQuery(receiptsQuery(household.id, expenseId)).data
   const categories = useCategoryLookup(household.id)
   const memberNames = useMemberNames(household.id)
+  const providers = useProviderLookup(household.id)
   const deleteExpense = useDeleteExpense(household.id)
   const restoreExpense = useRestoreExpense(household.id)
   const skipExpense = useSkipExpense(household.id)
@@ -37,6 +40,7 @@ export function ExpenseDetailPage() {
   if (!expense) throw new Response('Expense not found', { status: 404 })
 
   const category = categories.get(expense.categoryId)
+  const provider = expense.providerId ? providers.get(expense.providerId) : undefined
   const nameOf = (userId: string | null) =>
     userId ? (memberNames.get(userId) ?? 'a former member') : 'someone'
   const deleted = expense.deletedAt !== null
@@ -150,6 +154,22 @@ export function ExpenseDetailPage() {
           )}
         </div>
       </div>
+
+      {provider && (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">Provider</p>
+            <Link
+              to={`/providers/${provider.id}`}
+              className="font-medium underline-offset-4 hover:underline"
+            >
+              {provider.name}
+              {provider.deleted_at ? ' (deleted)' : ''}
+            </Link>
+          </div>
+          {!provider.deleted_at && <ContactButtons provider={provider} iconOnly />}
+        </section>
+      )}
 
       {expense.notes && (
         <section className="flex flex-col gap-1">

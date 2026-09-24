@@ -30,6 +30,7 @@ function toColumns(input: RecurringExpenseInput) {
     amount_minor: parsed.amountMinor,
     category_id: parsed.categoryId,
     paid_by: parsed.paidBy,
+    provider_id: parsed.providerId,
     frequency: parsed.frequency,
     interval_count: parsed.intervalCount,
     next_due_on: parsed.nextDueOn,

@@ -70,7 +70,11 @@ export async function listAllExpenses(
 
 export function expensesToCsv(
   expenses: Expense[],
-  names: { category: (id: string) => string; person: (userId: string | null) => string },
+  names: {
+    category: (id: string) => string
+    person: (userId: string | null) => string
+    provider: (id: string | null) => string
+  },
 ): string {
   return toCsv([
     [
@@ -80,6 +84,7 @@ export function expensesToCsv(
       'Amount',
       'Currency',
       'Paid by',
+      'Provider',
       'Notes',
       'Receipts',
       'Added by',
@@ -92,6 +97,7 @@ export function expensesToCsv(
       fromMinor(e.amountMinor, e.currency, { fixed: true }),
       e.currency,
       names.person(e.paidBy),
+      names.provider(e.providerId),
       e.notes,
       e.receiptCount,
       names.person(e.createdBy),

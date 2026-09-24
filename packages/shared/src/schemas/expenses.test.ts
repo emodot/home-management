@@ -36,6 +36,7 @@ describe('expenseFormSchema', () => {
         categoryId,
         description: '  NEPA token ',
         paidBy: null,
+        providerId: null,
         notes: '   ',
       }),
     ).toEqual({
@@ -44,6 +45,7 @@ describe('expenseFormSchema', () => {
       categoryId,
       description: 'NEPA token',
       paidBy: null,
+      providerId: null,
       notes: null,
     })
   })
@@ -55,6 +57,7 @@ describe('expenseFormSchema', () => {
       categoryId: '',
       description: 'x',
       paidBy: null,
+      providerId: null,
       notes: null,
     })
     expect(result.error?.issues.map((i) => [i.path[0], i.message])).toEqual([
@@ -69,6 +72,7 @@ describe('expenseFormSchema', () => {
       categoryId,
       description: 'x',
       paidBy: null,
+      providerId: null,
       notes: null,
     })
     expect(result.success).toBe(false)
@@ -91,6 +95,7 @@ describe('expense filters', () => {
       to: undefined,
       category: categoryId,
       paidBy: undefined,
+      provider: undefined,
       receipt: 'without',
       q: 'diesel',
     })

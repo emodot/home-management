@@ -30,6 +30,7 @@ export function NewExpensePage() {
           categoryId: '',
           description: '',
           paidBy: user.id,
+          providerId: null,
           notes: null,
         }}
         onCancel={() => void navigate(-1)}

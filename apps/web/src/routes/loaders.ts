@@ -5,6 +5,7 @@ import {
   monthRange,
   parseExpenseFilters,
   todayIn,
+  yearRange,
   safeNextPath,
   setActiveHousehold,
   type InviteDetails,
@@ -26,6 +27,8 @@ import {
   pendingExpensesQuery,
   pendingInvitesQuery,
   profileQuery,
+  providersQuery,
+  providerTotalsQuery,
   receiptsQuery,
   recentlyDeletedQuery,
   recurringExpensesQuery,
@@ -112,6 +115,7 @@ export async function expensesLoader({ request }: LoaderFunctionArgs) {
       queryClient.query(membersQuery(householdId)),
       queryClient.infiniteQuery(expenseListQuery(householdId, filters)),
       queryClient.query(pendingExpensesQuery(householdId)),
+      queryClient.query(providersQuery(householdId)),
     ])
   }
   return null
@@ -121,6 +125,7 @@ export async function expenseFormLoader({ request }: LoaderFunctionArgs) {
   const { householdId } = await requireHousehold(request)
   if (householdId) {
     await Promise.all([
+      queryClient.query(providersQuery(householdId)),
       queryClient.query(categoriesQuery(householdId)),
       queryClient.query(membersQuery(householdId)),
     ])
@@ -136,6 +141,7 @@ export async function expenseDetailLoader({ request, params }: LoaderFunctionArg
     const [expense] = await Promise.all([
       queryClient.query(expenseQuery(householdId, expenseId)),
       queryClient.query(receiptsQuery(householdId, expenseId)),
+      queryClient.query(providersQuery(householdId)),
       queryClient.query(categoriesQuery(householdId)),
       queryClient.query(membersQuery(householdId)),
     ])
@@ -154,6 +160,8 @@ export async function insightsLoader({ request }: LoaderFunctionArgs) {
     await Promise.all([
       queryClient.query(categoryTotalsQuery(householdId, monthRange(`${month}-01`))),
       queryClient.query(categoryTotalsQuery(householdId, monthRange(`${month}-01`, -1))),
+      queryClient.query(providerTotalsQuery(householdId, monthRange(`${month}-01`))),
+      queryClient.query(providersQuery(householdId)),
       queryClient.query(budgetsQuery(householdId)),
       queryClient.query(categoriesQuery(householdId)),
     ])
@@ -180,9 +188,35 @@ export async function recurringLoader({ request }: LoaderFunctionArgs) {
   if (householdId) {
     await Promise.all([
       queryClient.query(recurringExpensesQuery(householdId)),
+      queryClient.query(providersQuery(householdId)),
       queryClient.query(categoriesQuery(householdId)),
       queryClient.query(membersQuery(householdId)),
     ])
+  }
+  return null
+}
+
+export async function providersLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) await queryClient.query(providersQuery(householdId))
+  return null
+}
+
+export async function providerDetailLoader({ request, params }: LoaderFunctionArgs) {
+  const { user, householdId } = await requireHousehold(request)
+  const providerId = params.providerId ?? ''
+  if (!UUID.test(providerId)) throw notFound()
+  if (householdId) {
+    const households = await queryClient.query(householdsQuery(user.id))
+    const timezone = households.find((h) => h.id === householdId)?.timezone
+    const [providers] = await Promise.all([
+      queryClient.query(providersQuery(householdId)),
+      queryClient.query(providerTotalsQuery(householdId)),
+      queryClient.query(providerTotalsQuery(householdId, yearRange(todayIn(timezone)))),
+      queryClient.infiniteQuery(expenseListQuery(householdId, { provider: providerId })),
+      queryClient.query(categoriesQuery(householdId)),
+    ])
+    if (!providers.some((p) => p.id === providerId)) throw notFound()
   }
   return null
 }
@@ -195,7 +229,12 @@ export async function categoriesLoader({ request }: LoaderFunctionArgs) {
 
 export async function recentlyDeletedLoader({ request }: LoaderFunctionArgs) {
   const { householdId } = await requireHousehold(request)
-  if (householdId) await queryClient.query(recentlyDeletedQuery(householdId))
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(recentlyDeletedQuery(householdId)),
+      queryClient.query(providersQuery(householdId)),
+    ])
+  }
   return null
 }
 

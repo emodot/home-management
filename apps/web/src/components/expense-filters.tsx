@@ -37,12 +37,14 @@ export function ExpenseFiltersSheet({
   onApply,
   categories,
   members,
+  providers,
   timezone,
 }: {
   filters: ExpenseFilters
   onApply: (filters: ExpenseFilters) => void
   categories: Category[]
   members: { id: string; name: string }[]
+  providers: { id: string; name: string }[]
   timezone: string
 }) {
   const [open, setOpen] = useState(false)
@@ -159,6 +161,27 @@ export function ExpenseFiltersSheet({
               </SelectContent>
             </Select>
           </Field>
+          {providers.length > 0 && (
+            <Field>
+              <FieldLabel htmlFor="filter-provider">Provider</FieldLabel>
+              <Select
+                value={draft.provider ?? ANY}
+                onValueChange={(v) => setDraft({ ...draft, provider: v === ANY ? undefined : v })}
+              >
+                <SelectTrigger id="filter-provider" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ANY}>Any provider</SelectItem>
+                  {providers.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
           <Field>
             <FieldLabel htmlFor="filter-receipt">Receipt</FieldLabel>
             <Select
@@ -188,19 +211,7 @@ export function ExpenseFiltersSheet({
           >
             Show results
           </Button>
-          <Button
-            variant="ghost"
-            onClick={() =>
-              setDraft({
-                q: draft.q,
-                from: undefined,
-                to: undefined,
-                category: undefined,
-                paidBy: undefined,
-                receipt: undefined,
-              })
-            }
-          >
+          <Button variant="ghost" onClick={() => setDraft({ q: draft.q })}>
             Reset
           </Button>
         </SheetFooter>

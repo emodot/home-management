@@ -25,6 +25,8 @@ import {
   inviteLoader,
   membersLoader,
   onboardingLoader,
+  providerDetailLoader,
+  providersLoader,
   recentlyDeletedLoader,
   recurringLoader,
   signInLoader,
@@ -34,6 +36,9 @@ import { MorePage } from '@/routes/more'
 import { NewHouseholdPage } from '@/routes/new-household'
 import { NotFoundPage } from '@/routes/not-found'
 import { OnboardingPage } from '@/routes/onboarding'
+import { ProviderDetailPage } from '@/routes/provider-detail'
+import { EditProviderPage, NewProviderPage } from '@/routes/provider-form'
+import { ProvidersPage } from '@/routes/providers'
 import { RecentlyDeletedPage } from '@/routes/recently-deleted'
 import { RecurringPage } from '@/routes/recurring'
 import { EditRecurringPage, NewRecurringPage } from '@/routes/recurring-form'
@@ -79,6 +84,18 @@ export const router = createBrowserRouter([
                   },
                   { path: 'insights', loader: insightsLoader, element: <InsightsPage /> },
                   { path: 'budgets', loader: budgetsLoader, element: <BudgetsPage /> },
+                  { path: 'providers', loader: providersLoader, element: <ProvidersPage /> },
+                  { path: 'providers/new', loader: providersLoader, element: <NewProviderPage /> },
+                  {
+                    path: 'providers/:providerId',
+                    loader: providerDetailLoader,
+                    element: <ProviderDetailPage />,
+                  },
+                  {
+                    path: 'providers/:providerId/edit',
+                    loader: providerDetailLoader,
+                    element: <EditProviderPage />,
+                  },
                   { path: 'recurring', loader: recurringLoader, element: <RecurringPage /> },
                   { path: 'recurring/new', loader: recurringLoader, element: <NewRecurringPage /> },
                   {

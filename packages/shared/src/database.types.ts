@@ -172,6 +172,7 @@ export type Database = {
           notes: string | null
           occurred_on: string
           paid_by: string | null
+          provider_id: string | null
           recurring_expense_id: string | null
           status: string
           updated_at: string
@@ -190,6 +191,7 @@ export type Database = {
           notes?: string | null
           occurred_on: string
           paid_by?: string | null
+          provider_id?: string | null
           recurring_expense_id?: string | null
           status?: string
           updated_at?: string
@@ -208,6 +210,7 @@ export type Database = {
           notes?: string | null
           occurred_on?: string
           paid_by?: string | null
+          provider_id?: string | null
           recurring_expense_id?: string | null
           status?: string
           updated_at?: string
@@ -394,6 +397,68 @@ export type Database = {
           },
         ]
       }
+      providers: {
+        Row: {
+          area: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          email: string | null
+          household_id: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          rating: number | null
+          trade: string
+          updated_at: string
+          updated_by: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          area?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          household_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          trade?: string
+          updated_at?: string
+          updated_by?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          area?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          household_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          trade?: string
+          updated_at?: string
+          updated_by?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "providers_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recurring_expenses: {
         Row: {
           amount_minor: number
@@ -409,6 +474,7 @@ export type Database = {
           is_active: boolean
           next_due_on: string
           paid_by: string | null
+          provider_id: string | null
           start_on: string
           updated_at: string
           updated_by: string | null
@@ -427,6 +493,7 @@ export type Database = {
           is_active?: boolean
           next_due_on: string
           paid_by?: string | null
+          provider_id?: string | null
           start_on: string
           updated_at?: string
           updated_by?: string | null
@@ -445,6 +512,7 @@ export type Database = {
           is_active?: boolean
           next_due_on?: string
           paid_by?: string | null
+          provider_id?: string | null
           start_on?: string
           updated_at?: string
           updated_by?: string | null
@@ -482,6 +550,7 @@ export type Database = {
           notes: string | null
           occurred_on: string | null
           paid_by: string | null
+          provider_id: string | null
           receipt_count: number | null
           recurring_expense_id: string | null
           search_text: string | null
@@ -529,6 +598,14 @@ export type Database = {
         Returns: {
           category_id: string
           expense_count: number
+          total_minor: number
+        }[]
+      }
+      expense_provider_totals: {
+        Args: { p_from?: string; p_household_id: string; p_to?: string }
+        Returns: {
+          expense_count: number
+          provider_id: string
           total_minor: number
         }[]
       }

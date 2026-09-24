@@ -22,6 +22,7 @@ import { PendingExpenses } from '@/components/pending-expenses'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useActiveHousehold } from '@/hooks/use-household'
+import { useProviderLookup } from '@/hooks/use-providers'
 import { downloadTextFile, slugify } from '@/lib/download'
 import { errorMessage } from '@/lib/errors'
 import { describeFilters } from '@/lib/expense-filter-labels'
@@ -86,6 +87,7 @@ function ExportButton({ filters }: { filters: ExpenseFilters }) {
   const household = useActiveHousehold()
   const categories = useCategoryLookup(household.id)
   const memberNames = useMemberNames(household.id)
+  const providers = useProviderLookup(household.id)
   const [busy, setBusy] = useState(false)
 
   async function exportCsv() {
@@ -95,6 +97,7 @@ function ExportButton({ filters }: { filters: ExpenseFilters }) {
       const csv = expensesToCsv(expenses, {
         category: (id) => categories.get(id)?.name ?? '',
         person: (id) => (id ? (memberNames.get(id) ?? 'Former member') : ''),
+        provider: (id) => (id ? (providers.get(id)?.name ?? '') : ''),
       })
       downloadTextFile(
         `expenses-${slugify(household.name)}-${todayIn(household.timezone)}.csv`,
@@ -125,6 +128,11 @@ export function ExpensesPage() {
   const members = useSuspenseQuery(membersQuery(household.id)).data
   const categoryLookup = useCategoryLookup(household.id)
   const memberNames = useMemberNames(household.id)
+  const providerLookup = useProviderLookup(household.id)
+  const providerNames = useMemo(
+    () => new Map([...providerLookup].map(([id, p]) => [id, p.name])),
+    [providerLookup],
+  )
   const list = useSuspenseInfiniteQuery(expenseListQuery(household.id, filters))
   const pendingCount = useSuspenseQuery(pendingExpensesQuery(household.id)).data.length
 
@@ -145,6 +153,7 @@ export function ExpensesPage() {
   const chips = describeFilters(filters, {
     categories: categoryLookup,
     memberNames,
+    providerNames,
     today: todayIn(household.timezone),
   })
   const hasFilters = chips.length > 0 || !!filters.q
@@ -199,6 +208,9 @@ export function ExpensesPage() {
               id: m.user_id,
               name: m.profile.full_name ?? m.profile.email,
             }))}
+            providers={[...providerLookup.values()]
+              .filter((p) => p.deleted_at === null)
+              .map((p) => ({ id: p.id, name: p.name }))}
             timezone={household.timezone}
           />
         </div>

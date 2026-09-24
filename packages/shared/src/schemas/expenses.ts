@@ -47,6 +47,7 @@ export const expenseInputSchema = z.object({
   categoryId: z.uuid('Choose a category'),
   description: descriptionSchema,
   paidBy: z.uuid().nullable(),
+  providerId: z.uuid().nullable(),
   notes: notesSchema,
 })
 export type ExpenseInput = z.input<typeof expenseInputSchema>
@@ -59,6 +60,7 @@ export const expenseFormSchema = z
     categoryId: z.string().min(1, 'Choose a category').pipe(z.uuid('Choose a category')),
     description: descriptionSchema,
     paidBy: z.uuid().nullable(),
+    providerId: z.uuid().nullable(),
     notes: notesSchema,
   })
   .transform(({ amount, ...rest }) => ({ amountMinor: amount, ...rest }))
@@ -77,6 +79,7 @@ export const expenseFiltersSchema = z.object({
   to: optional(isoDateSchema),
   category: optional(z.uuid()),
   paidBy: optional(z.uuid()),
+  provider: optional(z.uuid()),
   receipt: optional(z.enum(['with', 'without'])),
   q: optional(
     z
@@ -95,7 +98,7 @@ export function parseExpenseFilters(params: Record<string, string | undefined>):
 /** Filters → search params, omitting empty values (stable key order for query keys). */
 export function expenseFiltersToParams(filters: ExpenseFilters): Record<string, string> {
   const params: Record<string, string> = {}
-  for (const key of ['from', 'to', 'category', 'paidBy', 'receipt', 'q'] as const) {
+  for (const key of ['from', 'to', 'category', 'paidBy', 'provider', 'receipt', 'q'] as const) {
     const value = filters[key]
     if (value) params[key] = value
   }

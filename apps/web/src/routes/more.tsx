@@ -13,15 +13,17 @@ export function MorePage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">More</h1>
       <ul className="divide-y rounded-xl border">
-        {SIDEBAR_ITEMS.filter((item) => item.to !== '/' && item.to !== '/insights').map((item) => (
-          <li key={item.to}>
-            <Link to={item.to} className={rowClass}>
-              <item.icon className="size-5 text-muted-foreground" aria-hidden />
-              <span className="flex-1">{item.label}</span>
-              <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
-            </Link>
-          </li>
-        ))}
+        {SIDEBAR_ITEMS.filter((item) => !['/', '/insights', '/providers'].includes(item.to)).map(
+          (item) => (
+            <li key={item.to}>
+              <Link to={item.to} className={rowClass}>
+                <item.icon className="size-5 text-muted-foreground" aria-hidden />
+                <span className="flex-1">{item.label}</span>
+                <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
+              </Link>
+            </li>
+          ),
+        )}
         <li>
           <Link to="/households/new" className={rowClass}>
             <PlusIcon className="size-5 text-muted-foreground" aria-hidden />

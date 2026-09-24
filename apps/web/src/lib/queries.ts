@@ -4,6 +4,7 @@ import {
   getCategoryTotals,
   getExpense,
   getProfile,
+  getProviderTotals,
   getReceiptUrls,
   listBudgets,
   listCategories,
@@ -12,6 +13,7 @@ import {
   listMyHouseholds,
   listPendingExpenses,
   listPendingInvites,
+  listProviders,
   listReceipts,
   listRecentlyDeleted,
   listRecurringExpenses,
@@ -117,4 +119,25 @@ export const recurringExpensesQuery = (householdId: string) =>
   queryOptions({
     queryKey: [...householdKey(householdId), 'recurring'],
     queryFn: () => listRecurringExpenses(supabase, householdId),
+  })
+
+export const providersQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...householdKey(householdId), 'providers'],
+    queryFn: () => listProviders(supabase, householdId),
+  })
+
+/** Under expensesKey so expense changes refresh provider totals. */
+export const providerTotalsQuery = (
+  householdId: string,
+  range: { from?: string; to?: string } = {},
+) =>
+  queryOptions({
+    queryKey: [
+      ...expensesKey(householdId),
+      'provider-totals',
+      range.from ?? null,
+      range.to ?? null,
+    ],
+    queryFn: () => getProviderTotals(supabase, householdId, range),
   })

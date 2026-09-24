@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { CategoryIcon } from '@/components/category-icon'
+import { ProviderCombobox } from '@/components/provider-combobox'
 import { ReceiptPicker, type PickedReceipt } from '@/components/receipt-picker'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -21,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useActiveHousehold } from '@/hooks/use-household'
 import { tidyAmountInput } from '@/lib/amount'
 import type { PreparedReceipt } from '@/lib/images'
 
@@ -43,6 +45,7 @@ export function ExpenseForm({
   withReceipts?: boolean
   onCancel: () => void
 }) {
+  const household = useActiveHousehold()
   const [receipts, setReceipts] = useState<PickedReceipt[]>([])
   const [preparing, setPreparing] = useState(false)
   const form = useForm({
@@ -131,6 +134,22 @@ export function ExpenseForm({
             )}
           />
           <FieldError errors={[errors.categoryId]} />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="providerId">Provider (optional)</FieldLabel>
+          <Controller
+            control={form.control}
+            name="providerId"
+            render={({ field }) => (
+              <ProviderCombobox
+                id="providerId"
+                householdId={household.id}
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">

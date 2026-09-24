@@ -20,6 +20,7 @@ const expense: Expense = {
   deletedAt: null,
   receiptCount: 2,
   recurringExpenseId: null,
+  providerId: 'p1',
 }
 
 describe('expensesToCsv', () => {
@@ -27,11 +28,12 @@ describe('expensesToCsv', () => {
     const csv = expensesToCsv([expense, { ...expense, amountMinor: 1_000_000, paidBy: null }], {
       category: () => 'Fuel & Generator',
       person: (id) => (id === 'u1' ? 'Ada Obi' : id === 'u2' ? 'Bola Ade' : ''),
+      provider: (id) => (id === 'p1' ? 'Musa Electric' : ''),
     })
     expect(csv.replace(/^\uFEFF/, '').split('\r\n')).toEqual([
-      'Date,Description,Category,Amount,Currency,Paid by,Notes,Receipts,Added by,Added at',
-      '2026-09-20,"Diesel, 50L",Fuel & Generator,45000.50,NGN,Ada Obi,,2,Bola Ade,2026-09-20T10:00:00.000Z',
-      '2026-09-20,"Diesel, 50L",Fuel & Generator,10000.00,NGN,,,2,Bola Ade,2026-09-20T10:00:00.000Z',
+      'Date,Description,Category,Amount,Currency,Paid by,Provider,Notes,Receipts,Added by,Added at',
+      '2026-09-20,"Diesel, 50L",Fuel & Generator,45000.50,NGN,Ada Obi,Musa Electric,,2,Bola Ade,2026-09-20T10:00:00.000Z',
+      '2026-09-20,"Diesel, 50L",Fuel & Generator,10000.00,NGN,,Musa Electric,,2,Bola Ade,2026-09-20T10:00:00.000Z',
       '',
     ])
   })

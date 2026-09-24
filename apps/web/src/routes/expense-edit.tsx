@@ -30,6 +30,7 @@ export function EditExpensePage() {
           categoryId: expense.categoryId,
           description: expense.description,
           paidBy: expense.paidBy,
+          providerId: expense.providerId,
           notes: expense.notes,
         }}
         onCancel={() => void navigate(-1)}

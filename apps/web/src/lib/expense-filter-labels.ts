@@ -37,8 +37,14 @@ export function describeFilters(
   {
     categories,
     memberNames,
+    providerNames,
     today,
-  }: { categories: Map<string, Category>; memberNames: Map<string, string>; today: string },
+  }: {
+    categories: Map<string, Category>
+    memberNames: Map<string, string>
+    providerNames: Map<string, string>
+    today: string
+  },
 ) {
   const chips: { key: keyof ExpenseFilters | 'period'; label: string }[] = []
   const period = periodOf(filters, today)
@@ -57,6 +63,9 @@ export function describeFilters(
       key: 'paidBy',
       label: `Paid by ${memberNames.get(filters.paidBy) ?? 'former member'}`,
     })
+  }
+  if (filters.provider) {
+    chips.push({ key: 'provider', label: providerNames.get(filters.provider) ?? 'Provider' })
   }
   if (filters.receipt) {
     chips.push({
