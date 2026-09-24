@@ -142,22 +142,41 @@ export async function expenseFormLoader({ request }: LoaderFunctionArgs) {
   return null
 }
 
-export async function expenseDetailLoader({ request, params }: LoaderFunctionArgs) {
-  const { householdId } = await requireHousehold(request)
-  const expenseId = params.expenseId ?? ''
-  if (!UUID.test(expenseId)) throw notFound()
-  if (householdId) {
-    const [expense] = await Promise.all([
-      queryClient.query(expenseQuery(householdId, expenseId)),
-      queryClient.query(receiptsQuery(householdId, expenseId)),
-      queryClient.query(tasksQuery(householdId)),
-      queryClient.query(providersQuery(householdId)),
-      queryClient.query(categoriesQuery(householdId)),
-      queryClient.query(membersQuery(householdId)),
-    ])
-    // RLS hides other households' expenses, so this also covers "not yours".
-    if (!expense) throw notFound()
+/**
+ * For pages about one record (links from emails, shared URLs): returns the household that owns
+ * the record, making it the active household first if it isn't. 404 if the user can't see it.
+ */
+async function householdOfRecord(
+  request: Request,
+  table: 'expenses' | 'tasks' | 'providers',
+  id: string,
+): Promise<string> {
+  const { user, householdId: activeId } = await requireHousehold(request)
+  if (!UUID.test(id)) throw notFound()
+  const { data } = await supabase.from(table).select('household_id').eq('id', id).maybeSingle()
+  // RLS hides other households' records, so this also covers "not yours".
+  if (!data) throw notFound()
+  if (data.household_id !== activeId) {
+    await setActiveHousehold(supabase, user.id, data.household_id)
+    queryClient.setQueryData(profileQuery(user.id).queryKey, (profile) =>
+      profile ? { ...profile, active_household_id: data.household_id } : profile,
+    )
   }
+  return data.household_id
+}
+
+export async function expenseDetailLoader({ request, params }: LoaderFunctionArgs) {
+  const expenseId = params.expenseId ?? ''
+  const householdId = await householdOfRecord(request, 'expenses', expenseId)
+  const [expense] = await Promise.all([
+    queryClient.query(expenseQuery(householdId, expenseId)),
+    queryClient.query(receiptsQuery(householdId, expenseId)),
+    queryClient.query(tasksQuery(householdId)),
+    queryClient.query(providersQuery(householdId)),
+    queryClient.query(categoriesQuery(householdId)),
+    queryClient.query(membersQuery(householdId)),
+  ])
+  if (!expense) throw notFound()
   return null
 }
 
@@ -213,22 +232,19 @@ export async function providersLoader({ request }: LoaderFunctionArgs) {
 }
 
 export async function providerDetailLoader({ request, params }: LoaderFunctionArgs) {
-  const { user, householdId } = await requireHousehold(request)
   const providerId = params.providerId ?? ''
-  if (!UUID.test(providerId)) throw notFound()
-  if (householdId) {
-    const households = await queryClient.query(householdsQuery(user.id))
-    const timezone = households.find((h) => h.id === householdId)?.timezone
-    const [providers] = await Promise.all([
-      queryClient.query(providersQuery(householdId)),
-      queryClient.query(providerTotalsQuery(householdId)),
-      queryClient.query(providerTotalsQuery(householdId, yearRange(todayIn(timezone)))),
-      queryClient.infiniteQuery(expenseListQuery(householdId, { provider: providerId })),
-      queryClient.query(providerTasksQuery(householdId, providerId)),
-      queryClient.query(categoriesQuery(householdId)),
-    ])
-    if (!providers.some((p) => p.id === providerId)) throw notFound()
-  }
+  const householdId = await householdOfRecord(request, 'providers', providerId)
+  const user = await requireUser(request)
+  const households = await queryClient.query(householdsQuery(user.id))
+  const timezone = households.find((h) => h.id === householdId)?.timezone
+  await Promise.all([
+    queryClient.query(providersQuery(householdId)),
+    queryClient.query(providerTotalsQuery(householdId)),
+    queryClient.query(providerTotalsQuery(householdId, yearRange(todayIn(timezone)))),
+    queryClient.infiniteQuery(expenseListQuery(householdId, { provider: providerId })),
+    queryClient.query(providerTasksQuery(householdId, providerId)),
+    queryClient.query(categoriesQuery(householdId)),
+  ])
   return null
 }
 
@@ -246,19 +262,16 @@ export async function tasksLoader({ request }: LoaderFunctionArgs) {
 }
 
 export async function taskDetailLoader({ request, params }: LoaderFunctionArgs) {
-  const { householdId } = await requireHousehold(request)
   const taskId = params.taskId ?? ''
-  if (!UUID.test(taskId)) throw notFound()
-  if (householdId) {
-    const [task] = await Promise.all([
-      queryClient.query(taskQuery(householdId, taskId)),
-      queryClient.query(taskHistoryQuery(householdId, taskId)),
-      queryClient.query(membersQuery(householdId)),
-      queryClient.query(providersQuery(householdId)),
-      queryClient.query(categoriesQuery(householdId)),
-    ])
-    if (!task) throw notFound()
-  }
+  const householdId = await householdOfRecord(request, 'tasks', taskId)
+  const [task] = await Promise.all([
+    queryClient.query(taskQuery(householdId, taskId)),
+    queryClient.query(taskHistoryQuery(householdId, taskId)),
+    queryClient.query(membersQuery(householdId)),
+    queryClient.query(providersQuery(householdId)),
+    queryClient.query(categoriesQuery(householdId)),
+  ])
+  if (!task) throw notFound()
   return null
 }
 

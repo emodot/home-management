@@ -1,5 +1,6 @@
 // Pre-renders the React Email templates into generated/index.ts: a dependency-free module the
 // Deno edge functions import. Values are substituted at send time (HTML-escaped in the HTML part).
+// Templates can't branch at send time, so conditional content is rendered as named variants.
 // Run: pnpm --filter @home/emails build
 import { render } from '@react-email/render'
 import { writeFile } from 'node:fs/promises'
@@ -10,24 +11,56 @@ import {
   inviteSubject,
   type InviteEmailProps,
 } from '../src/templates/invite.tsx'
+import {
+  TaskReminderEmail,
+  taskReminderSample,
+  taskReminderSubject,
+  type TaskReminderEmailProps,
+  type TaskReminderVariant,
+} from '../src/templates/task-reminder.tsx'
 
 interface TemplateDef<P> {
   fn: string
   propsType: string
   sample: P
-  element: (props: P) => ReactElement
-  subject: (props: P) => string
+  /** One entry per variant; a single `default` variant makes a plain render function. */
+  variants: Record<string, { element: (props: P) => ReactElement; subject: (props: P) => string }>
 }
+
+const reminderVariants = (
+  ['upcoming', 'upcomingWithProvider', 'overdue', 'overdueWithProvider'] as const
+).reduce<TemplateDef<TaskReminderEmailProps>['variants']>(
+  (acc, variant: TaskReminderVariant) => ({
+    ...acc,
+    [variant]: {
+      element: (props: TaskReminderEmailProps) => (
+        <TaskReminderEmail variant={variant} {...props} />
+      ),
+      subject: (props: TaskReminderEmailProps) => taskReminderSubject(variant, props),
+    },
+  }),
+  {},
+)
 
 const templates = [
   {
     fn: 'renderInviteEmail',
     propsType: 'InviteEmailVars',
     sample: inviteSample,
-    element: (props: InviteEmailProps) => <InviteEmail {...props} />,
-    subject: inviteSubject,
+    variants: {
+      default: {
+        element: (props: InviteEmailProps) => <InviteEmail {...props} />,
+        subject: inviteSubject,
+      },
+    },
   } satisfies TemplateDef<InviteEmailProps>,
-]
+  {
+    fn: 'renderTaskReminderEmail',
+    propsType: 'TaskReminderEmailVars',
+    sample: taskReminderSample,
+    variants: reminderVariants,
+  } satisfies TemplateDef<TaskReminderEmailProps>,
+] as unknown as TemplateDef<Record<string, string>>[]
 
 // Numeric placeholders survive the plain-text renderer, which may change letter case.
 const placeholder = (i: number) => `%%${i}%%`
@@ -58,30 +91,37 @@ const identity = (value: string) => value
 `
 
 for (const t of templates) {
-  const keys = Object.keys(t.sample) as (keyof typeof t.sample)[]
-  const placeholders = Object.fromEntries(
-    keys.map((k, i) => [k, placeholder(i)]),
-  ) as unknown as typeof t.sample
-
-  const html = await render(t.element(placeholders))
-  const text = await render(t.element(placeholders), { plainText: true })
-  const subject = t.subject(placeholders)
-
+  const keys = Object.keys(t.sample)
+  const placeholders = Object.fromEntries(keys.map((k, i) => [k, placeholder(i)]))
+  const rendered: Record<string, { subject: string; html: string; text: string }> = {}
+  for (const [name, variant] of Object.entries(t.variants)) {
+    const html = await render(variant.element(placeholders))
+    const text = await render(variant.element(placeholders), { plainText: true })
+    rendered[name] = { subject: variant.subject(placeholders), html, text }
+  }
+  // Every value must appear in at least one variant (a typo'd prop would silently vanish).
   keys.forEach((k, i) => {
-    if (!html.includes(placeholder(i))) throw new Error(`${t.fn}: "${k}" missing from HTML`)
+    if (!Object.values(rendered).some((r) => r.html.includes(placeholder(i)))) {
+      throw new Error(`${t.fn}: "${k}" missing from every variant`)
+    }
   })
 
+  const names = Object.keys(rendered)
+  const single = names.length === 1 && names[0] === 'default'
   out += `
 export interface ${t.propsType} {
 ${keys.map((k) => `  ${k}: string`).join('\n')}
 }
+${single ? '' : `\nexport type ${t.propsType.replace(/Vars$/, 'Variant')} = ${names.map((n) => `'${n}'`).join(' | ')}\n`}
+const ${t.fn}Templates: Record<string, RenderedEmail> = ${JSON.stringify(rendered)}
 
-export function ${t.fn}(vars: ${t.propsType}): RenderedEmail {
+export function ${t.fn}(${single ? '' : `variant: ${t.propsType.replace(/Vars$/, 'Variant')}, `}vars: ${t.propsType}): RenderedEmail {
+  const t = ${t.fn}Templates[${single ? "'default'" : 'variant'}]!
   const values = [${keys.map((k) => `vars.${k}`).join(', ')}]
   return {
-    subject: fill(${JSON.stringify(subject)}, values, oneLine),
-    html: fill(${JSON.stringify(html)}, values, escapeHtml),
-    text: fill(${JSON.stringify(text)}, values, identity),
+    subject: fill(t.subject, values, oneLine),
+    html: fill(t.html, values, escapeHtml),
+    text: fill(t.text, values, identity),
   }
 }
 `

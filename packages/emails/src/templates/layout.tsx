@@ -9,7 +9,15 @@ export const colors = {
   primaryText: '#fafaf9',
 }
 
-export function EmailLayout({ preview, children }: { preview: string; children: ReactNode }) {
+export function EmailLayout({
+  preview,
+  footer = "You received this because someone used Home to contact you. If you weren't expecting it, you can ignore this email.",
+  children,
+}: {
+  preview: string
+  footer?: string
+  children: ReactNode
+}) {
   return (
     <Html lang="en">
       <Head />
@@ -37,8 +45,7 @@ export function EmailLayout({ preview, children }: { preview: string; children: 
           <Section>{children}</Section>
           <Hr style={{ borderColor: colors.border, margin: '28px 0 16px' }} />
           <Text style={{ color: colors.muted, fontSize: 12, lineHeight: '18px', margin: 0 }}>
-            You received this because someone used Home to contact you. If you weren&apos;t
-            expecting it, you can ignore this email.
+            {footer}
           </Text>
         </Container>
       </Body>

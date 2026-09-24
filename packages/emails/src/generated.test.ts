@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { renderInviteEmail } from '../generated/index.ts'
+import { renderInviteEmail, renderTaskReminderEmail } from '../generated/index.ts'
 import { inviteSample } from './templates/invite.tsx'
+import { taskReminderSample } from './templates/task-reminder.tsx'
 
 describe('renderInviteEmail', () => {
   it('fills every value into subject, HTML and text', () => {
@@ -25,5 +26,23 @@ describe('renderInviteEmail', () => {
     expect(renderInviteEmail({ ...inviteSample, inviterName: 'Ada\r\nBcc: x' }).subject).toBe(
       'Ada Bcc: x invited you to Lekki flat on Home',
     )
+  })
+})
+
+describe('renderTaskReminderEmail', () => {
+  it('renders upcoming reminders with the provider when there is one', () => {
+    const email = renderTaskReminderEmail('upcomingWithProvider', taskReminderSample)
+    expect(email.subject).toBe('Reminder: Service the generator is due tomorrow')
+    expect(email.text).toContain('This is due tomorrow (26 September 2026) in Lekki flat.')
+    expect(email.text).toContain('Provider: Emeka Gen Services · +234 805 123 4567')
+    expect(email.html).toContain('href="http://localhost:5173/tasks/sample"')
+  })
+
+  it('leaves the provider out of the plain variants', () => {
+    const email = renderTaskReminderEmail('overdue', taskReminderSample)
+    expect(email.subject).toBe('Overdue: Service the generator was due 26 September 2026')
+    expect(email.text).toContain("hasn't been marked done yet")
+    expect(email.text).not.toContain('Provider:')
+    expect(email.html).not.toMatch(/%%\d+%%/)
   })
 })

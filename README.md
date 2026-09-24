@@ -29,8 +29,17 @@ In the hosted project, configure Google under Authentication → Providers, and 
 
 ### Daily jobs
 
-`pg_cron` calls the `daily-jobs` edge function at 06:00 UTC (07:00 in Lagos). It currently turns
-due recurring bills into pending expenses; it's safe to run more than once. Set up per project:
+`pg_cron` calls the `daily-jobs` edge function at 06:00 UTC (07:00 in Lagos). It is safe to run
+more than once. In order, it:
+
+1. turns due recurring bills into pending expenses;
+2. emails task reminders (upcoming and overdue), logging each in `reminder_logs` first so none is
+   sent twice; failed sends are released and retried the next day;
+3. hard-deletes expenses, receipts, providers and tasks soft-deleted over 30 days ago, and their
+   receipt files;
+4. deletes invites that expired over 30 days ago.
+
+Set up per project:
 
 1. `supabase secrets set CRON_SECRET=<long random string>` (locally: `supabase/functions/.env`).
 2. In the SQL editor, store the URL and the same secret in Vault:

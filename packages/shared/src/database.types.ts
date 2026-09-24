@@ -537,6 +537,36 @@ export type Database = {
           },
         ]
       }
+      reminder_logs: {
+        Row: {
+          due_on: string
+          household_id: string
+          id: string
+          kind: string
+          recipient_user_id: string
+          sent_at: string
+          task_id: string
+        }
+        Insert: {
+          due_on: string
+          household_id: string
+          id?: string
+          kind: string
+          recipient_user_id: string
+          sent_at?: string
+          task_id: string
+        }
+        Update: {
+          due_on?: string
+          household_id?: string
+          id?: string
+          kind?: string
+          recipient_user_id?: string
+          sent_at?: string
+          task_id?: string
+        }
+        Relationships: []
+      }
       task_completions: {
         Row: {
           completed_by: string | null
@@ -717,6 +747,24 @@ export type Database = {
       }
     }
     Functions: {
+      claim_task_reminders: {
+        Args: { p_today?: string }
+        Returns: {
+          assigned_to_recipient: boolean
+          due_on: string
+          household_id: string
+          household_name: string
+          kind: string
+          log_id: string
+          provider_name: string | null
+          provider_phone: string | null
+          recipient_email: string
+          recipient_name: string
+          recipient_user_id: string
+          task_id: string
+          task_title: string
+        }[]
+      }
       complete_task: {
         Args: { p_completed_on?: string; p_notes?: string; p_task_id: string }
         Returns: string
@@ -737,6 +785,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      delete_expired_invites: { Args: { p_before?: string }; Returns: number }
       expense_category_totals: {
         Args: { p_from: string; p_household_id: string; p_to: string }
         Returns: {
@@ -802,6 +851,8 @@ export type Database = {
         }
         Returns: string
       }
+      purge_deleted_rows: { Args: { p_before?: string }; Returns: Json }
+      release_task_reminder: { Args: { p_log_id: string }; Returns: undefined }
       reorder_expense_categories: {
         Args: { p_household_id: string; p_ids: string[] }
         Returns: undefined
