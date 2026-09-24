@@ -15,7 +15,7 @@ import { errorMessage } from '@/lib/errors'
 import type { signInLoader } from './loaders'
 
 export function SignInPage() {
-  const { next } = useLoaderData<typeof signInLoader>()
+  const { next, forInvite } = useLoaderData<typeof signInLoader>()
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [googlePending, setGooglePending] = useState(false)
 
@@ -79,7 +79,14 @@ export function SignInPage() {
   }
 
   return (
-    <AuthCard title="Sign in" description="Manage your home's expenses, tasks and providers.">
+    <AuthCard
+      title={forInvite ? 'Sign in to accept your invite' : 'Sign in'}
+      description={
+        forInvite
+          ? 'Use the email address your invite was sent to.'
+          : "Manage your home's expenses, tasks and providers."
+      }
+    >
       <FieldGroup>
         <Button
           variant="outline"

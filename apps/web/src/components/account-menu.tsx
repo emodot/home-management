@@ -1,6 +1,5 @@
 import { LogOutIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,14 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { UserAvatar } from '@/components/user-avatar'
 import { useProfile } from '@/hooks/use-household'
 import { signOut } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
-
-function initials(nameOrEmail: string): string {
-  const parts = nameOrEmail.split(/[\s@._-]+/).filter(Boolean)
-  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?'
-}
 
 export function AccountMenu() {
   const profile = useProfile()
@@ -32,10 +27,7 @@ export function AccountMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
-          <Avatar className="size-8">
-            {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt="" />}
-            <AvatarFallback className="text-xs">{initials(displayName)}</AvatarFallback>
-          </Avatar>
+          <UserAvatar name={displayName} avatarUrl={profile.avatar_url} />
           <span className="sr-only">Account</span>
         </Button>
       </DropdownMenuTrigger>

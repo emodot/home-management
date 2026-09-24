@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from './database.types'
+import type { Database } from './database.types.ts'
 
 /** A Supabase client typed with this project's schema. Web and mobile both pass one in. */
 export type HomeClient = SupabaseClient<Database>

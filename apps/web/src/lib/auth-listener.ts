@@ -21,8 +21,17 @@ export function listenForAuthChanges(router: Router, queryClient: QueryClient) {
     // supabase-js holds its auth lock while this callback runs, so defer the work.
     setTimeout(() => {
       queryClient.clear()
-      if (nextUserId) void router.revalidate()
-      else void router.navigate('/sign-in')
+      if (nextUserId) {
+        void router.revalidate()
+        return
+      }
+      // Keep invite links working across a sign-out (e.g. switching to the invited account).
+      const { pathname } = router.state.location
+      void router.navigate(
+        pathname.startsWith('/invite/')
+          ? `/sign-in?next=${encodeURIComponent(pathname)}`
+          : '/sign-in',
+      )
     }, 0)
   })
 }

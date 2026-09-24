@@ -1,6 +1,6 @@
-import { unwrap, type HomeClient } from '../client'
-import type { Tables } from '../database.types'
-import { updateProfileSchema, type UpdateProfileInput } from '../schemas/household'
+import { unwrap, type HomeClient } from '../client.ts'
+import type { Tables } from '../database.types.ts'
+import { updateProfileSchema, type UpdateProfileInput } from '../schemas/household.ts'
 
 export type Profile = Tables<'profiles'>
 

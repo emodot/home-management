@@ -1,8 +1,17 @@
-import { safeNextPath, setActiveHousehold } from '@home/shared'
+import {
+  acceptInvite,
+  AppError,
+  inviteTokenSchema,
+  safeNextPath,
+  setActiveHousehold,
+  type InviteDetails,
+} from '@home/shared'
 import { redirect, type LoaderFunctionArgs } from 'react-router'
+import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
-import { householdsQuery, profileQuery } from '@/lib/queries'
+import { errorMessage } from '@/lib/errors'
+import { householdsQuery, membersQuery, pendingInvitesQuery, profileQuery } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
 
 function signInRedirect(request: Request) {
@@ -44,6 +53,48 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
   return null
 }
 
+/** Same choice as AppLayout, for loaders that need the household up front. */
+async function activeHouseholdId(userId: string) {
+  const [profile, households] = await Promise.all([
+    queryClient.query(profileQuery(userId)),
+    queryClient.query(householdsQuery(userId)),
+  ])
+  return pickActiveHousehold(profile, households)?.id
+}
+
+export async function membersLoader({ request }: LoaderFunctionArgs) {
+  const user = await requireUser(request)
+  const householdId = await activeHouseholdId(user.id)
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(membersQuery(householdId)),
+      queryClient.query(pendingInvitesQuery(householdId)),
+    ])
+  }
+  return null
+}
+
+export type InviteLoaderData =
+  { status: 'ok'; token: string; invite: InviteDetails } | { status: 'error'; message: string }
+
+/** Looks the invite up (without accepting) so the page can ask "Join X?". */
+export async function inviteLoader({
+  request,
+  params,
+}: LoaderFunctionArgs): Promise<InviteLoaderData> {
+  await requireUser(request)
+  const token = inviteTokenSchema.safeParse(params.token)
+  if (!token.success) {
+    return { status: 'error', message: new AppError('invite_not_found').message }
+  }
+  try {
+    const invite = await acceptInvite(supabase, { token: token.data, preview: true })
+    return { status: 'ok', token: token.data, invite }
+  } catch (error) {
+    return { status: 'error', message: errorMessage(error) }
+  }
+}
+
 /** First run: only for users who don't belong to a household yet. */
 export async function onboardingLoader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
@@ -58,7 +109,7 @@ export async function onboardingLoader({ request }: LoaderFunctionArgs) {
 export async function signInLoader({ request }: LoaderFunctionArgs) {
   const next = safeNextPath(new URL(request.url).searchParams.get('next'))
   if (await getSessionUser()) throw redirect(next)
-  return { next }
+  return { next, forInvite: next.startsWith('/invite/') }
 }
 
 /**

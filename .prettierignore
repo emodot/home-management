@@ -6,3 +6,5 @@ supabase/.temp
 supabase/.branches
 **/database.types.ts
 SPEC.md
+packages/emails/generated
+supabase/functions/*/deno.lock

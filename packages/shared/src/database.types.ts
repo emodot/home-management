@@ -73,6 +73,57 @@ export type Database = {
         }
         Relationships: []
       }
+      invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          household_id: string
+          id: string
+          invited_by: string | null
+          revoked_at: string | null
+          token_hash: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          household_id: string
+          id?: string
+          invited_by?: string | null
+          revoked_at?: string | null
+          token_hash: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          household_id?: string
+          id?: string
+          invited_by?: string | null
+          revoked_at?: string | null
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active_household_id: string | null
@@ -129,7 +180,47 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      invite_accept: {
+        Args: { p_preview: boolean; p_token_hash: string; p_user_id: string }
+        Returns: {
+          already_member: boolean
+          email: string
+          email_matches: boolean
+          household_id: string
+          household_name: string
+          inviter_name: string
+        }[]
+      }
+      invite_revoke: {
+        Args: { p_invite_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      invite_upsert: {
+        Args: {
+          p_email: string
+          p_household_id: string
+          p_invited_by: string
+          p_token_hash: string
+        }
+        Returns: {
+          email: string
+          expires_at: string
+          household_name: string
+          invite_id: string
+          inviter_name: string
+          resent: boolean
+        }[]
+      }
       is_household_member: { Args: { hid: string }; Returns: boolean }
+      is_member_of: { Args: { hid: string; uid: string }; Returns: boolean }
+      leave_household: {
+        Args: {
+          p_delete_if_last: boolean
+          p_household_id: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       shares_household_with: {
         Args: { other_user_id: string }
         Returns: boolean

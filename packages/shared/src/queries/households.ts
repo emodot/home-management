@@ -1,6 +1,6 @@
-import { unwrap, type HomeClient } from '../client'
-import type { Tables } from '../database.types'
-import { createHouseholdSchema, type CreateHouseholdInput } from '../schemas/household'
+import { unwrap, type HomeClient } from '../client.ts'
+import type { Tables } from '../database.types.ts'
+import { createHouseholdSchema, type CreateHouseholdInput } from '../schemas/household.ts'
 
 export type Household = Tables<'households'>
 

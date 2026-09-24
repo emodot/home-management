@@ -11,6 +11,7 @@ export default defineConfig(
     '**/coverage',
     '**/.turbo',
     '**/database.types.ts',
+    'packages/emails/generated',
     // shadcn/ui components are generated and kept close to upstream.
     'apps/web/src/components/ui',
     // Deno edge functions are checked with `deno lint` / `deno check`.

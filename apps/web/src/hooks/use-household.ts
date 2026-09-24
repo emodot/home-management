@@ -1,5 +1,6 @@
-import { setActiveHousehold, type Household } from '@home/shared'
+import { setActiveHousehold, type Household, type Profile } from '@home/shared'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { createContext, useContext } from 'react'
 import { useRouteLoaderData } from 'react-router'
 import { householdsQuery, profileQuery } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
@@ -21,13 +22,23 @@ export function useHouseholds() {
   return useSuspenseQuery(householdsQuery(user.id)).data
 }
 
-/** The household the app is showing. The app loader guarantees there is one. */
+/** The saved active household, falling back to the first one (e.g. right after leaving). */
+export function pickActiveHousehold(profile: Profile, households: Household[]) {
+  return households.find((h) => h.id === profile.active_household_id) ?? households[0]
+}
+
+/**
+ * Provided by AppLayout, which renders nothing below it until there is a household. Reading it
+ * from context (not from the query cache in each component) means children never see a state
+ * where the list has just become empty.
+ */
+export const ActiveHouseholdContext = createContext<Household | null>(null)
+
+/** The household the app is showing. Only usable inside AppLayout. */
 export function useActiveHousehold(): Household {
-  const profile = useProfile()
-  const households = useHouseholds()
-  const active = households.find((h) => h.id === profile.active_household_id) ?? households[0]
-  if (!active) throw new Error('No household available')
-  return active
+  const household = useContext(ActiveHouseholdContext)
+  if (!household) throw new Error('useActiveHousehold must be used inside AppLayout')
+  return household
 }
 
 export function useSwitchHousehold() {

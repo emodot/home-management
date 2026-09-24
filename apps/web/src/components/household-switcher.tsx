@@ -1,4 +1,4 @@
-import { CheckIcon, ChevronsUpDownIcon, HomeIcon, PlusIcon } from 'lucide-react'
+import { CheckIcon, ChevronsUpDownIcon, HomeIcon, PlusIcon, UsersIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -49,6 +49,10 @@ export function HouseholdSwitcher() {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => void navigate('/members')}>
+          <UsersIcon aria-hidden />
+          Members &amp; invites
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void navigate('/households/new')}>
           <PlusIcon aria-hidden />
           New household

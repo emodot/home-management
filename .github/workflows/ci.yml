@@ -29,6 +29,15 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+
+      - name: Generated email templates are up to date
+        run: |
+          pnpm --filter @home/emails build
+          git diff --exit-code -- packages/emails/generated
+
+      - name: Edge functions (deno check, lint, test)
+        run: pnpm functions
+
       - run: pnpm build
         env:
           # Placeholder public values; the build doesn't contact Supabase.

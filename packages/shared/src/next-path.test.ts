@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { safeNextPath } from './next-path'
+import { safeNextPath } from './next-path.ts'
 
 describe('safeNextPath', () => {
   it.each(['/', '/invite/abc123', '/expenses?month=2026-09#top'])('keeps %s', (path) => {

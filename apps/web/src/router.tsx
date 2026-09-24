@@ -5,13 +5,17 @@ import { RootLayout } from '@/components/root-layout'
 import { RouteError } from '@/components/route-error'
 import { AuthCallbackPage } from '@/routes/auth-callback'
 import { ExpensesPage } from '@/routes/expenses'
+import { InvitePage } from '@/routes/invite'
 import {
   appLoader,
   authCallbackLoader,
   authedLoader,
+  inviteLoader,
+  membersLoader,
   onboardingLoader,
   signInLoader,
 } from '@/routes/loaders'
+import { MembersPage } from '@/routes/members'
 import { NewHouseholdPage } from '@/routes/new-household'
 import { NotFoundPage } from '@/routes/not-found'
 import { OnboardingPage } from '@/routes/onboarding'
@@ -31,6 +35,8 @@ export const router = createBrowserRouter([
         loader: authedLoader,
         children: [
           { path: 'onboarding', loader: onboardingLoader, element: <OnboardingPage /> },
+          // Works with or without a household (new users join through here).
+          { path: 'invite/:token', loader: inviteLoader, element: <InvitePage /> },
           {
             // Requires a household; redirects to onboarding otherwise.
             id: 'app',
@@ -39,6 +45,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <ExpensesPage /> },
               { path: 'households/new', element: <NewHouseholdPage /> },
+              { path: 'members', loader: membersLoader, element: <MembersPage /> },
             ],
           },
         ],

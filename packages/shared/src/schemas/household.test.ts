@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { emailSignInSchema } from './auth'
-import { createHouseholdSchema, onboardingSchema } from './household'
+import { emailSignInSchema } from './auth.ts'
+import { createHouseholdSchema, onboardingSchema } from './household.ts'
 
 describe('createHouseholdSchema', () => {
   it('trims the name', () => {
