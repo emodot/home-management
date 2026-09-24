@@ -1,9 +1,11 @@
 import {
   EXPENSE_PAGE_SIZE,
   expenseFiltersToParams,
+  getCategoryTotals,
   getExpense,
   getProfile,
   getReceiptUrls,
+  listBudgets,
   listCategories,
   listExpenses,
   listMembers,
@@ -88,4 +90,17 @@ export const recentlyDeletedQuery = (householdId: string) =>
   queryOptions({
     queryKey: [...expensesKey(householdId), 'deleted'],
     queryFn: () => listRecentlyDeleted(supabase, householdId),
+  })
+
+/** Under expensesKey so any expense change refreshes the dashboard. */
+export const categoryTotalsQuery = (householdId: string, range: { from: string; to: string }) =>
+  queryOptions({
+    queryKey: [...expensesKey(householdId), 'totals', range.from, range.to],
+    queryFn: () => getCategoryTotals(supabase, householdId, range),
+  })
+
+export const budgetsQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...householdKey(householdId), 'budgets'],
+    queryFn: () => listBudgets(supabase, householdId),
   })

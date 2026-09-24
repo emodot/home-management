@@ -13,7 +13,7 @@ export function MorePage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">More</h1>
       <ul className="divide-y rounded-xl border">
-        {SIDEBAR_ITEMS.filter((item) => item.to !== '/').map((item) => (
+        {SIDEBAR_ITEMS.filter((item) => item.to !== '/' && item.to !== '/insights').map((item) => (
           <li key={item.to}>
             <Link to={item.to} className={rowClass}>
               <item.icon className="size-5 text-muted-foreground" aria-hidden />

@@ -30,6 +30,13 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-viz-bar: var(--viz-bar);
+  --color-viz-track: var(--viz-track);
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-critical: var(--status-critical);
+  --color-delta-good: var(--delta-good);
+  --color-delta-bad: var(--delta-bad);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -78,6 +85,15 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Data viz (see the dataviz reference palette). One sequential hue for magnitude; status colours
+     are reserved for budget state and always paired with an icon and label. */
+  --viz-bar: #2a78d6;
+  --viz-track: #cde2fb;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-critical: #d03b3b;
+  --delta-good: #006300;
+  --delta-bad: #b42323;
 }
 
 .dark {
@@ -112,6 +128,13 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --viz-bar: #3987e5;
+  --viz-track: #184f95;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-critical: #d03b3b;
+  --delta-good: #0ca30c;
+  --delta-bad: #e66767;
 }
 
 @layer base {

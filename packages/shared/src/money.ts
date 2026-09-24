@@ -37,8 +37,15 @@ export function toMinor(value: string | number, currency: string = DEFAULT_CURRE
   return minor
 }
 
-/** Minor units back to a plain decimal string for editing: 4500050 → "45000.50", 4500000 → "45000". */
-export function fromMinor(minor: number, currency: string = DEFAULT_CURRENCY): string {
+/**
+ * Minor units back to a plain decimal string: 4500050 → "45000.50", 4500000 → "45000"
+ * (or "45000.00" with `fixed`, e.g. for CSV columns).
+ */
+export function fromMinor(
+  minor: number,
+  currency: string = DEFAULT_CURRENCY,
+  { fixed = false }: { fixed?: boolean } = {},
+): string {
   if (!Number.isSafeInteger(minor)) throw new RangeError(`Invalid minor amount: ${minor}`)
   const digits = minorDigits(currency)
   const sign = minor < 0 ? '-' : ''
@@ -46,7 +53,7 @@ export function fromMinor(minor: number, currency: string = DEFAULT_CURRENCY): s
   const unit = 10 ** digits
   const whole = Math.trunc(abs / unit)
   const fraction = abs % unit
-  if (digits === 0 || fraction === 0) return `${sign}${whole}`
+  if (digits === 0 || (fraction === 0 && !fixed)) return `${sign}${whole}`
   return `${sign}${whole}.${String(fraction).padStart(digits, '0')}`
 }
 

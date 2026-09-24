@@ -2,7 +2,9 @@ import {
   acceptInvite,
   AppError,
   inviteTokenSchema,
+  monthRange,
   parseExpenseFilters,
+  todayIn,
   safeNextPath,
   setActiveHousehold,
   type InviteDetails,
@@ -12,8 +14,11 @@ import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
 import { errorMessage } from '@/lib/errors'
+import { selectedMonth } from '@/lib/insights'
 import {
+  budgetsQuery,
   categoriesQuery,
+  categoryTotalsQuery,
   expenseListQuery,
   expenseQuery,
   householdsQuery,
@@ -133,6 +138,36 @@ export async function expenseDetailLoader({ request, params }: LoaderFunctionArg
     ])
     // RLS hides other households' expenses, so this also covers "not yours".
     if (!expense) throw notFound()
+  }
+  return null
+}
+
+export async function insightsLoader({ request }: LoaderFunctionArgs) {
+  const { user, householdId } = await requireHousehold(request)
+  if (householdId) {
+    const households = await queryClient.query(householdsQuery(user.id))
+    const timezone = households.find((h) => h.id === householdId)?.timezone
+    const month = selectedMonth(new URL(request.url).searchParams.get('month'), todayIn(timezone))
+    await Promise.all([
+      queryClient.query(categoryTotalsQuery(householdId, monthRange(`${month}-01`))),
+      queryClient.query(categoryTotalsQuery(householdId, monthRange(`${month}-01`, -1))),
+      queryClient.query(budgetsQuery(householdId)),
+      queryClient.query(categoriesQuery(householdId)),
+    ])
+  }
+  return null
+}
+
+export async function budgetsLoader({ request }: LoaderFunctionArgs) {
+  const { user, householdId } = await requireHousehold(request)
+  if (householdId) {
+    const households = await queryClient.query(householdsQuery(user.id))
+    const timezone = households.find((h) => h.id === householdId)?.timezone
+    await Promise.all([
+      queryClient.query(categoryTotalsQuery(householdId, monthRange(todayIn(timezone)))),
+      queryClient.query(budgetsQuery(householdId)),
+      queryClient.query(categoriesQuery(householdId)),
+    ])
   }
   return null
 }

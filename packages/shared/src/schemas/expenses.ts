@@ -167,3 +167,18 @@ export const receiptFileSchema = z.object({
   mimeType: z.string().refine(isReceiptMimeType, 'Receipts must be JPEG, PNG, WebP, HEIC or PDF'),
   size: z.number().int().positive().max(MAX_RECEIPT_BYTES, 'Receipts must be 10 MB or smaller'),
 })
+
+/** A budget field: empty clears the budget, otherwise a positive amount. */
+export const budgetInputSchema = z
+  .string()
+  .trim()
+  .transform((value, ctx) => {
+    if (value === '') return null
+    const amount = amountInputSchema.safeParse(value)
+    if (!amount.success) {
+      for (const issue of amount.error.issues)
+        ctx.addIssue({ code: 'custom', message: issue.message })
+      return z.NEVER
+    }
+    return amount.data
+  })

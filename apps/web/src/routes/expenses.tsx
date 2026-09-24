@@ -1,8 +1,10 @@
 import {
   expenseFiltersToParams,
+  expensesToCsv,
   formatDate,
   formatMoney,
   formatMonth,
+  listAllExpenses,
   monthOf,
   parseExpenseFilters,
   todayIn,
@@ -10,17 +12,21 @@ import {
   type ExpenseFilters,
 } from '@home/shared'
 import { useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { PaperclipIcon, PlusIcon, ReceiptTextIcon, SearchIcon } from 'lucide-react'
+import { DownloadIcon, PaperclipIcon, PlusIcon, ReceiptTextIcon, SearchIcon } from 'lucide-react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { toast } from 'sonner'
 import { CategoryIcon } from '@/components/category-icon'
 import { ExpenseFiltersSheet, FilterChips } from '@/components/expense-filters'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useActiveHousehold } from '@/hooks/use-household'
+import { downloadTextFile, slugify } from '@/lib/download'
+import { errorMessage } from '@/lib/errors'
 import { describeFilters } from '@/lib/expense-filter-labels'
 import { useCategoryLookup, useMemberNames } from '@/hooks/use-lookups'
 import { categoriesQuery, expenseListQuery, membersQuery } from '@/lib/queries'
+import { supabase } from '@/lib/supabase'
 
 interface MonthGroup {
   month: string
@@ -67,6 +73,41 @@ function useDebouncedSearch(value: string | undefined, onChange: (q: string) => 
   }, [text, value])
 
   return [text, setText] as const
+}
+
+/** Downloads every expense matching the current filters (not just the loaded pages) as CSV. */
+function ExportButton({ filters }: { filters: ExpenseFilters }) {
+  const household = useActiveHousehold()
+  const categories = useCategoryLookup(household.id)
+  const memberNames = useMemberNames(household.id)
+  const [busy, setBusy] = useState(false)
+
+  async function exportCsv() {
+    setBusy(true)
+    try {
+      const expenses = await listAllExpenses(supabase, household.id, filters)
+      const csv = expensesToCsv(expenses, {
+        category: (id) => categories.get(id)?.name ?? '',
+        person: (id) => (id ? (memberNames.get(id) ?? 'Former member') : ''),
+      })
+      downloadTextFile(
+        `expenses-${slugify(household.name)}-${todayIn(household.timezone)}.csv`,
+        csv,
+      )
+      toast.success(`Exported ${expenses.length} ${expenses.length === 1 ? 'expense' : 'expenses'}`)
+    } catch (error) {
+      toast.error(`Couldn't export. ${errorMessage(error)}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={() => void exportCsv()} disabled={busy}>
+      <DownloadIcon aria-hidden />
+      {busy ? 'Exporting…' : 'Export'}
+    </Button>
+  )
 }
 
 export function ExpensesPage() {
@@ -140,17 +181,20 @@ export function ExpensesPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>
-        <ExpenseFiltersSheet
-          filters={filters}
-          // The search box owns `q`; the sheet only changes the other filters.
-          onApply={(next) => applyFilters({ ...next, q: filters.q })}
-          categories={categories}
-          members={members.map((m) => ({
-            id: m.user_id,
-            name: m.profile.full_name ?? m.profile.email,
-          }))}
-          timezone={household.timezone}
-        />
+        <div className="flex gap-2">
+          {expenses.length > 0 && <ExportButton filters={filters} />}
+          <ExpenseFiltersSheet
+            filters={filters}
+            // The search box owns `q`; the sheet only changes the other filters.
+            onApply={(next) => applyFilters({ ...next, q: filters.q })}
+            categories={categories}
+            members={members.map((m) => ({
+              id: m.user_id,
+              name: m.profile.full_name ?? m.profile.email,
+            }))}
+            timezone={household.timezone}
+          />
+        </div>
       </div>
 
       <div className="relative">

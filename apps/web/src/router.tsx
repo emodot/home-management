@@ -5,19 +5,23 @@ import { RootLayout } from '@/components/root-layout'
 import { RouteError } from '@/components/route-error'
 import { AuthCallbackPage } from '@/routes/auth-callback'
 import { ExpensesPage } from '@/routes/expenses'
+import { BudgetsPage } from '@/routes/budgets'
 import { CategoriesPage } from '@/routes/categories'
 import { ExpenseDetailPage } from '@/routes/expense-detail'
 import { EditExpensePage } from '@/routes/expense-edit'
 import { NewExpensePage } from '@/routes/expense-new'
+import { InsightsPage } from '@/routes/insights'
 import { InvitePage } from '@/routes/invite'
 import {
   appLoader,
   authCallbackLoader,
   authedLoader,
+  budgetsLoader,
   categoriesLoader,
   expenseDetailLoader,
   expenseFormLoader,
   expensesLoader,
+  insightsLoader,
   inviteLoader,
   membersLoader,
   onboardingLoader,
@@ -70,6 +74,8 @@ export const router = createBrowserRouter([
                     loader: expenseDetailLoader,
                     element: <EditExpensePage />,
                   },
+                  { path: 'insights', loader: insightsLoader, element: <InsightsPage /> },
+                  { path: 'budgets', loader: budgetsLoader, element: <BudgetsPage /> },
                   { path: 'categories', loader: categoriesLoader, element: <CategoriesPage /> },
                   {
                     path: 'recently-deleted',

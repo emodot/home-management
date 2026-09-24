@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   amountInputSchema,
+  budgetInputSchema,
   expenseFiltersToParams,
   expenseFormSchema,
   parseExpenseFilters,
@@ -124,5 +125,18 @@ describe('receiptFileSchema', () => {
         size: 10 * 1024 * 1024 + 1,
       }).success,
     ).toBe(false)
+  })
+})
+
+describe('budgetInputSchema', () => {
+  it('clears on empty input and parses amounts', () => {
+    expect(budgetInputSchema.parse('  ')).toBeNull()
+    expect(budgetInputSchema.parse('50,000')).toBe(5_000_000)
+    expect(budgetInputSchema.safeParse('0').error?.issues[0]?.message).toBe(
+      'Enter an amount above zero',
+    )
+    expect(budgetInputSchema.safeParse('abc').error?.issues[0]?.message).toBe(
+      'Enter a valid amount, like 45,000 or 1,250.50',
+    )
   })
 })

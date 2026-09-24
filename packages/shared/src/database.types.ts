@@ -16,6 +16,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      budgets: {
+        Row: {
+          category_id: string
+          currency: string
+          household_id: string
+          id: string
+          monthly_amount_minor: number
+        }
+        Insert: {
+          category_id: string
+          currency?: string
+          household_id: string
+          id?: string
+          monthly_amount_minor: number
+        }
+        Update: {
+          category_id?: string
+          currency?: string
+          household_id?: string
+          id?: string
+          monthly_amount_minor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_household_id_category_id_fkey"
+            columns: ["household_id", "category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["household_id", "id"]
+          },
+          {
+            foreignKeyName: "budgets_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_categories: {
         Row: {
           household_id: string
@@ -409,6 +448,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      expense_category_totals: {
+        Args: { p_from: string; p_household_id: string; p_to: string }
+        Returns: {
+          category_id: string
+          expense_count: number
+          total_minor: number
+        }[]
+      }
       invite_accept: {
         Args: { p_preview: boolean; p_token_hash: string; p_user_id: string }
         Returns: {
@@ -452,6 +499,14 @@ export type Database = {
       }
       reorder_expense_categories: {
         Args: { p_household_id: string; p_ids: string[] }
+        Returns: undefined
+      }
+      set_budget: {
+        Args: {
+          p_amount_minor: number | null
+          p_category_id: string
+          p_household_id: string
+        }
         Returns: undefined
       }
       shares_household_with: {
