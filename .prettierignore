@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+dist
+coverage
+.turbo
+supabase/.temp
+supabase/.branches
+**/database.types.ts
+SPEC.md

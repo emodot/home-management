@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Platform-agnostic: no DOM lib, no Vite types. Must stay usable from React Native.
+    "lib": ["ES2023"],
+    "types": []
+  },
+  "include": ["src", "vitest.config.ts"]
+}
