@@ -3,6 +3,7 @@ import {
   ClipboardCheckIcon,
   EllipsisIcon,
   HardHatIcon,
+  HistoryIcon,
   PiggyBankIcon,
   RepeatIcon,
   ReceiptTextIcon,
@@ -27,6 +28,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/tasks', label: 'Tasks', icon: ClipboardCheckIcon },
   { to: '/providers', label: 'Providers', icon: HardHatIcon },
   { to: '/insights', label: 'Insights', icon: ChartColumnIcon },
+  { to: '/activity', label: 'Activity', icon: HistoryIcon },
   { to: '/recurring', label: 'Recurring bills', icon: RepeatIcon },
   { to: '/budgets', label: 'Budgets', icon: PiggyBankIcon },
   { to: '/categories', label: 'Categories', icon: TagsIcon },
@@ -34,7 +36,6 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/recently-deleted', label: 'Recently deleted', icon: Trash2Icon },
 ]
 
-// Tasks and Providers join this list in their milestones.
 export const BOTTOM_ITEMS: NavItem[] = [
   { to: '/', label: 'Expenses', icon: ReceiptTextIcon, matches: isExpensesPath },
   { to: '/tasks', label: 'Tasks', icon: ClipboardCheckIcon },
@@ -47,6 +48,7 @@ export const BOTTOM_ITEMS: NavItem[] = [
       [
         '/more',
         '/insights',
+        '/activity',
         '/recurring',
         '/budgets',
         '/categories',

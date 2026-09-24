@@ -3,6 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { PauseIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, Trash2Icon } from 'lucide-react'
 import { Link } from 'react-router'
 import { CategoryIcon } from '@/components/category-icon'
+import { EmptyState } from '@/components/empty-state'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,20 +112,21 @@ export function RecurringPage() {
       </div>
 
       {bills.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center">
-          <RepeatIcon className="size-10 text-muted-foreground" aria-hidden />
-          <p className="text-lg font-medium">No recurring bills yet</p>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Add bills like Spectranet, DStv or estate service charge once, and they&apos;ll show up
-            for confirmation every time they&apos;re due.
-          </p>
-          <Button asChild className="mt-2">
-            <Link to="/recurring/new">
-              <PlusIcon aria-hidden />
-              Add recurring bill
-            </Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={RepeatIcon}
+          title="No recurring bills yet"
+          action={
+            <Button asChild>
+              <Link to="/recurring/new">
+                <PlusIcon aria-hidden />
+                Add recurring bill
+              </Link>
+            </Button>
+          }
+        >
+          Add bills like Spectranet, DStv or estate service charge once, and they&apos;ll show up
+          for confirmation every time they&apos;re due.
+        </EmptyState>
       ) : (
         <ul className="divide-y rounded-xl border">
           {bills.map((bill) => (

@@ -23,7 +23,8 @@
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
     "db:lint": "supabase db lint --level error",
-    "db:types": "supabase gen types typescript --local > packages/shared/src/database.types.ts"
+    "db:types": "supabase gen types typescript --local > packages/shared/src/database.types.ts",
+    "e2e": "pnpm --filter @home/web e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

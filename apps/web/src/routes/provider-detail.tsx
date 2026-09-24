@@ -18,6 +18,7 @@ import {
   Trash2Icon,
 } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { ItemHistory } from '@/components/activity'
 import { CategoryIcon } from '@/components/category-icon'
 import { ContactButtons } from '@/components/contact-buttons'
 import { StarRating } from '@/components/star-rating'
@@ -212,6 +213,12 @@ export function ProviderDetailPage() {
           </ul>
         </section>
       )}
+      <ItemHistory
+        householdId={household.id}
+        entityType="provider"
+        entityId={providerId}
+        headingClassName="font-semibold"
+      />
     </div>
   )
 }

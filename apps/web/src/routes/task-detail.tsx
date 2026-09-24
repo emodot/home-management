@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { ItemHistory } from '@/components/activity'
 import { CompleteTaskDialog } from '@/components/complete-task-dialog'
 import { ContactButtons } from '@/components/contact-buttons'
 import { LogExpensePrompt } from '@/components/log-expense-prompt'
@@ -203,6 +204,13 @@ export function TaskDetailPage() {
           </ol>
         )}
       </section>
+
+      <ItemHistory
+        householdId={household.id}
+        entityType="task"
+        entityId={task.id}
+        headingClassName="font-semibold"
+      />
 
       {completing && (
         <CompleteTaskDialog

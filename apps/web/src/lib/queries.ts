@@ -8,9 +8,11 @@ import {
   getReceiptUrls,
   getTask,
   getTaskCompletion,
+  listActivity,
   listBudgets,
   listCategories,
   listExpenses,
+  listItemHistory,
   listMembers,
   listMyHouseholds,
   listPendingExpenses,
@@ -178,4 +180,28 @@ export const taskCompletionQuery = (householdId: string, completionId: string) =
   queryOptions({
     queryKey: [...tasksKey(householdId), 'completion', completionId],
     queryFn: () => getTaskCompletion(supabase, completionId),
+  })
+
+/** Activity is kept fresh: short stale time, and refetched after every mutation (query-client.ts). */
+export const activityKey = (householdId: string) =>
+  [...householdKey(householdId), 'activity'] as const
+
+export const activityFeedQuery = (householdId: string) =>
+  infiniteQueryOptions({
+    queryKey: [...activityKey(householdId), 'feed'],
+    queryFn: ({ pageParam }) => listActivity(supabase, householdId, { before: pageParam }),
+    initialPageParam: null as number | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 5_000,
+  })
+
+export const itemHistoryQuery = (
+  householdId: string,
+  entityType: 'expense' | 'provider' | 'task',
+  entityId: string,
+) =>
+  queryOptions({
+    queryKey: [...activityKey(householdId), entityType, entityId],
+    queryFn: () => listItemHistory(supabase, entityType, entityId),
+    staleTime: 5_000,
   })

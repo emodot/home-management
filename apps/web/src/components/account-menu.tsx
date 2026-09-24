@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ThemeSubmenu } from '@/components/theme-menu'
 import { UserAvatar } from '@/components/user-avatar'
 import { useProfile } from '@/hooks/use-household'
 import { signOut } from '@/lib/auth'
@@ -40,6 +41,8 @@ export function AccountMenu() {
             </span>
           )}
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <ThemeSubmenu />
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut}>
           <LogOutIcon aria-hidden />

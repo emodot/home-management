@@ -17,6 +17,7 @@ import { queryClient } from '@/lib/query-client'
 import { errorMessage } from '@/lib/errors'
 import { selectedMonth } from '@/lib/insights'
 import {
+  activityFeedQuery,
   budgetsQuery,
   categoriesQuery,
   categoryTotalsQuery,
@@ -346,4 +347,15 @@ export async function authCallbackLoader({ request }: LoaderFunctionArgs) {
     url.searchParams.get('error_description') ??
     'This sign-in link is invalid or has expired.'
   return { message, next }
+}
+
+export async function activityLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) {
+    await Promise.all([
+      queryClient.infiniteQuery(activityFeedQuery(householdId)),
+      queryClient.query(membersQuery(householdId)),
+    ])
+  }
+  return null
 }

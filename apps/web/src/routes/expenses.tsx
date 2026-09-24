@@ -17,6 +17,7 @@ import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { CategoryIcon } from '@/components/category-icon'
+import { EmptyState } from '@/components/empty-state'
 import { ExpenseFiltersSheet, FilterChips } from '@/components/expense-filters'
 import { PendingExpenses } from '@/components/pending-expenses'
 import { Button } from '@/components/ui/button'
@@ -175,20 +176,21 @@ export function ExpensesPage() {
     return (
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-14 text-center">
-          <ReceiptTextIcon className="size-10 text-muted-foreground" aria-hidden />
-          <p className="text-lg font-medium">Track your first expense</p>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Log what {household.name} spends on power, diesel, repairs and more, and keep every
-            receipt in one place.
-          </p>
-          <Button asChild className="mt-2">
-            <Link to="/expenses/new">
-              <PlusIcon aria-hidden />
-              Add expense
-            </Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={ReceiptTextIcon}
+          title="Track your first expense"
+          action={
+            <Button asChild>
+              <Link to="/expenses/new">
+                <PlusIcon aria-hidden />
+                Add expense
+              </Link>
+            </Button>
+          }
+        >
+          Log what {household.name} spends on power, diesel, repairs and more, and keep every
+          receipt in one place.
+        </EmptyState>
       </div>
     )
   }
@@ -251,13 +253,17 @@ export function ExpensesPage() {
           Confirmed expenses will show up here.
         </p>
       ) : expenses.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-12 text-center">
-          <p className="font-medium">No expenses match</p>
-          <p className="text-sm text-muted-foreground">Try a different search or fewer filters.</p>
-          <Button variant="outline" className="mt-2" onClick={() => applyFilters({})}>
-            Clear filters
-          </Button>
-        </div>
+        <EmptyState
+          title="No expenses match"
+          size="sm"
+          action={
+            <Button variant="outline" onClick={() => applyFilters({})}>
+              Clear filters
+            </Button>
+          }
+        >
+          Try a different search or fewer filters.
+        </EmptyState>
       ) : (
         <div className="flex flex-col gap-6">
           {groups.map((group) => (

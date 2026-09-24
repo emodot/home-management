@@ -2,6 +2,7 @@ import { PROVIDER_TRADES, TRADE_LABELS, type ProviderTrade } from '@home/shared'
 import { HardHatIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 import { ContactButtons } from '@/components/contact-buttons'
+import { EmptyState } from '@/components/empty-state'
 import { StarRating } from '@/components/star-rating'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,20 +37,21 @@ export function ProvidersPage() {
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
         <h1 className="text-2xl font-semibold tracking-tight">Providers</h1>
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center">
-          <HardHatIcon className="size-10 text-muted-foreground" aria-hidden />
-          <p className="text-lg font-medium">Keep your trusted people in one place</p>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Save the plumber, electrician and generator technician you rely on, call or WhatsApp
-            them in one tap, and see how much you&apos;ve spent with each.
-          </p>
-          <Button asChild className="mt-2">
-            <Link to="/providers/new">
-              <PlusIcon aria-hidden />
-              Add provider
-            </Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={HardHatIcon}
+          title="Keep your trusted people in one place"
+          action={
+            <Button asChild>
+              <Link to="/providers/new">
+                <PlusIcon aria-hidden />
+                Add provider
+              </Link>
+            </Button>
+          }
+        >
+          Save the plumber, electrician and generator technician you rely on, call or WhatsApp them
+          in one tap, and see how much you&apos;ve spent with each.
+        </EmptyState>
       </div>
     )
   }

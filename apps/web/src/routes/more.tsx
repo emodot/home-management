@@ -1,6 +1,7 @@
 import { ChevronRightIcon, LogOutIcon, PlusIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
+import { ThemeSwitcher } from '@/components/theme-menu'
 import { SIDEBAR_ITEMS } from '@/lib/nav'
 import { signOut } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
@@ -32,6 +33,10 @@ export function MorePage() {
           </Link>
         </li>
       </ul>
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold">Appearance</h2>
+        <ThemeSwitcher />
+      </section>
       <ul className="rounded-xl border">
         <li>
           <button

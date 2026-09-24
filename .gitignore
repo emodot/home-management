@@ -27,3 +27,6 @@ playwright-report/
 !.vscode/settings.json
 .idea/
 *.log
+
+# local tooling
+.claude/

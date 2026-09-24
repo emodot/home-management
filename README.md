@@ -63,6 +63,18 @@ Run it by hand with `select public.invoke_daily_jobs();`.
 | `pnpm db:reset`  | Re-apply migrations + `supabase/seed.sql` |
 | `pnpm db:lint`   | Lint the database schema                  |
 | `pnpm db:types`  | Generate DB types into `packages/shared`  |
+| `pnpm e2e`       | Playwright smoke tests (see below)        |
+
+### Smoke tests
+
+`pnpm e2e` runs the Playwright smoke test (sign up → household → expense with receipt → invite →
+task → complete → log expense) against the local stack. It needs `pnpm db:start`, the edge
+functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
+pointing at the local API, and Chromium once: `pnpm --filter @home/web exec playwright install
+chromium`. The dev server is started for you. Sign-in emails are read from Mailpit
+(`E2E_MAILPIT_URL`, default `http://127.0.0.1:54324`).
+
+App icons are generated from `apps/web/public/icon.svg` with `pnpm --filter @home/web icons`.
 
 ## Layout
 

@@ -1,3 +1,4 @@
+import { EmptyState } from '@/components/empty-state'
 import { formatMoney, formatRelativeTime } from '@home/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { FileTextIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react'
@@ -31,13 +32,9 @@ export function RecentlyDeletedPage() {
       receipts.length === 0 &&
       providers.length === 0 &&
       tasks.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-12 text-center">
-          <Trash2Icon className="size-8 text-muted-foreground" aria-hidden />
-          <p className="font-medium">Nothing here</p>
-          <p className="text-sm text-muted-foreground">
-            Expenses, receipts, providers and tasks you delete will show up here for 30 days.
-          </p>
-        </div>
+        <EmptyState icon={Trash2Icon} title="Nothing here" size="sm">
+          Expenses, receipts, providers and tasks you delete will show up here for 30 days.
+        </EmptyState>
       ) : (
         <>
           {expenses.length > 0 && (

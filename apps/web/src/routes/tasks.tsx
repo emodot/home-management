@@ -1,3 +1,4 @@
+import { EmptyState } from '@/components/empty-state'
 import {
   describeDue,
   describeSchedule,
@@ -140,20 +141,21 @@ export function TasksPage() {
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
         {header}
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center">
-          <ClipboardCheckIcon className="size-10 text-muted-foreground" aria-hidden />
-          <p className="text-lg font-medium">Keep the house running</p>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Add jobs that come round again, like servicing the generator every 3 months, fumigation
-            or cleaning the water tank, and get reminded before they&apos;re due.
-          </p>
-          <Button asChild className="mt-2">
-            <Link to="/tasks/new">
-              <PlusIcon aria-hidden />
-              Add task
-            </Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={ClipboardCheckIcon}
+          title="Keep the house running"
+          action={
+            <Button asChild>
+              <Link to="/tasks/new">
+                <PlusIcon aria-hidden />
+                Add task
+              </Link>
+            </Button>
+          }
+        >
+          Add jobs that come round again, like servicing the generator every 3 months, fumigation or
+          cleaning the water tank, and get reminded before they&apos;re due.
+        </EmptyState>
       </div>
     )
   }

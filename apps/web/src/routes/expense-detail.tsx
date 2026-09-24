@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { ItemHistory } from '@/components/activity'
 import { CategoryIcon } from '@/components/category-icon'
 import { ContactButtons } from '@/components/contact-buttons'
 import { ConfirmExpenseDialog } from '@/components/pending-expenses'
@@ -203,6 +204,8 @@ export function ExpenseDetailPage() {
           readOnly={deleted}
         />
       </section>
+
+      <ItemHistory householdId={household.id} entityType="expense" entityId={expense.id} />
 
       <footer className="border-t pt-4 text-xs text-muted-foreground">
         <p>
