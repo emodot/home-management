@@ -2,6 +2,7 @@ import {
   acceptInvite,
   AppError,
   inviteTokenSchema,
+  parseExpenseFilters,
   safeNextPath,
   setActiveHousehold,
   type InviteDetails,
@@ -11,7 +12,17 @@ import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
 import { errorMessage } from '@/lib/errors'
-import { householdsQuery, membersQuery, pendingInvitesQuery, profileQuery } from '@/lib/queries'
+import {
+  categoriesQuery,
+  expenseListQuery,
+  expenseQuery,
+  householdsQuery,
+  membersQuery,
+  pendingInvitesQuery,
+  profileQuery,
+  receiptsQuery,
+  recentlyDeletedQuery,
+} from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
 
 function signInRedirect(request: Request) {
@@ -62,15 +73,79 @@ async function activeHouseholdId(userId: string) {
   return pickActiveHousehold(profile, households)?.id
 }
 
-export async function membersLoader({ request }: LoaderFunctionArgs) {
+/** For pages inside the app: the user and their active household (undefined only mid-redirect). */
+async function requireHousehold(request: Request) {
   const user = await requireUser(request)
-  const householdId = await activeHouseholdId(user.id)
+  return { user, householdId: await activeHouseholdId(user.id) }
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function notFound(): Response {
+  return new Response('Not found', { status: 404, statusText: 'Not found' })
+}
+
+export async function membersLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
   if (householdId) {
     await Promise.all([
       queryClient.query(membersQuery(householdId)),
       queryClient.query(pendingInvitesQuery(householdId)),
     ])
   }
+  return null
+}
+
+export async function expensesLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) {
+    const filters = parseExpenseFilters(Object.fromEntries(new URL(request.url).searchParams))
+    await Promise.all([
+      queryClient.query(categoriesQuery(householdId)),
+      queryClient.query(membersQuery(householdId)),
+      queryClient.infiniteQuery(expenseListQuery(householdId, filters)),
+    ])
+  }
+  return null
+}
+
+export async function expenseFormLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(categoriesQuery(householdId)),
+      queryClient.query(membersQuery(householdId)),
+    ])
+  }
+  return null
+}
+
+export async function expenseDetailLoader({ request, params }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  const expenseId = params.expenseId ?? ''
+  if (!UUID.test(expenseId)) throw notFound()
+  if (householdId) {
+    const [expense] = await Promise.all([
+      queryClient.query(expenseQuery(householdId, expenseId)),
+      queryClient.query(receiptsQuery(householdId, expenseId)),
+      queryClient.query(categoriesQuery(householdId)),
+      queryClient.query(membersQuery(householdId)),
+    ])
+    // RLS hides other households' expenses, so this also covers "not yours".
+    if (!expense) throw notFound()
+  }
+  return null
+}
+
+export async function categoriesLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) await queryClient.query(categoriesQuery(householdId))
+  return null
+}
+
+export async function recentlyDeletedLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) await queryClient.query(recentlyDeletedQuery(householdId))
   return null
 }
 

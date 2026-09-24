@@ -16,6 +16,199 @@ export type Database = {
   }
   public: {
     Tables: {
+      expense_categories: {
+        Row: {
+          household_id: string
+          icon: string
+          id: string
+          is_archived: boolean
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          household_id: string
+          icon?: string
+          id?: string
+          is_archived?: boolean
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          household_id?: string
+          icon?: string
+          id?: string
+          is_archived?: boolean
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_receipts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          expense_id: string
+          file_name: string
+          household_id: string
+          id: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          expense_id: string
+          file_name: string
+          household_id: string
+          id?: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          expense_id?: string
+          file_name?: string
+          household_id?: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_receipts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_receipts_household_id_expense_id_fkey"
+            columns: ["household_id", "expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["household_id", "id"]
+          },
+          {
+            foreignKeyName: "expense_receipts_household_id_expense_id_fkey"
+            columns: ["household_id", "expense_id"]
+            isOneToOne: false
+            referencedRelation: "expense_list"
+            referencedColumns: ["household_id", "id"]
+          },
+          {
+            foreignKeyName: "expense_receipts_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount_minor: number
+          category_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          deleted_at: string | null
+          description: string
+          household_id: string
+          id: string
+          notes: string | null
+          occurred_on: string
+          paid_by: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount_minor: number
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deleted_at?: string | null
+          description: string
+          household_id: string
+          id?: string
+          notes?: string | null
+          occurred_on: string
+          paid_by?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deleted_at?: string | null
+          description?: string
+          household_id?: string
+          id?: string
+          notes?: string | null
+          occurred_on?: string
+          paid_by?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_household_id_category_id_fkey"
+            columns: ["household_id", "category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["household_id", "id"]
+          },
+          {
+            foreignKeyName: "expenses_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_members: {
         Row: {
           household_id: string
@@ -161,7 +354,43 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      expense_list: {
+        Row: {
+          amount_minor: number | null
+          category_id: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          deleted_at: string | null
+          description: string | null
+          household_id: string | null
+          id: string | null
+          notes: string | null
+          occurred_on: string | null
+          paid_by: string | null
+          receipt_count: number | null
+          search_text: string | null
+          status: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_household_id_category_id_fkey"
+            columns: ["household_id", "category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["household_id", "id"]
+          },
+          {
+            foreignKeyName: "expenses_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       create_household: {
@@ -220,6 +449,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      reorder_expense_categories: {
+        Args: { p_household_id: string; p_ids: string[] }
+        Returns: undefined
       }
       shares_household_with: {
         Args: { other_user_id: string }

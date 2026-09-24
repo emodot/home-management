@@ -1,5 +1,19 @@
-import { getProfile, listMembers, listMyHouseholds, listPendingInvites } from '@home/shared'
-import { queryOptions } from '@tanstack/react-query'
+import {
+  EXPENSE_PAGE_SIZE,
+  expenseFiltersToParams,
+  getExpense,
+  getProfile,
+  getReceiptUrls,
+  listCategories,
+  listExpenses,
+  listMembers,
+  listMyHouseholds,
+  listPendingInvites,
+  listReceipts,
+  listRecentlyDeleted,
+  type ExpenseFilters,
+} from '@home/shared'
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
 import { supabase } from './supabase'
 
 export const profileQuery = (userId: string) =>
@@ -27,4 +41,51 @@ export const pendingInvitesQuery = (householdId: string) =>
   queryOptions({
     queryKey: [...householdKey(householdId), 'invites'],
     queryFn: () => listPendingInvites(supabase, householdId),
+  })
+
+export const categoriesQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...householdKey(householdId), 'categories'],
+    queryFn: () => listCategories(supabase, householdId),
+  })
+
+/** Prefix for every expense-related query, so one invalidation refreshes lists and details. */
+export const expensesKey = (householdId: string) =>
+  [...householdKey(householdId), 'expenses'] as const
+
+export const expenseListQuery = (householdId: string, filters: ExpenseFilters) =>
+  infiniteQueryOptions({
+    queryKey: [...expensesKey(householdId), 'list', expenseFiltersToParams(filters)],
+    queryFn: ({ pageParam }) => listExpenses(supabase, householdId, filters, { offset: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.length < EXPENSE_PAGE_SIZE ? undefined : pages.length * EXPENSE_PAGE_SIZE,
+  })
+
+export const expenseQuery = (householdId: string, expenseId: string) =>
+  queryOptions({
+    queryKey: [...expensesKey(householdId), 'detail', expenseId],
+    queryFn: () => getExpense(supabase, expenseId),
+  })
+
+export const receiptsQuery = (householdId: string, expenseId: string) =>
+  queryOptions({
+    queryKey: [...expensesKey(householdId), 'receipts', expenseId],
+    queryFn: () => listReceipts(supabase, expenseId),
+  })
+
+/** Signed URLs live 10 minutes; refresh them well before that. */
+export const receiptUrlsQuery = (householdId: string, paths: string[]) =>
+  queryOptions({
+    queryKey: [...householdKey(householdId), 'receipt-urls', paths],
+    queryFn: () => getReceiptUrls(supabase, paths),
+    staleTime: 5 * 60_000,
+    gcTime: 8 * 60_000,
+    enabled: paths.length > 0,
+  })
+
+export const recentlyDeletedQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...expensesKey(householdId), 'deleted'],
+    queryFn: () => listRecentlyDeleted(supabase, householdId),
   })
