@@ -23,10 +23,12 @@ import {
   expenseQuery,
   householdsQuery,
   membersQuery,
+  pendingExpensesQuery,
   pendingInvitesQuery,
   profileQuery,
   receiptsQuery,
   recentlyDeletedQuery,
+  recurringExpensesQuery,
 } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
 
@@ -109,6 +111,7 @@ export async function expensesLoader({ request }: LoaderFunctionArgs) {
       queryClient.query(categoriesQuery(householdId)),
       queryClient.query(membersQuery(householdId)),
       queryClient.infiniteQuery(expenseListQuery(householdId, filters)),
+      queryClient.query(pendingExpensesQuery(householdId)),
     ])
   }
   return null
@@ -167,6 +170,18 @@ export async function budgetsLoader({ request }: LoaderFunctionArgs) {
       queryClient.query(categoryTotalsQuery(householdId, monthRange(todayIn(timezone)))),
       queryClient.query(budgetsQuery(householdId)),
       queryClient.query(categoriesQuery(householdId)),
+    ])
+  }
+  return null
+}
+
+export async function recurringLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(recurringExpensesQuery(householdId)),
+      queryClient.query(categoriesQuery(householdId)),
+      queryClient.query(membersQuery(householdId)),
     ])
   }
   return null

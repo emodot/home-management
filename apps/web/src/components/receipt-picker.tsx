@@ -17,10 +17,13 @@ const ACCEPT = 'image/*,application/pdf'
 /** "Take photo" (phones) and "Choose files" buttons. Calls onPicked with validated, shrunk files. */
 export function ReceiptFileButtons({
   onPicked,
+  onBusyChange,
   disabled,
   size = 'sm',
 }: {
   onPicked: (files: PreparedReceipt[]) => void
+  /** True while picked files are being checked and shrunk; forms should wait before saving. */
+  onBusyChange?: (busy: boolean) => void
   disabled?: boolean
   size?: 'sm' | 'default'
 }) {
@@ -32,6 +35,7 @@ export function ReceiptFileButtons({
   async function handleFiles(list: FileList | null) {
     if (!list || list.length === 0) return
     setBusy(true)
+    onBusyChange?.(true)
     const prepared: PreparedReceipt[] = []
     for (const file of Array.from(list)) {
       try {
@@ -42,6 +46,7 @@ export function ReceiptFileButtons({
     }
     setBusy(false)
     if (prepared.length > 0) onPicked(prepared)
+    onBusyChange?.(false)
   }
 
   return (
@@ -98,10 +103,12 @@ export function ReceiptFileButtons({
 export function ReceiptPicker({
   value,
   onChange,
+  onBusyChange,
   disabled,
 }: {
   value: PickedReceipt[]
   onChange: (next: PickedReceipt[]) => void
+  onBusyChange?: (busy: boolean) => void
   disabled?: boolean
 }) {
   // Preview URLs created here, revoked on removal or when the picker goes away.
@@ -162,7 +169,7 @@ export function ReceiptPicker({
           ))}
         </ul>
       )}
-      <ReceiptFileButtons onPicked={add} disabled={disabled} />
+      <ReceiptFileButtons onPicked={add} onBusyChange={onBusyChange} disabled={disabled} />
     </div>
   )
 }

@@ -21,6 +21,8 @@ export interface Expense {
   updatedAt: string
   deletedAt: string | null
   receiptCount: number
+  /** Set when the expense was generated from a recurring bill. */
+  recurringExpenseId: string | null
 }
 
 type ExpenseListRow = Tables<'expense_list'>
@@ -49,6 +51,7 @@ export function toExpense(row: ExpenseListRow): Expense {
     updatedAt: required(row.updated_at, 'updated_at'),
     deletedAt: row.deleted_at,
     receiptCount: row.receipt_count ?? 0,
+    recurringExpenseId: row.recurring_expense_id,
   }
 }
 
@@ -57,7 +60,7 @@ export function escapeLike(term: string): string {
   return term.replace(/[\\%_]/g, (c) => `\\${c}`)
 }
 
-/** One page of the household's (non-deleted) expenses, newest first. */
+/** One page of the household's confirmed, non-deleted expenses, newest first. */
 export async function listExpenses(
   client: HomeClient,
   householdId: string,
@@ -69,6 +72,7 @@ export async function listExpenses(
     .from('expense_list')
     .select('*')
     .eq('household_id', householdId)
+    .eq('status', 'confirmed')
     .is('deleted_at', null)
 
   if (filters.from) query = query.gte('occurred_on', filters.from)
@@ -87,6 +91,41 @@ export async function listExpenses(
       .range(page.offset, page.offset + limit - 1),
   )
   return rows.map(toExpense)
+}
+
+/** Pending expenses generated from recurring bills, oldest due first. */
+export async function listPendingExpenses(
+  client: HomeClient,
+  householdId: string,
+): Promise<Expense[]> {
+  const rows = unwrap(
+    await client
+      .from('expense_list')
+      .select('*')
+      .eq('household_id', householdId)
+      .eq('status', 'pending')
+      .is('deleted_at', null)
+      .order('occurred_on')
+      .order('description'),
+  )
+  return rows.map(toExpense)
+}
+
+/** Confirms a pending expense, optionally correcting the amount. */
+export async function confirmExpense(
+  client: HomeClient,
+  id: string,
+  amountMinor?: number,
+): Promise<void> {
+  unwrap(
+    await client
+      .from('expenses')
+      .update({
+        status: 'confirmed',
+        ...(amountMinor !== undefined && { amount_minor: amountMinor }),
+      })
+      .eq('id', id),
+  )
 }
 
 /** An expense by id, including deleted ones (for restore and the detail page). */

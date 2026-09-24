@@ -2,6 +2,7 @@ import {
   ChartColumnIcon,
   EllipsisIcon,
   PiggyBankIcon,
+  RepeatIcon,
   ReceiptTextIcon,
   TagsIcon,
   Trash2Icon,
@@ -22,6 +23,7 @@ const isExpensesPath = (pathname: string) => pathname === '/' || pathname.starts
 export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/', label: 'Expenses', icon: ReceiptTextIcon, matches: isExpensesPath },
   { to: '/insights', label: 'Insights', icon: ChartColumnIcon },
+  { to: '/recurring', label: 'Recurring bills', icon: RepeatIcon },
   { to: '/budgets', label: 'Budgets', icon: PiggyBankIcon },
   { to: '/categories', label: 'Categories', icon: TagsIcon },
   { to: '/members', label: 'Members', icon: UsersIcon },
@@ -37,8 +39,14 @@ export const BOTTOM_ITEMS: NavItem[] = [
     label: 'More',
     icon: EllipsisIcon,
     matches: (p) =>
-      ['/more', '/budgets', '/categories', '/members', '/recently-deleted', '/households'].some(
-        (prefix) => p.startsWith(prefix),
-      ),
+      [
+        '/more',
+        '/recurring',
+        '/budgets',
+        '/categories',
+        '/members',
+        '/recently-deleted',
+        '/households',
+      ].some((prefix) => p.startsWith(prefix)),
   },
 ]

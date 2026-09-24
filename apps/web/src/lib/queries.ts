@@ -10,9 +10,11 @@ import {
   listExpenses,
   listMembers,
   listMyHouseholds,
+  listPendingExpenses,
   listPendingInvites,
   listReceipts,
   listRecentlyDeleted,
+  listRecurringExpenses,
   type ExpenseFilters,
 } from '@home/shared'
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
@@ -103,4 +105,16 @@ export const budgetsQuery = (householdId: string) =>
   queryOptions({
     queryKey: [...householdKey(householdId), 'budgets'],
     queryFn: () => listBudgets(supabase, householdId),
+  })
+
+export const pendingExpensesQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...expensesKey(householdId), 'pending'],
+    queryFn: () => listPendingExpenses(supabase, householdId),
+  })
+
+export const recurringExpensesQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...householdKey(householdId), 'recurring'],
+    queryFn: () => listRecurringExpenses(supabase, householdId),
   })

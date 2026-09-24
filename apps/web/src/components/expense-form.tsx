@@ -44,6 +44,7 @@ export function ExpenseForm({
   onCancel: () => void
 }) {
   const [receipts, setReceipts] = useState<PickedReceipt[]>([])
+  const [preparing, setPreparing] = useState(false)
   const form = useForm({
     resolver: zodResolver(expenseFormSchema),
     defaultValues,
@@ -189,14 +190,19 @@ export function ExpenseForm({
         {withReceipts && (
           <Field>
             <FieldLabel>Receipts</FieldLabel>
-            <ReceiptPicker value={receipts} onChange={setReceipts} disabled={isSubmitting} />
+            <ReceiptPicker
+              value={receipts}
+              onChange={setReceipts}
+              onBusyChange={setPreparing}
+              disabled={isSubmitting}
+            />
           </Field>
         )}
       </FieldGroup>
 
       <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 -mx-4 flex gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
-        <Button type="submit" className="flex-1 md:flex-none" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving…' : submitLabel}
+        <Button type="submit" className="flex-1 md:flex-none" disabled={isSubmitting || preparing}>
+          {isSubmitting ? 'Saving…' : preparing ? 'Preparing receipt…' : submitLabel}
         </Button>
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
           Cancel

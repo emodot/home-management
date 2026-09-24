@@ -27,6 +27,18 @@ Magic-link emails are caught locally by Mailpit at http://127.0.0.1:54324.
 In the hosted project, configure Google under Authentication → Providers, and add the app's
 `/auth/callback` URL to the redirect allow-list.
 
+### Daily jobs
+
+`pg_cron` calls the `daily-jobs` edge function at 06:00 UTC (07:00 in Lagos). It currently turns
+due recurring bills into pending expenses; it's safe to run more than once. Set up per project:
+
+1. `supabase secrets set CRON_SECRET=<long random string>` (locally: `supabase/functions/.env`).
+2. In the SQL editor, store the URL and the same secret in Vault:
+   `select vault.create_secret('https://<ref>.supabase.co', 'project_url');`
+   `select vault.create_secret('<CRON_SECRET>', 'daily_jobs_secret');`
+
+Run it by hand with `select public.invoke_daily_jobs();`.
+
 ## Scripts
 
 | Command          | What it does                              |

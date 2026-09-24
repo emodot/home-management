@@ -18,6 +18,7 @@ import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { CategoryIcon } from '@/components/category-icon'
 import { ExpenseFiltersSheet, FilterChips } from '@/components/expense-filters'
+import { PendingExpenses } from '@/components/pending-expenses'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useActiveHousehold } from '@/hooks/use-household'
@@ -25,7 +26,12 @@ import { downloadTextFile, slugify } from '@/lib/download'
 import { errorMessage } from '@/lib/errors'
 import { describeFilters } from '@/lib/expense-filter-labels'
 import { useCategoryLookup, useMemberNames } from '@/hooks/use-lookups'
-import { categoriesQuery, expenseListQuery, membersQuery } from '@/lib/queries'
+import {
+  categoriesQuery,
+  expenseListQuery,
+  membersQuery,
+  pendingExpensesQuery,
+} from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
 
 interface MonthGroup {
@@ -120,6 +126,7 @@ export function ExpensesPage() {
   const categoryLookup = useCategoryLookup(household.id)
   const memberNames = useMemberNames(household.id)
   const list = useSuspenseInfiniteQuery(expenseListQuery(household.id, filters))
+  const pendingCount = useSuspenseQuery(pendingExpensesQuery(household.id)).data.length
 
   const expenses = useMemo(() => list.data.pages.flat(), [list.data])
   const groups = useMemo(
@@ -155,7 +162,7 @@ export function ExpensesPage() {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  if (expenses.length === 0 && !hasFilters) {
+  if (expenses.length === 0 && !hasFilters && pendingCount === 0) {
     return (
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>
@@ -197,6 +204,8 @@ export function ExpensesPage() {
         </div>
       </div>
 
+      <PendingExpenses />
+
       <div className="relative">
         <SearchIcon
           className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -225,7 +234,11 @@ export function ExpensesPage() {
         onClear={() => applyFilters({})}
       />
 
-      {expenses.length === 0 ? (
+      {expenses.length === 0 && !hasFilters ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Confirmed expenses will show up here.
+        </p>
+      ) : expenses.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-12 text-center">
           <p className="font-medium">No expenses match</p>
           <p className="text-sm text-muted-foreground">Try a different search or fewer filters.</p>

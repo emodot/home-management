@@ -172,6 +172,7 @@ export type Database = {
           notes: string | null
           occurred_on: string
           paid_by: string | null
+          recurring_expense_id: string | null
           status: string
           updated_at: string
           updated_by: string | null
@@ -189,6 +190,7 @@ export type Database = {
           notes?: string | null
           occurred_on: string
           paid_by?: string | null
+          recurring_expense_id?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -206,6 +208,7 @@ export type Database = {
           notes?: string | null
           occurred_on?: string
           paid_by?: string | null
+          recurring_expense_id?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -391,6 +394,78 @@ export type Database = {
           },
         ]
       }
+      recurring_expenses: {
+        Row: {
+          amount_minor: number
+          category_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string
+          frequency: string
+          household_id: string
+          id: string
+          interval_count: number
+          is_active: boolean
+          next_due_on: string
+          paid_by: string | null
+          start_on: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount_minor: number
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description: string
+          frequency: string
+          household_id: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          next_due_on: string
+          paid_by?: string | null
+          start_on: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string
+          frequency?: string
+          household_id?: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          next_due_on?: string
+          paid_by?: string | null
+          start_on?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_expenses_household_id_category_id_fkey"
+            columns: ["household_id", "category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["household_id", "id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       expense_list: {
@@ -408,6 +483,7 @@ export type Database = {
           occurred_on: string | null
           paid_by: string | null
           receipt_count: number | null
+          recurring_expense_id: string | null
           search_text: string | null
           status: string | null
           updated_at: string | null
@@ -455,6 +531,14 @@ export type Database = {
           expense_count: number
           total_minor: number
         }[]
+      }
+      generate_due_recurring_expenses: {
+        Args: { p_household_id: string }
+        Returns: number
+      }
+      generate_recurring_expenses: {
+        Args: { p_household_id?: string; p_max_per_bill?: number; p_today?: string }
+        Returns: number
       }
       invite_accept: {
         Args: { p_preview: boolean; p_token_hash: string; p_user_id: string }

@@ -19,6 +19,7 @@ const expense: Expense = {
   updatedAt: '2026-09-20T10:00:00.000Z',
   deletedAt: null,
   receiptCount: 2,
+  recurringExpenseId: null,
 }
 
 describe('expensesToCsv', () => {

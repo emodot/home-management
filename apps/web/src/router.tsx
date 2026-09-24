@@ -26,6 +26,7 @@ import {
   membersLoader,
   onboardingLoader,
   recentlyDeletedLoader,
+  recurringLoader,
   signInLoader,
 } from '@/routes/loaders'
 import { MembersPage } from '@/routes/members'
@@ -34,6 +35,8 @@ import { NewHouseholdPage } from '@/routes/new-household'
 import { NotFoundPage } from '@/routes/not-found'
 import { OnboardingPage } from '@/routes/onboarding'
 import { RecentlyDeletedPage } from '@/routes/recently-deleted'
+import { RecurringPage } from '@/routes/recurring'
+import { EditRecurringPage, NewRecurringPage } from '@/routes/recurring-form'
 import { SignInPage } from '@/routes/sign-in'
 
 export const router = createBrowserRouter([
@@ -76,6 +79,13 @@ export const router = createBrowserRouter([
                   },
                   { path: 'insights', loader: insightsLoader, element: <InsightsPage /> },
                   { path: 'budgets', loader: budgetsLoader, element: <BudgetsPage /> },
+                  { path: 'recurring', loader: recurringLoader, element: <RecurringPage /> },
+                  { path: 'recurring/new', loader: recurringLoader, element: <NewRecurringPage /> },
+                  {
+                    path: 'recurring/:billId/edit',
+                    loader: recurringLoader,
+                    element: <EditRecurringPage />,
+                  },
                   { path: 'categories', loader: categoriesLoader, element: <CategoriesPage /> },
                   {
                     path: 'recently-deleted',

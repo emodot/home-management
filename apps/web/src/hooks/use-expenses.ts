@@ -1,4 +1,5 @@
 import {
+  confirmExpense,
   createExpense,
   setExpenseDeleted,
   setReceiptDeleted,
@@ -18,7 +19,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import type { PreparedReceipt } from '@/lib/images'
 import { errorMessage } from '@/lib/errors'
-import { expenseQuery, expensesKey, receiptsQuery } from '@/lib/queries'
+import { expenseQuery, expensesKey, pendingExpensesQuery, receiptsQuery } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
 
 type ExpensePages = InfiniteData<Expense[], number>
@@ -208,6 +209,56 @@ export function useRestoreReceipt(householdId: string) {
       setReceiptDeleted(supabase, receipt.id, false),
     onSuccess: (_data, receipt) => toast.success(`Restored ${receipt.file_name}`),
     onError: (error) => toast.error(errorMessage(error)),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: expensesKey(householdId) }),
+  })
+}
+
+/** Confirms a pending expense (optionally with a corrected amount), then uploads any receipts. */
+export function useConfirmExpense(householdId: string) {
+  const queryClient = useQueryClient()
+  const openExpense = useOpenExpense()
+  return useMutation({
+    mutationFn: ({
+      expense,
+      amountMinor,
+    }: {
+      expense: Expense
+      amountMinor: number
+      files: PreparedReceipt[]
+    }) => confirmExpense(supabase, expense.id, amountMinor),
+    onMutate: async ({ expense }) => {
+      await queryClient.cancelQueries({ queryKey: expensesKey(householdId) })
+      queryClient.setQueryData(pendingExpensesQuery(householdId).queryKey, (old) =>
+        old?.filter((e) => e.id !== expense.id),
+      )
+    },
+    onSuccess: (_data, { expense, files }) => {
+      toast.success(`Confirmed "${expense.description}"`)
+      void uploadReceiptsInBackground(queryClient, householdId, expense.id, files, openExpense)
+    },
+    onError: (error) => toast.error(`Couldn't confirm. ${errorMessage(error)}`),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: expensesKey(householdId) }),
+  })
+}
+
+/** Skipping soft-deletes the pending expense; the bill won't recreate it. Undo restores it. */
+export function useSkipExpense(householdId: string) {
+  const queryClient = useQueryClient()
+  const restore = useRestoreExpense(householdId)
+  return useMutation({
+    mutationFn: (expense: Expense) => setExpenseDeleted(supabase, expense.id, true),
+    onMutate: async (expense) => {
+      await queryClient.cancelQueries({ queryKey: expensesKey(householdId) })
+      queryClient.setQueryData(pendingExpensesQuery(householdId).queryKey, (old) =>
+        old?.filter((e) => e.id !== expense.id),
+      )
+    },
+    onSuccess: (_data, expense) => {
+      toast.success(`Skipped "${expense.description}"`, {
+        action: { label: 'Undo', onClick: () => restore.mutate(expense) },
+      })
+    },
+    onError: (error) => toast.error(`Couldn't skip. ${errorMessage(error)}`),
     onSettled: () => queryClient.invalidateQueries({ queryKey: expensesKey(householdId) }),
   })
 }

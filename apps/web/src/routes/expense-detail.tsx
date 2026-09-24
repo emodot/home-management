@@ -3,16 +3,20 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import {
   ArrowLeftIcon,
   CalendarIcon,
+  CheckIcon,
+  RepeatIcon,
   PencilIcon,
   RotateCcwIcon,
   Trash2Icon,
   UserIcon,
 } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { CategoryIcon } from '@/components/category-icon'
+import { ConfirmExpenseDialog } from '@/components/pending-expenses'
 import { ReceiptGallery } from '@/components/receipt-gallery'
 import { Button } from '@/components/ui/button'
-import { useDeleteExpense, useRestoreExpense } from '@/hooks/use-expenses'
+import { useDeleteExpense, useRestoreExpense, useSkipExpense } from '@/hooks/use-expenses'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useCategoryLookup, useMemberNames } from '@/hooks/use-lookups'
 import { expenseQuery, receiptsQuery } from '@/lib/queries'
@@ -26,6 +30,8 @@ export function ExpenseDetailPage() {
   const memberNames = useMemberNames(household.id)
   const deleteExpense = useDeleteExpense(household.id)
   const restoreExpense = useRestoreExpense(household.id)
+  const skipExpense = useSkipExpense(household.id)
+  const [confirming, setConfirming] = useState(false)
   const navigate = useNavigate()
 
   if (!expense) throw new Response('Expense not found', { status: 404 })
@@ -68,6 +74,38 @@ export function ExpenseDetailPage() {
         )}
       </div>
 
+      {!deleted && expense.status === 'pending' && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed bg-muted/30 px-4 py-3">
+          <p className="flex items-center gap-2 text-sm">
+            <RepeatIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+            Created from a recurring bill. It isn&apos;t counted until you confirm it was paid.
+          </p>
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                skipExpense.mutate(expense)
+                void navigate('/', { replace: true })
+              }}
+            >
+              Skip
+            </Button>
+            <Button size="sm" onClick={() => setConfirming(true)}>
+              <CheckIcon aria-hidden />
+              Confirm
+            </Button>
+          </div>
+          {confirming && (
+            <ConfirmExpenseDialog
+              expense={expense}
+              open={confirming}
+              onOpenChange={setConfirming}
+            />
+          )}
+        </div>
+      )}
+
       {deleted && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
           <p className="text-sm">
@@ -95,6 +133,15 @@ export function ExpenseDetailPage() {
             <CalendarIcon className="size-4" aria-hidden />
             {formatDate(expense.occurredOn, { dateStyle: 'full' })}
           </span>
+          {expense.recurringExpenseId && (
+            <Link
+              to="/recurring"
+              className="flex items-center gap-1.5 underline-offset-4 hover:underline"
+            >
+              <RepeatIcon className="size-4" aria-hidden />
+              Recurring bill
+            </Link>
+          )}
           {expense.paidBy && (
             <span className="flex items-center gap-1.5">
               <UserIcon className="size-4" aria-hidden />
@@ -125,7 +172,10 @@ export function ExpenseDetailPage() {
 
       <footer className="border-t pt-4 text-xs text-muted-foreground">
         <p>
-          Added by {nameOf(expense.createdBy)} {formatRelativeTime(expense.createdAt)}
+          {expense.createdBy === null && expense.recurringExpenseId
+            ? 'Added automatically from a recurring bill'
+            : `Added by ${nameOf(expense.createdBy)}`}{' '}
+          {formatRelativeTime(expense.createdAt)}
         </p>
         {expense.updatedAt !== expense.createdAt && (
           <p>
