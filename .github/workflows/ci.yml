@@ -43,7 +43,6 @@ jobs:
           # Placeholder public values; the build doesn't contact Supabase.
           VITE_SUPABASE_URL: http://127.0.0.1:54321
           VITE_SUPABASE_ANON_KEY: ci-placeholder
-          VITE_APP_URL: http://localhost:5173
 
   database:
     name: Migrations apply cleanly
@@ -95,7 +94,6 @@ jobs:
           supabase status -o env \
             --override-name api.url=VITE_SUPABASE_URL \
             --override-name auth.anon_key=VITE_SUPABASE_ANON_KEY | grep '^VITE_' > apps/web/.env
-          echo 'VITE_APP_URL=http://localhost:5173' >> apps/web/.env
 
       - run: pnpm --filter @home/web exec playwright install --with-deps chromium
 

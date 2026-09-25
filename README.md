@@ -73,14 +73,13 @@ Import the GitHub repo into Vercel and leave the root directory as the repo root
 sets the build command, output directory, SPA fallback and cache headers. Add these environment
 variables (Production):
 
-| Variable                 | Value                                   |
-| ------------------------ | --------------------------------------- |
-| `VITE_SUPABASE_URL`      | `https://<ref>.supabase.co`             |
-| `VITE_SUPABASE_ANON_KEY` | the project's anon (public) key         |
-| `VITE_APP_URL`           | `https://<your-domain>` (sign-in links) |
+| Variable                 | Value                           |
+| ------------------------ | ------------------------------- |
+| `VITE_SUPABASE_URL`      | `https://<ref>.supabase.co`     |
+| `VITE_SUPABASE_ANON_KEY` | the project's anon (public) key |
 
-The build fails if any of them is missing. Magic links always return to `VITE_APP_URL`, so sign-in
-on preview deployments lands on production.
+The build fails if either is missing. Sign-in links return to whichever site sent them, so a
+deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in to work there.
 
 ## Scripts
 

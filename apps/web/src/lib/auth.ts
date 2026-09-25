@@ -1,10 +1,12 @@
 import { safeNextPath } from '@home/shared'
-import { env } from './env'
 import { supabase } from './supabase'
 
-/** Where magic links and OAuth return to; `next` is where to go once signed in. */
+/**
+ * Where magic links and OAuth return to: this same site, so production and preview deployments
+ * each get their own links. `next` is where to go once signed in.
+ */
 function callbackUrl(next: string): string {
-  const url = new URL('/auth/callback', env.VITE_APP_URL)
+  const url = new URL('/auth/callback', window.location.origin)
   const path = safeNextPath(next)
   if (path !== '/') url.searchParams.set('next', path)
   return url.toString()
