@@ -48,6 +48,40 @@ Set up per project:
 
 Run it by hand with `select public.invoke_daily_jobs();`.
 
+## Deployment
+
+The backend is a hosted Supabase project; the frontend is a static site on Vercel.
+
+### 1. Supabase
+
+```bash
+supabase link --project-ref <ref>
+supabase db push                 # apply supabase/migrations
+supabase functions deploy        # send-invite, accept-invite, revoke-invite, leave-household, daily-jobs
+supabase secrets set APP_URL=https://<your-domain> RESEND_API_KEY=<key> \
+  EMAIL_FROM="Home <home@your-verified-domain>" CRON_SECRET=<long random string>
+```
+
+Then add the two Vault secrets from [Daily jobs](#daily-jobs), and under Authentication → URL
+Configuration set the site URL to `https://<your-domain>` and add
+`https://<your-domain>/auth/callback` to the redirect URLs. Resend only delivers from a verified
+domain.
+
+### 2. Vercel
+
+Import the GitHub repo into Vercel and leave the root directory as the repo root; `vercel.json`
+sets the build command, output directory, SPA fallback and cache headers. Add these environment
+variables (Production):
+
+| Variable                 | Value                                   |
+| ------------------------ | --------------------------------------- |
+| `VITE_SUPABASE_URL`      | `https://<ref>.supabase.co`             |
+| `VITE_SUPABASE_ANON_KEY` | the project's anon (public) key         |
+| `VITE_APP_URL`           | `https://<your-domain>` (sign-in links) |
+
+The build fails if any of them is missing. Magic links always return to `VITE_APP_URL`, so sign-in
+on preview deployments lands on production.
+
 ## Scripts
 
 | Command          | What it does                              |
