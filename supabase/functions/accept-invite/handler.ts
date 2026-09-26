@@ -9,7 +9,8 @@ import { hashToken } from '../_shared/tokens.ts'
 
 /**
  * With preview: returns the invite's details without changing anything (for the "Join X?" screen).
- * Otherwise: joins the household (email must match) and makes it the caller's active household.
+ * Otherwise: joins the household (anyone with a valid link can) and makes it the caller's active
+ * household. A member opening a link is just taken to the household; the link stays unused.
  */
 export const handler = endpoint(
   acceptInviteSchema,
@@ -27,8 +28,6 @@ export const handler = endpoint(
       householdId: row.household_id,
       householdName: row.household_name,
       inviterName: row.inviter_name,
-      email: row.email,
-      emailMatches: row.email_matches,
       alreadyMember: row.already_member,
     }
   },

@@ -57,6 +57,7 @@ const routes = {
   recentlyDeleted: () => import('@/routes/recently-deleted'),
   recurring: () => import('@/routes/recurring'),
   recurringForm: () => import('@/routes/recurring-form'),
+  resetPassword: () => import('@/routes/reset-password'),
   signIn: () => import('@/routes/sign-in'),
   taskDetail: () => import('@/routes/task-detail'),
   taskForm: () => import('@/routes/task-form'),
@@ -85,6 +86,8 @@ export const router = createBrowserRouter([
             loader: onboardingLoader,
             lazy: page(routes.onboarding, 'OnboardingPage'),
           },
+          // Password-reset emails sign you in and land here.
+          { path: 'reset-password', lazy: page(routes.resetPassword, 'ResetPasswordPage') },
           // Works with or without a household (new users join through here).
           { path: 'invite/:token', loader: inviteLoader, lazy: page(routes.invite, 'InvitePage') },
           {

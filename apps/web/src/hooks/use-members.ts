@@ -13,12 +13,15 @@ import { householdKey, householdsQuery, pendingInvitesQuery, profileQuery } from
 import { supabase } from '@/lib/supabase'
 import { useCurrentUser } from './use-household'
 
-/** Sends an invite, or resends it (new link) if the address already has a pending one. */
+/**
+ * Creates an invite link (optionally emailing it; an address with a pending invite gets a new
+ * link) or makes a new link for a pending invite. Resolves with the link to share.
+ */
 export function useSendInvite(householdId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (email: string) => sendInvite(supabase, { householdId, email }),
-    // Also after email_failed: the invite exists and can be resent.
+    mutationFn: (input: { email?: string; inviteId?: string } = {}) =>
+      sendInvite(supabase, { householdId, ...input }),
     onSettled: () => queryClient.invalidateQueries(pendingInvitesQuery(householdId)),
   })
 }
@@ -38,7 +41,8 @@ export function useRevokeInvite(householdId: string) {
       )
       return { previous }
     },
-    onSuccess: (_data, invite) => toast.success(`Invite to ${invite.email} cancelled`),
+    onSuccess: (_data, invite) =>
+      toast.success(invite.email ? `Invite to ${invite.email} cancelled` : 'Invite link cancelled'),
     onError: (error, _invite, context) => {
       queryClient.setQueryData(queryKey, context?.previous)
       toast.error(errorMessage(error))

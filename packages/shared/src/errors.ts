@@ -8,9 +8,7 @@ export const APP_ERROR_MESSAGES = {
   invite_expired: 'This invite has expired. Ask a member to send you a new one.',
   invite_revoked: 'This invite was cancelled. Ask a member to send you a new one.',
   invite_used: 'This invite has already been used.',
-  email_mismatch: 'This invite was sent to a different email address.',
   last_member: "You're the last member, so leaving will delete the household.",
-  email_failed: "The invite was saved but the email couldn't be sent. Try resending it.",
   internal: 'Something went wrong. Please try again.',
 } as const
 

@@ -3,17 +3,20 @@ import {
   inviteFormSchema,
   type InviteFormInput,
   type PendingInvite,
+  type SendInviteResult,
 } from '@home/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { MailIcon, RotateCwIcon, XIcon } from 'lucide-react'
+import { LinkIcon, MailIcon, RotateCwIcon, XIcon } from 'lucide-react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { InviteLinkDialog, type InviteLink } from '@/components/invite-link-dialog'
 import { LeaveHouseholdDialog } from '@/components/leave-household-dialog'
 import { UserAvatar } from '@/components/user-avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { useActiveHousehold, useCurrentUser } from '@/hooks/use-household'
 import { useRevokeInvite, useSendInvite } from '@/hooks/use-members'
@@ -45,6 +48,7 @@ export function MembersPage() {
   const user = useCurrentUser()
   const members = useSuspenseQuery(membersQuery(household.id)).data
   const invites = useSuspenseQuery(pendingInvitesQuery(household.id)).data
+  const [link, setLink] = useState<InviteLink | null>(null)
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
@@ -84,16 +88,21 @@ export function MembersPage() {
 
       <Section
         title="Invite someone"
-        description="They'll get an email with a link to join. Links expire after 7 days."
+        description="Share a link on WhatsApp or anywhere else, or email it. Each link lets one person join and expires after 7 days."
       >
-        <InviteForm householdId={household.id} />
+        <InviteForm householdId={household.id} onLink={setLink} />
       </Section>
 
       {invites.length > 0 && (
         <Section title="Pending invites">
           <ul className="divide-y rounded-xl border">
             {invites.map((invite) => (
-              <InviteRow key={invite.id} invite={invite} householdId={household.id} />
+              <InviteRow
+                key={invite.id}
+                invite={invite}
+                householdId={household.id}
+                onLink={setLink}
+              />
             ))}
           </ul>
         </Section>
@@ -111,11 +120,34 @@ export function MembersPage() {
           <LeaveHouseholdDialog household={household} isLastMember={members.length === 1} />
         </div>
       </Section>
+
+      <InviteLinkDialog
+        link={link}
+        householdName={household.name}
+        timezone={household.timezone}
+        onClose={() => setLink(null)}
+      />
     </div>
   )
 }
 
-function InviteForm({ householdId }: { householdId: string }) {
+function toLink(result: SendInviteResult): InviteLink {
+  return {
+    url: result.inviteUrl,
+    expiresAt: result.expiresAt,
+    email: result.email,
+    emailed: result.emailed,
+  }
+}
+
+function InviteForm({
+  householdId,
+  onLink,
+}: {
+  householdId: string
+  onLink: (link: InviteLink) => void
+}) {
+  const createLink = useSendInvite(householdId)
   const sendInvite = useSendInvite(householdId)
   const form = useForm<InviteFormInput>({
     resolver: zodResolver(inviteFormSchema),
@@ -123,11 +155,31 @@ function InviteForm({ householdId }: { householdId: string }) {
   })
   const { errors, isSubmitting } = form.formState
 
+  function create() {
+    createLink.mutate(
+      {},
+      {
+        onSuccess: (result) => onLink(toLink(result)),
+        onError: (error) => toast.error(errorMessage(error)),
+      },
+    )
+  }
+
   const onSubmit = form.handleSubmit(async ({ email }) => {
     try {
-      const result = await sendInvite.mutateAsync(email)
-      toast.success(`${result.resent ? 'Invite resent' : 'Invite sent'} to ${result.email}`)
+      const result = await sendInvite.mutateAsync({ email })
       form.reset()
+      if (result.emailed) {
+        toast.success(`${result.resent ? 'Invite resent' : 'Invite sent'} to ${email}`, {
+          action: {
+            label: 'Copy link',
+            onClick: () => void navigator.clipboard.writeText(result.inviteUrl),
+          },
+        })
+      } else {
+        // The invite exists; offer the link instead.
+        onLink(toLink(result))
+      }
     } catch (error) {
       if (errorCode(error) === 'already_member') {
         form.setError('email', { message: errorMessage(error) })
@@ -138,58 +190,83 @@ function InviteForm({ householdId }: { householdId: string }) {
   })
 
   return (
-    <form onSubmit={(e) => void onSubmit(e)} noValidate>
-      <Field data-invalid={!!errors.email}>
-        <FieldLabel htmlFor="invite-email" className="sr-only">
-          Email address
-        </FieldLabel>
-        <div className="flex gap-2">
-          <Input
-            id="invite-email"
-            type="email"
-            inputMode="email"
-            autoComplete="off"
-            placeholder="name@example.com"
-            aria-invalid={!!errors.email}
-            {...form.register('email')}
-          />
-          <Button type="submit" disabled={isSubmitting}>
-            <MailIcon aria-hidden />
-            {isSubmitting ? 'Sending…' : 'Invite'}
-          </Button>
-        </div>
-        <FieldError errors={[errors.email]} />
-        <FieldDescription className="sr-only">
-          They&apos;ll get an email with a link to join.
-        </FieldDescription>
-      </Field>
-    </form>
+    <div className="flex flex-col gap-4">
+      <Button className="w-fit" onClick={create} disabled={createLink.isPending}>
+        <LinkIcon aria-hidden />
+        {createLink.isPending ? 'Creating…' : 'Create invite link'}
+      </Button>
+      <form onSubmit={(e) => void onSubmit(e)} noValidate>
+        <Field data-invalid={!!errors.email}>
+          <FieldLabel htmlFor="invite-email" className="text-sm font-normal text-muted-foreground">
+            Or email an invite
+          </FieldLabel>
+          <div className="flex gap-2">
+            <Input
+              id="invite-email"
+              type="email"
+              inputMode="email"
+              autoComplete="off"
+              placeholder="name@example.com"
+              aria-invalid={!!errors.email}
+              {...form.register('email')}
+            />
+            <Button type="submit" variant="outline" disabled={isSubmitting}>
+              <MailIcon aria-hidden />
+              {isSubmitting ? 'Sending…' : 'Send'}
+            </Button>
+          </div>
+          <FieldError errors={[errors.email]} />
+        </Field>
+      </form>
+    </div>
   )
 }
 
-function InviteRow({ invite, householdId }: { invite: PendingInvite; householdId: string }) {
-  const sendInvite = useSendInvite(householdId)
+function InviteRow({
+  invite,
+  householdId,
+  onLink,
+}: {
+  invite: PendingInvite
+  householdId: string
+  onLink: (link: InviteLink) => void
+}) {
+  const newLink = useSendInvite(householdId)
+  const resend = useSendInvite(householdId)
   const revokeInvite = useRevokeInvite(householdId)
   const expired = new Date(invite.expires_at) <= new Date()
   const inviter = invite.inviter?.full_name ?? invite.inviter?.email
+  const label = invite.email ?? 'Invite link'
 
-  function resend() {
-    sendInvite.mutate(invite.email, {
-      onSuccess: () => toast.success(`New invite link sent to ${invite.email}`),
-      onError: (error) => toast.error(errorMessage(error)),
-    })
+  function makeNewLink() {
+    newLink.mutate(
+      { inviteId: invite.id },
+      {
+        onSuccess: (result) => onLink({ ...toLink(result), emailed: false, email: null }),
+        onError: (error) => toast.error(errorMessage(error)),
+      },
+    )
   }
 
-  function revoke() {
-    revokeInvite.mutate(invite)
+  function resendEmail(email: string) {
+    resend.mutate(
+      { email },
+      {
+        onSuccess: (result) => {
+          if (result.emailed) toast.success(`New invite link sent to ${email}`)
+          else onLink(toLink(result))
+        },
+        onError: (error) => toast.error(errorMessage(error)),
+      },
+    )
   }
 
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
       <div className="min-w-0 flex-1 basis-48">
-        <p className="truncate font-medium">{invite.email}</p>
+        <p className="truncate font-medium">{label}</p>
         <p className="text-sm text-muted-foreground">
-          {inviter ? `Invited by ${inviter} · ` : ''}
+          {inviter ? `Created by ${inviter} · ` : ''}
           {expired ? (
             <Badge variant="outline" className="text-destructive">
               Expired
@@ -199,17 +276,34 @@ function InviteRow({ invite, householdId }: { invite: PendingInvite; householdId
           )}
         </p>
       </div>
-      <div className="flex gap-1">
-        <Button variant="outline" size="sm" onClick={resend} disabled={sendInvite.isPending}>
-          <RotateCwIcon aria-hidden />
-          {sendInvite.isPending ? 'Sending…' : 'Resend'}
+      <div className="flex flex-wrap gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={makeNewLink}
+          disabled={newLink.isPending}
+          title="Makes a new link to copy; the previous link stops working"
+        >
+          <LinkIcon aria-hidden />
+          {newLink.isPending ? 'Creating…' : 'New link'}
         </Button>
+        {invite.email && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => resendEmail(invite.email ?? '')}
+            disabled={resend.isPending}
+          >
+            <RotateCwIcon aria-hidden />
+            {resend.isPending ? 'Sending…' : 'Resend'}
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"
-          onClick={revoke}
+          onClick={() => revokeInvite.mutate(invite)}
           disabled={revokeInvite.isPending}
-          aria-label={`Cancel invite to ${invite.email}`}
+          aria-label={invite.email ? `Cancel invite to ${invite.email}` : 'Cancel invite link'}
         >
           <XIcon aria-hidden />
           Cancel

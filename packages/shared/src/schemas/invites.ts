@@ -6,17 +6,31 @@ export const inviteFormSchema = z.object({
 })
 export type InviteFormInput = z.input<typeof inviteFormSchema>
 
-/** Body of the send-invite edge function. Sending to a pending address resends (new token). */
-export const sendInviteSchema = z.object({
-  householdId: z.uuid(),
-  email: emailSchema,
-})
+/**
+ * Body of the send-invite edge function:
+ * - `{ householdId }` creates a shareable link;
+ * - `{ householdId, email }` also emails it (to a pending address: resends with a new link);
+ * - `{ householdId, inviteId }` makes a new link for a pending invite (the old one stops working).
+ */
+export const sendInviteSchema = z
+  .object({
+    householdId: z.uuid(),
+    email: emailSchema.optional(),
+    inviteId: z.uuid().optional(),
+  })
+  .refine((input) => !(input.email && input.inviteId), 'Pass an email or an inviteId, not both')
 export type SendInviteInput = z.input<typeof sendInviteSchema>
 
 export interface SendInviteResult {
   inviteId: string
-  email: string
+  email: string | null
+  /** The link to share. Only returned now: the token isn't stored, so it can't be shown again. */
+  inviteUrl: string
+  expiresAt: string
+  /** An existing invite got a new link (its previous link no longer works). */
   resent: boolean
+  /** False when there was no email to send, or sending it failed (the link still works). */
+  emailed: boolean
 }
 
 /** Invite tokens are 32 random bytes, base64url-encoded. */
@@ -33,8 +47,6 @@ export interface InviteDetails {
   householdId: string
   householdName: string
   inviterName: string | null
-  email: string
-  emailMatches: boolean
   alreadyMember: boolean
 }
 

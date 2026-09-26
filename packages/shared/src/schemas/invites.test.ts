@@ -12,6 +12,15 @@ describe('sendInviteSchema', () => {
     })
   })
 
+  it('allows a link without an email, or a new link for an existing invite', () => {
+    expect(sendInviteSchema.parse({ householdId })).toEqual({ householdId })
+    const inviteId = '5b1f0c7e-2d3a-4e5f-8a9b-0c1d2e3f4a5b'
+    expect(sendInviteSchema.parse({ householdId, inviteId })).toEqual({ householdId, inviteId })
+    expect(sendInviteSchema.safeParse({ householdId, inviteId, email: 'a@b.co' }).success).toBe(
+      false,
+    )
+  })
+
   it('rejects a bad household id', () => {
     expect(sendInviteSchema.safeParse({ householdId: 'x', email: 'a@b.co' }).success).toBe(false)
   })

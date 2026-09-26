@@ -369,7 +369,7 @@ export type Database = {
         Row: {
           accepted_at: string | null
           created_at: string
-          email: string
+          email: string | null
           expires_at: string
           household_id: string
           id: string
@@ -380,7 +380,7 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           created_at?: string
-          email: string
+          email?: string | null
           expires_at?: string
           household_id: string
           id?: string
@@ -391,7 +391,7 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           created_at?: string
-          email?: string
+          email?: string | null
           expires_at?: string
           household_id?: string
           id?: string
@@ -865,8 +865,6 @@ export type Database = {
         Args: { p_preview: boolean; p_token_hash: string; p_user_id: string }
         Returns: {
           already_member: boolean
-          email: string
-          email_matches: boolean
           household_id: string
           household_name: string
           inviter_name: string
@@ -876,6 +874,17 @@ export type Database = {
         Args: { p_invite_id: string; p_user_id: string }
         Returns: undefined
       }
+      invite_rotate: {
+        Args: { p_invite_id: string; p_token_hash: string; p_user_id: string }
+        Returns: {
+          email: string | null
+          expires_at: string
+          household_name: string
+          invite_id: string
+          inviter_name: string
+          resent: boolean
+        }[]
+      }
       invite_upsert: {
         Args: {
           p_email: string
@@ -884,7 +893,7 @@ export type Database = {
           p_token_hash: string
         }
         Returns: {
-          email: string
+          email: string | null
           expires_at: string
           household_name: string
           invite_id: string

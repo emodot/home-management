@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import { AuthCard } from '@/components/auth-card'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser } from '@/hooks/use-household'
-import { signOut } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 import { householdsQuery, profileQuery } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
@@ -50,30 +49,6 @@ export function InvitePage() {
       >
         <Button className="w-full" onClick={() => accept.mutate(token)} disabled={accept.isPending}>
           Open {invite.householdName}
-        </Button>
-      </AuthCard>
-    )
-  }
-
-  if (!invite.emailMatches) {
-    return (
-      <AuthCard
-        title="This invite is for someone else"
-        description={
-          <>
-            It was sent to <span className="font-medium text-foreground">{invite.email}</span>, but
-            you&apos;re signed in as{' '}
-            <span className="font-medium text-foreground">{user.email}</span>. Sign in with the
-            invited address to accept it.
-          </>
-        }
-      >
-        <Button
-          className="w-full"
-          // The auth listener brings you back to this invite after signing in again.
-          onClick={() => void signOut().catch((error: unknown) => toast.error(errorMessage(error)))}
-        >
-          Sign out and switch account
         </Button>
       </AuthCard>
     )

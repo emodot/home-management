@@ -1,6 +1,6 @@
 -- Activity log: what the triggers record, who they credit, and who can read it.
 begin;
-select plan(25);
+select plan(28);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'ada@example.com', '{"full_name": "Ada Obi"}'),
@@ -178,6 +178,17 @@ select is(
     row('left the household', '22222222-2222-2222-2222-222222222222'::uuid)::text
   ],
   'invites and membership changes credit the right person'
+);
+
+select set_config('test.link', (
+  select invite_id::text from public.invite_upsert(current_setting('test.hid')::uuid, null, repeat('d', 64),
+                                                   '11111111-1111-1111-1111-111111111111')), true);
+select lives_ok($$ select public.invite_rotate(current_setting('test.link')::uuid, '11111111-1111-1111-1111-111111111111', repeat('e', 64)) $$, 'new link');
+select lives_ok($$ select public.invite_revoke(current_setting('test.link')::uuid, '11111111-1111-1111-1111-111111111111') $$, 'cancel link');
+select is(
+  (select array_agg(summary order by id) from log where entity_id = current_setting('test.link')::uuid),
+  array['created an invite link', 'made a new invite link', 'cancelled an invite link'],
+  'invite links without an email are described as links'
 );
 
 -- ---------------------------------------------------------------- access

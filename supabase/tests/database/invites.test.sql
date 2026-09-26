@@ -1,12 +1,13 @@
 -- Invites and leaving a household. The functions are called as service_role, like the edge
 -- functions do; the first block checks nobody else can call them.
 begin;
-select plan(33);
+select plan(44);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'ada@example.com', '{"full_name": "Ada Obi"}'),
   ('22222222-2222-2222-2222-222222222222', 'bola@example.com', '{}'),
-  ('33333333-3333-3333-3333-333333333333', 'chidi@example.com', '{}');
+  ('33333333-3333-3333-3333-333333333333', 'chidi@example.com', '{}'),
+  ('44444444-4444-4444-4444-444444444444', 'dayo@example.com', '{}');
 
 -- Ada creates a household.
 set local role authenticated;
@@ -75,25 +76,21 @@ select throws_ok(
   'P0001', 'invite_not_found', 'the token replaced by a resend no longer works'
 );
 select is(
-  (select row(household_name, email, email_matches, already_member)::text
+  (select row(household_name, inviter_name, already_member)::text
    from public.invite_accept(repeat('b', 64), '33333333-3333-3333-3333-333333333333', true)),
-  row('Obi home', 'bola@example.com', false, false)::text,
-  'preview reports an email mismatch without failing'
-);
-select throws_ok(
-  $$ select * from public.invite_accept(repeat('b', 64), '33333333-3333-3333-3333-333333333333', false) $$,
-  'P0001', 'email_mismatch', 'someone else cannot accept the invite'
+  row('Obi home', 'Ada Obi', false)::text,
+  'anyone with the link can preview it'
 );
 select is(
   (select count(*)::int from public.household_members where household_id = current_setting('test.hid')::uuid),
   1,
-  'previews and failed accepts do not add members'
+  'previews do not add members'
 );
 select is(
-  (select row(email_matches, already_member)::text
+  (select already_member
    from public.invite_accept(repeat('b', 64), '22222222-2222-2222-2222-222222222222', false)),
-  row(true, true)::text,
-  'the invited user can accept'
+  true,
+  'whoever opens the link can accept it'
 );
 select ok(
   public.is_member_of(current_setting('test.hid')::uuid, '22222222-2222-2222-2222-222222222222'),
@@ -141,13 +138,70 @@ select throws_ok(
   'P0001', 'invite_revoked', 'revoked invites cannot be used'
 );
 
+-- ---------------------------------------------------------------- shareable links (no email)
+select is(
+  (select row(email, resent)::text
+   from public.invite_upsert(current_setting('test.hid')::uuid, null, repeat('d', 64), '11111111-1111-1111-1111-111111111111')),
+  row(null::text, false)::text,
+  'a member can create an invite link without an email'
+);
+select lives_ok(
+  $$ select * from public.invite_upsert(current_setting('test.hid')::uuid, null, repeat('e', 64), '11111111-1111-1111-1111-111111111111') $$,
+  'every new link is a separate invite'
+);
+select is(
+  (select count(*)::int from public.invites where email is null and accepted_at is null),
+  2,
+  'two pending links'
+);
+select throws_ok(
+  $$ select * from public.invite_rotate((select id from public.invites where token_hash = repeat('d', 64)), '33333333-3333-3333-3333-333333333333', repeat('f', 64)) $$,
+  'P0001', 'invite_not_found', 'outsiders cannot make a new link'
+);
+select is(
+  (select resent from public.invite_rotate((select id from public.invites where token_hash = repeat('d', 64)), '22222222-2222-2222-2222-222222222222', repeat('f', 64))),
+  true,
+  'any member can make a new link for a pending invite'
+);
+select throws_ok(
+  $$ select * from public.invite_accept(repeat('d', 64), '44444444-4444-4444-4444-444444444444', true) $$,
+  'P0001', 'invite_not_found', 'the old link stops working'
+);
+select is(
+  (select already_member from public.invite_accept(repeat('f', 64), '22222222-2222-2222-2222-222222222222', false)),
+  true,
+  'a member opening a link just goes to the household'
+);
+select is(
+  (select accepted_at from public.invites where token_hash = repeat('f', 64)),
+  null,
+  '...without using the link up'
+);
+select lives_ok(
+  $$ select * from public.invite_accept(repeat('f', 64), '44444444-4444-4444-4444-444444444444', false) $$,
+  'someone new joins with the link'
+);
+select ok(
+  public.is_member_of(current_setting('test.hid')::uuid, '44444444-4444-4444-4444-444444444444'),
+  'and is now a member'
+);
+select throws_ok(
+  $$ select * from public.invite_accept(repeat('f', 64), '33333333-3333-3333-3333-333333333333', true) $$,
+  'P0001', 'invite_used', 'a link works for one person only'
+);
+select is(
+  public.leave_household(current_setting('test.hid')::uuid, '44444444-4444-4444-4444-444444444444', false),
+  'left',
+  'they can leave again'
+);
+
 -- ---------------------------------------------------------------- what members can read
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}', true);
 select is(
   (select count(*)::int from (select id, email, invited_by, expires_at from public.invites) i),
-  2,
+  4,
   'members can list their household''s invites'
 );
 select throws_ok($$ select token_hash from public.invites $$, '42501', null, 'token hashes are not readable');

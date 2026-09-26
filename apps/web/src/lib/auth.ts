@@ -1,9 +1,11 @@
 import { safeNextPath } from '@home/shared'
+import type { AuthError } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 /**
- * Where magic links and OAuth return to: this same site, so production and preview deployments
- * each get their own links. `next` is where to go once signed in.
+ * Where emailed links (magic link, sign-up confirmation, password reset) return to: this same
+ * site, so production and preview deployments each get their own links. `next` is where to go
+ * once signed in.
  */
 function callbackUrl(next: string): string {
   const url = new URL('/auth/callback', window.location.origin)
@@ -12,9 +14,45 @@ function callbackUrl(next: string): string {
   return url.toString()
 }
 
+const AUTH_MESSAGES: Record<string, string> = {
+  invalid_credentials: 'Wrong email or password.',
+  user_already_exists: 'An account with this email already exists. Sign in instead.',
+  email_exists: 'An account with this email already exists. Sign in instead.',
+  email_not_confirmed: 'Confirm your email first: open the link we sent you.',
+  weak_password: 'Choose a stronger password.',
+  same_password: 'Choose a password different from your current one.',
+  over_email_send_rate_limit: 'Too many emails sent. Wait a few minutes and try again.',
+  over_request_rate_limit: 'Too many attempts. Wait a few minutes and try again.',
+}
+
+/** Supabase auth errors, reworded for people. */
+function friendly(error: AuthError): Error {
+  const message = error.code ? AUTH_MESSAGES[error.code] : undefined
+  return message ? new Error(message) : error
+}
+
 export async function getSessionUser() {
   const { data } = await supabase.auth.getSession()
   return data.session?.user ?? null
+}
+
+export async function signInWithPassword(email: string, password: string) {
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw friendly(error)
+}
+
+/**
+ * Creates an account. Returns whether the email must be confirmed first (when the project
+ * requires confirmation there is no session yet, and a confirmation link is emailed).
+ */
+export async function signUp(email: string, password: string, next: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: callbackUrl(next) },
+  })
+  if (error) throw friendly(error)
+  return { needsConfirmation: data.session === null }
 }
 
 export async function sendMagicLink(email: string, next: string) {
@@ -22,15 +60,20 @@ export async function sendMagicLink(email: string, next: string) {
     email,
     options: { emailRedirectTo: callbackUrl(next), shouldCreateUser: true },
   })
-  if (error) throw error
+  if (error) throw friendly(error)
 }
 
-export async function signInWithGoogle(next: string) {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: callbackUrl(next) },
+/** Emails a link that signs the user in and opens the "choose a new password" page. */
+export async function requestPasswordReset(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: callbackUrl('/reset-password'),
   })
-  if (error) throw error
+  if (error) throw friendly(error)
+}
+
+export async function updatePassword(password: string) {
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) throw friendly(error)
 }
 
 export async function signOut() {

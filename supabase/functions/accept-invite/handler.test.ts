@@ -8,8 +8,6 @@ const row = {
   household_id: HOUSEHOLD_ID,
   household_name: 'Lekki flat',
   inviter_name: 'Ada Obi',
-  email: 'bola@example.com',
-  email_matches: true,
   already_member: false,
 }
 
@@ -22,8 +20,6 @@ Deno.test('previews an invite by the hash of its token', async () => {
     householdId: HOUSEHOLD_ID,
     householdName: 'Lekki flat',
     inviterName: 'Ada Obi',
-    email: 'bola@example.com',
-    emailMatches: true,
     alreadyMember: false,
   })
   assertEquals(rpcCalls[0]!.args, {
@@ -46,7 +42,7 @@ Deno.test('maps invite errors', async () => {
   for (const [code, status] of [
     ['invite_expired', 410],
     ['invite_not_found', 404],
-    ['email_mismatch', 403],
+    ['invite_used', 410],
   ] as const) {
     const { deps } = fakeDeps({ rpc: () => dbError(code) })
     const res = await handler(post({ token }), deps)

@@ -16,16 +16,22 @@ cp apps/web/.env.example apps/web/.env # paste the anon key
 pnpm dev                               # http://localhost:5173
 ```
 
-Magic-link emails are caught locally by Mailpit at http://127.0.0.1:54324.
+Auth emails (sign-in links, confirmations, password resets) are caught locally by Mailpit at
+http://127.0.0.1:54324.
 
-### Google sign-in (optional locally)
+### Sign-in and invites
 
-1. Create a Google OAuth client with redirect URI `http://127.0.0.1:54321/auth/v1/callback`.
-2. `cp supabase/.env.example supabase/.env` and fill in the client ID and secret.
-3. Set `enabled = true` under `[auth.external.google]` in `supabase/config.toml` and restart Supabase.
+People sign in with email and password, or with an emailed sign-in link. "Forgot password?" emails
+a link to `/reset-password`. Locally new accounts can sign in straight away; the hosted project
+requires confirming the email first (`[remotes.production.auth.email]` in `supabase/config.toml`).
 
-In the hosted project, configure Google under Authentication → Providers, and add the app's
-`/auth/callback` URL to the redirect allow-list.
+Supabase's built-in email sender only allows a few emails an hour and is meant for testing. For
+real use, set custom SMTP (e.g. Resend: `smtp.resend.com`, port 465, user `resend`, your API key
+as the password) under Authentication → Emails → SMTP Settings in the dashboard.
+
+Members invite people from the Members page by creating a link to share (WhatsApp, SMS…) or by
+email. Anyone who opens a valid link and signs in can join; each link works once and expires
+after 7 days. Only a hash of the token is stored, so a link is shown once; "New link" replaces it.
 
 ### Daily jobs
 
@@ -100,12 +106,12 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 
 ### Smoke tests
 
-`pnpm e2e` runs the Playwright smoke test (sign up → household → expense with receipt → invite →
-task → complete → log expense) against the local stack. It needs `pnpm db:start`, the edge
-functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
-pointing at the local API, and Chromium once: `pnpm --filter @home/web exec playwright install
-chromium`. The dev server is started for you. Sign-in emails are read from Mailpit
-(`E2E_MAILPIT_URL`, default `http://127.0.0.1:54324`).
+`pnpm e2e` runs the Playwright smoke test (sign up → household → expense with receipt → invite by
+email and by link, with a second person joining through the link → task → complete → log expense →
+sign back in) against the local stack. It needs `pnpm db:start`, the edge functions (`supabase
+functions serve --env-file supabase/functions/.env`), `apps/web/.env` pointing at the local API,
+and Chromium once: `pnpm --filter @home/web exec playwright install chromium`. The dev server is
+started for you.
 
 App icons are generated from `apps/web/public/icon.svg` with `pnpm --filter @home/web icons`.
 

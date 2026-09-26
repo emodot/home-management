@@ -1,32 +1,19 @@
 import { expect, test, type Page } from '@playwright/test'
 
-// Local Supabase catches auth emails in Mailpit.
-const MAILPIT_URL = process.env.E2E_MAILPIT_URL ?? 'http://127.0.0.1:54324'
-
 // A 1×1 PNG, attached as a receipt.
 const RECEIPT_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
   'base64',
 )
 
-/** Waits for the sign-in email sent to `email` and returns its magic link. */
-async function magicLinkFor(email: string): Promise<string> {
-  const query = encodeURIComponent(`to:"${email}"`)
-  for (let attempt = 0; attempt < 30; attempt++) {
-    const search = (await (await fetch(`${MAILPIT_URL}/api/v1/search?query=${query}`)).json()) as {
-      messages: { ID: string }[]
-    }
-    const id = search.messages[0]?.ID
-    if (id) {
-      const message = (await (await fetch(`${MAILPIT_URL}/api/v1/message/${id}`)).json()) as {
-        HTML: string
-      }
-      const href = /href="([^"]*\/auth\/v1\/verify[^"]*)"/.exec(message.HTML)?.[1]
-      if (href) return href.replaceAll('&amp;', '&')
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500))
-  }
-  throw new Error(`No sign-in email arrived for ${email}`)
+const PASSWORD = 'correct horse battery'
+
+/** Creates an account from the sign-in page (local Supabase doesn't require confirming it). */
+async function signUp(page: Page, email: string) {
+  await page.getByRole('button', { name: 'Create an account' }).click()
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Password').fill(PASSWORD)
+  await page.getByRole('button', { name: 'Create account' }).click()
 }
 
 async function choose(page: Page, fieldId: string, option: string) {
@@ -36,16 +23,14 @@ async function choose(page: Page, fieldId: string, option: string) {
 
 test('sign up → household → expense with receipt → invite → task → complete → log expense', async ({
   page,
+  browser,
 }) => {
   const email = `e2e-${Date.now()}@example.com`
 
-  await test.step('sign up with a magic link', async () => {
+  await test.step('sign up with a password', async () => {
     await page.goto('/')
     await expect(page).toHaveURL(/\/sign-in/)
-    await page.getByLabel('Email').fill(email)
-    await page.getByRole('button', { name: 'Email me a sign-in link' }).click()
-    await expect(page.getByText('Check your email')).toBeVisible()
-    await page.goto(await magicLinkFor(email))
+    await signUp(page, email)
   })
 
   await test.step('create a household', async () => {
@@ -73,11 +58,32 @@ test('sign up → household → expense with receipt → invite → task → com
     await expect(page.getByRole('heading', { name: 'Receipts (1)' })).toBeVisible()
   })
 
-  await test.step('invite a member', async () => {
+  await test.step('invite members by email and by a shared link', async () => {
     await page.goto('/members')
-    await page.getByLabel('Email address').fill('bola@example.com')
-    await page.getByRole('button', { name: 'Invite' }).click()
+    await page.getByLabel('Or email an invite').fill('bola@example.com')
+    await page.getByRole('button', { name: 'Send' }).click()
     await expect(page.getByText('Invite sent to bola@example.com')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Create invite link' }).click()
+    const link = page.getByRole('dialog').getByLabel('Invite link')
+    await expect(link).toHaveValue(/\/invite\/[A-Za-z0-9_-]{43}$/)
+    const inviteUrl = await link.inputValue()
+    await page.keyboard.press('Escape')
+
+    // Someone else opens the link in their own browser, creates an account and joins.
+    const guest = await browser.newContext()
+    const guestPage = await guest.newPage()
+    await guestPage.goto(inviteUrl)
+    await expect(guestPage.getByText('Create an account to join')).toBeVisible()
+    await guestPage.getByLabel('Email').fill(`guest-${email}`)
+    await guestPage.getByLabel('Password').fill(PASSWORD)
+    await guestPage.getByRole('button', { name: 'Create account' }).click()
+    await guestPage.getByRole('button', { name: 'Join household' }).click()
+    await expect(guestPage.getByText('Welcome to Obi home')).toBeVisible()
+    await guest.close()
+
+    await page.reload()
+    await expect(page.getByText('2 members')).toBeVisible()
   })
 
   await test.step('create a task', async () => {
@@ -109,5 +115,17 @@ test('sign up → household → expense with receipt → invite → task → com
     await expect(page.getByText('You invited bola@example.com')).toBeVisible()
     await expect(page.getByText('You added receipt')).toBeVisible()
     await expect(page.getByText('You added ₦45,000')).toBeVisible()
+    await expect(page.getByText('You created an invite link')).toBeVisible()
+    await expect(page.getByText('joined the household')).toHaveCount(2)
+  })
+
+  await test.step('sign out and back in with the password', async () => {
+    await page.goto('/more')
+    await page.getByRole('button', { name: 'Sign out' }).click()
+    await expect(page).toHaveURL(/\/sign-in/)
+    await page.getByLabel('Email').fill(email)
+    await page.getByLabel('Password').fill(PASSWORD)
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Expenses' })).toBeVisible()
   })
 })
