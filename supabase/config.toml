@@ -460,3 +460,18 @@ otp_length = 8
 [remotes.production.auth.mfa.totp]
 enroll_enabled = true
 verify_enabled = true
+
+# Auth emails (confirmations, sign-in links, password resets) go through Resend in production.
+# The password is the Resend API key, read from the environment when running `config push`.
+[remotes.production.auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "no-reply@hm.davidemaye.com"
+sender_name = "Home"
+
+[remotes.production.auth.rate_limit]
+# Emails per hour across the project (the local value of 2 is for development only).
+email_sent = 30
