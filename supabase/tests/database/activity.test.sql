@@ -2,6 +2,23 @@
 begin;
 select plan(28);
 
+-- Households are created by super-admins. This stand-in creates one and makes the caller its
+-- household admin (and their active household), as if they had joined through an admin invite.
+create function pg_temp.create_household(p_name text)
+returns public.households
+language plpgsql
+security definer
+as $fn$
+declare
+  h public.households;
+begin
+  h := public.admin_create_household(p_name);
+  insert into public.household_members (household_id, user_id, role) values (h.id, auth.uid(), 'admin');
+  update public.profiles set active_household_id = h.id where id = auth.uid();
+  return h;
+end;
+$fn$;
+
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'ada@example.com', '{"full_name": "Ada Obi"}'),
   ('22222222-2222-2222-2222-222222222222', 'bola@example.com', '{"full_name": "Bola Ade"}'),
@@ -9,7 +26,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
-select set_config('test.hid', (public.create_household('Obi home')).id::text, true);
+select set_config('test.hid', (pg_temp.create_household('Obi home')).id::text, true);
 select set_config('test.cat', (
   select id::text from public.expense_categories
   where household_id = current_setting('test.hid')::uuid and name = 'Water'), true);
@@ -163,8 +180,8 @@ select lives_ok($$ select public.invite_accept(repeat('b', 64), '22222222-2222-2
 select lives_ok($$ select * from public.invite_upsert(current_setting('test.hid')::uuid, 'chidi@example.com', repeat('c', 64),
                                                         '11111111-1111-1111-1111-111111111111') $$, 'invite chidi');
 select lives_ok($$ select public.invite_revoke((select id from public.invites where email = 'chidi@example.com'),
-                                              '22222222-2222-2222-2222-222222222222') $$, 'bola revokes');
-select lives_ok($$ select public.leave_household(current_setting('test.hid')::uuid, '22222222-2222-2222-2222-222222222222', false) $$, 'bola leaves');
+                                              '11111111-1111-1111-1111-111111111111') $$, 'ada revokes');
+select lives_ok($$ select public.leave_household(current_setting('test.hid')::uuid, '22222222-2222-2222-2222-222222222222') $$, 'bola leaves');
 
 select is(
   (select array_agg(row(summary, actor_id)::text order by id) from log where entity_type in ('invite', 'member')
@@ -174,7 +191,7 @@ select is(
     row('resent the invite to bola@example.com', '11111111-1111-1111-1111-111111111111'::uuid)::text,
     row('joined the household', '22222222-2222-2222-2222-222222222222'::uuid)::text,
     row('invited chidi@example.com', '11111111-1111-1111-1111-111111111111'::uuid)::text,
-    row('cancelled the invite to chidi@example.com', '22222222-2222-2222-2222-222222222222'::uuid)::text,
+    row('cancelled the invite to chidi@example.com', '11111111-1111-1111-1111-111111111111'::uuid)::text,
     row('left the household', '22222222-2222-2222-2222-222222222222'::uuid)::text
   ],
   'invites and membership changes credit the right person'
@@ -202,11 +219,11 @@ select throws_ok(
 select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
 select is_empty($$ select 1 from public.activity_log $$, 'outsiders see no activity');
 
--- Deleting a household (last member leaving) doesn't trip over its own log.
+-- The last member leaving keeps the household (only super-admins delete households).
 reset role;
 set local role service_role;
-select lives_ok($$ select public.leave_household(current_setting('test.hid')::uuid, '11111111-1111-1111-1111-111111111111', true) $$,
-  'the last member can delete the household');
+select lives_ok($$ select public.leave_household(current_setting('test.hid')::uuid, '11111111-1111-1111-1111-111111111111') $$,
+  'the last member can leave');
 
 reset role;
 select * from finish();

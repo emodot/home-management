@@ -363,7 +363,7 @@ export async function authCallbackLoader({ request }: LoaderFunctionArgs) {
   const message =
     hash.get('error_description') ??
     url.searchParams.get('error_description') ??
-    'This sign-in link is invalid or has expired.'
+    'This link is invalid or has expired.'
   return { message, next }
 }
 

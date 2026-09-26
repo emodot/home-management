@@ -89,6 +89,18 @@ jobs:
           cp supabase/functions/.env.example supabase/functions/.env
           nohup supabase functions serve --env-file supabase/functions/.env > functions.log 2>&1 &
 
+      - name: Seed a super-admin
+        run: |
+          eval "$(supabase status -o env \
+            --override-name api.url=API_URL \
+            --override-name auth.service_role_key=SERVICE_ROLE_KEY | grep -E '^(API_URL|SERVICE_ROLE_KEY)=')"
+          curl -sf -X POST "$API_URL/auth/v1/admin/users" \
+            -H "apikey: $SERVICE_ROLE_KEY" -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"superadmin@example.com","password":"super-admin-e2e","email_confirm":true}' > /dev/null
+          docker exec supabase_db_home-management psql -U postgres -v ON_ERROR_STOP=1 -c \
+            "insert into public.app_admins (user_id) select id from auth.users where email = 'superadmin@example.com'"
+
       - name: Point the app at the local stack
         run: |
           supabase status -o env \
@@ -98,6 +110,9 @@ jobs:
       - run: pnpm --filter @home/web exec playwright install --with-deps chromium
 
       - run: pnpm --filter @home/web e2e
+        env:
+          E2E_ADMIN_EMAIL: superadmin@example.com
+          E2E_ADMIN_PASSWORD: super-admin-e2e
 
       - if: failure()
         uses: actions/upload-artifact@v4

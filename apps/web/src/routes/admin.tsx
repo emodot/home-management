@@ -17,7 +17,7 @@ const TABS = [
   { to: '/admin', label: 'Overview', end: true },
   { to: '/admin/users', label: 'Users', end: false },
   { to: '/admin/households', label: 'Households', end: false },
-  { to: '/admin/admins', label: 'Admins', end: false },
+  { to: '/admin/admins', label: 'Super-admins', end: false },
 ]
 
 /** The operator admin area: its own header and tabs, outside any household. */

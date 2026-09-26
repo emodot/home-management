@@ -1,24 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { emailSignInSchema } from './auth.ts'
-import { createHouseholdSchema, onboardingSchema } from './household.ts'
+import { householdNameSchema } from './household.ts'
 
-describe('createHouseholdSchema', () => {
+describe('householdNameSchema', () => {
   it('trims the name', () => {
-    expect(createHouseholdSchema.parse({ name: '  Obi home ' })).toEqual({ name: 'Obi home' })
+    expect(householdNameSchema.parse('  Obi home ')).toBe('Obi home')
   })
 
   it('rejects blank and overly long names', () => {
-    expect(createHouseholdSchema.safeParse({ name: '   ' }).success).toBe(false)
-    expect(createHouseholdSchema.safeParse({ name: 'x'.repeat(81) }).success).toBe(false)
-    expect(createHouseholdSchema.safeParse({ name: 'x'.repeat(80) }).success).toBe(true)
-  })
-})
-
-describe('onboardingSchema', () => {
-  it('requires both names', () => {
-    const result = onboardingSchema.safeParse({ fullName: '', householdName: '' })
-    expect(result.success).toBe(false)
-    expect(result.error?.issues.map((i) => i.path[0])).toEqual(['fullName', 'householdName'])
+    expect(householdNameSchema.safeParse('   ').success).toBe(false)
+    expect(householdNameSchema.safeParse('x'.repeat(81)).success).toBe(false)
+    expect(householdNameSchema.safeParse('x'.repeat(80)).success).toBe(true)
   })
 })
 

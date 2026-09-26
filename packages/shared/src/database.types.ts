@@ -357,16 +357,19 @@ export type Database = {
         Row: {
           household_id: string
           joined_at: string
+          role: string
           user_id: string
         }
         Insert: {
           household_id: string
           joined_at?: string
+          role?: string
           user_id: string
         }
         Update: {
           household_id?: string
           joined_at?: string
+          role?: string
           user_id?: string
         }
         Relationships: [
@@ -420,6 +423,7 @@ export type Database = {
           id: string
           invited_by: string | null
           revoked_at: string | null
+          role: string
           token_hash: string
         }
         Insert: {
@@ -431,6 +435,7 @@ export type Database = {
           id?: string
           invited_by?: string | null
           revoked_at?: string | null
+          role?: string
           token_hash: string
         }
         Update: {
@@ -442,6 +447,7 @@ export type Database = {
           id?: string
           invited_by?: string | null
           revoked_at?: string | null
+          role?: string
           token_hash?: string
         }
         Relationships: [
@@ -843,6 +849,31 @@ export type Database = {
       }
     }
     Functions: {
+      admin_create_household: {
+        Args: { p_name: string }
+        Returns: {
+          created_at: string
+          currency: string
+          id: string
+          name: string
+          timezone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "households"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_create_invite: {
+        Args: { p_email: string; p_household_id: string; p_token_hash: string }
+        Returns: {
+          email: string | null
+          expires_at: string
+          household_name: string
+          invite_id: string
+        }[]
+      }
       admin_delete_household: {
         Args: { p_household_id: string }
         Returns: undefined
@@ -916,6 +947,10 @@ export type Database = {
         Args: never
         Returns: Json
       }
+      admin_set_member_role: {
+        Args: { p_household_id: string; p_role: string; p_user_id: string }
+        Returns: undefined
+      }
       admin_rename_household: {
         Args: { p_household_id: string; p_name: string }
         Returns: undefined
@@ -946,22 +981,6 @@ export type Database = {
         Args: { p_completed_on?: string; p_notes?: string; p_task_id: string }
         Returns: string
       }
-      create_household: {
-        Args: { household_name: string }
-        Returns: {
-          created_at: string
-          currency: string
-          id: string
-          name: string
-          timezone: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "households"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
       delete_expired_invites: { Args: { p_before?: string }; Returns: number }
       expense_category_totals: {
         Args: { p_from: string; p_household_id: string; p_to: string }
@@ -986,6 +1005,10 @@ export type Database = {
       generate_recurring_expenses: {
         Args: { p_household_id?: string; p_max_per_bill?: number; p_today?: string }
         Returns: number
+      }
+      is_household_admin_of: {
+        Args: { hid: string; uid: string }
+        Returns: boolean
       }
       is_app_admin: {
         Args: { p_user_id: string }
@@ -1034,11 +1057,7 @@ export type Database = {
       is_household_member: { Args: { hid: string }; Returns: boolean }
       is_member_of: { Args: { hid: string; uid: string }; Returns: boolean }
       leave_household: {
-        Args: {
-          p_delete_if_last: boolean
-          p_household_id: string
-          p_user_id: string
-        }
+        Args: { p_household_id: string; p_user_id: string }
         Returns: string
       }
       purge_deleted_rows: { Args: { p_before?: string }; Returns: Json }

@@ -4,9 +4,9 @@ import {
   adminRequestSchema,
   type AdminAccount,
   type AdminRemoveResult,
-  type AdminDeleteUserResult,
   type AdminHousehold,
   type AdminHouseholdDetail,
+  type AdminInviteLink,
   type AdminOverview,
   type AdminPage,
   type AdminRequest,
@@ -47,7 +47,7 @@ export const sendAdminPasswordReset = (client: HomeClient, userId: string) =>
   admin<{ ok: true }>(client, { action: 'sendPasswordReset', userId })
 
 export const deleteAdminUser = (client: HomeClient, userId: string) =>
-  admin<AdminDeleteUserResult>(client, { action: 'deleteUser', userId })
+  admin<{ ok: true }>(client, { action: 'deleteUser', userId })
 
 export const listAdminHouseholds = (client: HomeClient, input: ListInput) =>
   admin<AdminPage<AdminHousehold>>(client, { action: 'listHouseholds', ...input })
@@ -71,3 +71,19 @@ export const addAdminAccount = (
 
 export const removeAdminAccount = (client: HomeClient, userId: string) =>
   admin<AdminRemoveResult>(client, { action: 'removeAdmin', userId })
+
+export const createAdminHousehold = (client: HomeClient, name: string) =>
+  admin<{ id: string }>(client, { action: 'createHousehold', name })
+
+export const createAdminHouseholdInvite = (
+  client: HomeClient,
+  householdId: string,
+  email?: string,
+) => admin<AdminInviteLink>(client, { action: 'createAdminInvite', householdId, email })
+
+export const setAdminMemberRole = (
+  client: HomeClient,
+  householdId: string,
+  userId: string,
+  role: 'admin' | 'member',
+) => admin<{ ok: true }>(client, { action: 'setMemberRole', householdId, userId, role })

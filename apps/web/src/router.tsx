@@ -63,7 +63,6 @@ const routes = {
   invite: () => import('@/routes/invite'),
   members: () => import('@/routes/members'),
   more: () => import('@/routes/more'),
-  newHousehold: () => import('@/routes/new-household'),
   onboarding: () => import('@/routes/onboarding'),
   providerDetail: () => import('@/routes/provider-detail'),
   providerForm: () => import('@/routes/provider-form'),
@@ -261,10 +260,6 @@ export const router = createBrowserRouter([
                     path: 'members',
                     loader: membersLoader,
                     lazy: page(routes.members, 'MembersPage'),
-                  },
-                  {
-                    path: 'households/new',
-                    lazy: page(routes.newHousehold, 'NewHouseholdPage'),
                   },
                   { path: 'more', lazy: page(routes.more, 'MorePage') },
                   {

@@ -1,4 +1,4 @@
-import { ChevronRightIcon, LogOutIcon, PlusIcon, UserRoundIcon } from 'lucide-react'
+import { ChevronRightIcon, LogOutIcon, UserRoundIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { ThemeSwitcher } from '@/components/theme-menu'
@@ -34,13 +34,6 @@ export function MorePage() {
             </li>
           ),
         )}
-        <li>
-          <Link to="/households/new" className={rowClass}>
-            <PlusIcon className="size-5 text-muted-foreground" aria-hidden />
-            <span className="flex-1">New household</span>
-            <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
-          </Link>
-        </li>
       </ul>
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold">Appearance</h2>

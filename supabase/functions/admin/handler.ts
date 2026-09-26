@@ -2,21 +2,23 @@ import {
   ADMIN_PAGE_SIZE,
   adminRequestSchema,
   type AdminAccount,
-  type AdminDeleteUserResult,
   type AdminHousehold,
   type AdminHouseholdDetail,
+  type AdminInviteLink,
   type AdminOverview,
   type AdminPage,
   type AdminRemoveResult,
   type AdminUser,
   type AdminUserDetail,
 } from '../../../packages/shared/src/schemas/admin.ts'
+import { renderInviteEmail } from '../../../packages/emails/generated/index.ts'
 import type { Json } from '../../../packages/shared/src/database.types.ts'
 import type { AuthAdmin } from '../_shared/auth-admin.ts'
 import { fromDbError } from '../_shared/db-errors.ts'
-import type { Deps } from '../_shared/deps.ts'
+import { formatDate, type Deps } from '../_shared/deps.ts'
 import { endpoint, HttpError } from '../_shared/http.ts'
 import { removeHouseholdFiles } from '../_shared/storage.ts'
+import { generateToken, hashToken } from '../_shared/tokens.ts'
 
 export interface AdminDeps extends Deps {
   authAdmin: AuthAdmin
@@ -187,29 +189,84 @@ export const handler = endpoint(adminRequestSchema, async (request, user, deps: 
     case 'deleteUser': {
       notSelf(request.userId)
       const target = await getUser(request.userId)
-      // Leave each household first; one where they're the only member is deleted with its data.
-      const deletedHouseholds: string[] = []
-      for (const household of target.households) {
-        const result = await rpc<string>(
-          db.rpc('leave_household', {
-            p_household_id: household.id,
-            p_user_id: request.userId,
-            p_delete_if_last: true,
-          }),
-        )
-        if (result === 'deleted') {
-          deletedHouseholds.push(household.name)
-          await removeFilesQuietly(deps, household.id)
-        }
-      }
+      // Their memberships go with the account; households always stay (super-admins delete them).
       await db.storage.from('avatars').remove([`${request.userId}/avatar.jpg`])
       await deps.authAdmin.deleteUser(request.userId)
       await log('delete_user', 'user', request.userId, {
         email: target.email,
-        deletedHouseholds,
+        households: target.households.map((h) => h.name),
       })
-      const result: AdminDeleteUserResult = { deletedHouseholds }
+      return OK
+    }
+
+    case 'createHousehold': {
+      const household = await rpc<{ id: string; name: string }>(
+        db.rpc('admin_create_household', { p_name: request.name }),
+      )
+      await log('create_household', 'household', household.id, { name: household.name })
+      return { id: household.id }
+    }
+
+    case 'createAdminInvite': {
+      const token = generateToken()
+      const rows = await rpc<
+        { invite_id: string; email: string | null; expires_at: string; household_name: string }[]
+      >(
+        db.rpc('admin_create_invite', {
+          p_household_id: request.householdId,
+          p_email: request.email ?? '',
+          p_token_hash: await hashToken(token),
+        }),
+      )
+      const invite = rows[0]
+      if (!invite) throw new Error('admin_create_invite returned no rows')
+      const inviteUrl = new URL(`/invite/${token}`, deps.appUrl).toString()
+      let emailed = false
+      if (invite.email) {
+        try {
+          await deps.sendEmail(
+            invite.email,
+            renderInviteEmail({
+              inviterName: 'The Home team',
+              householdName: invite.household_name,
+              inviteUrl,
+              email: invite.email,
+              expiresOn: formatDate(invite.expires_at),
+            }),
+          )
+          emailed = true
+        } catch (emailError) {
+          // The link still works; the dashboard shows it to copy instead.
+          console.error(emailError)
+        }
+      }
+      await log('create_admin_invite', 'household', request.householdId, {
+        name: invite.household_name,
+        email: invite.email,
+      })
+      const result: AdminInviteLink = {
+        inviteUrl,
+        expiresAt: invite.expires_at,
+        email: invite.email,
+        emailed,
+      }
       return result
+    }
+
+    case 'setMemberRole': {
+      await rpc(
+        db.rpc('admin_set_member_role', {
+          p_household_id: request.householdId,
+          p_user_id: request.userId,
+          p_role: request.role,
+        }),
+      )
+      const member = await getUser(request.userId)
+      await log('set_member_role', 'household', request.householdId, {
+        email: member.email,
+        role: request.role,
+      })
+      return OK
     }
 
     case 'listHouseholds': {

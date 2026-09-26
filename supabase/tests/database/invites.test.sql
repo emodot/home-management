@@ -1,7 +1,24 @@
 -- Invites and leaving a household. The functions are called as service_role, like the edge
 -- functions do; the first block checks nobody else can call them.
 begin;
-select plan(44);
+select plan(53);
+
+-- Households are created by super-admins. This stand-in creates one and makes the caller its
+-- household admin (and their active household), as if they had joined through an admin invite.
+create function pg_temp.create_household(p_name text)
+returns public.households
+language plpgsql
+security definer
+as $fn$
+declare
+  h public.households;
+begin
+  h := public.admin_create_household(p_name);
+  insert into public.household_members (household_id, user_id, role) values (h.id, auth.uid(), 'admin');
+  update public.profiles set active_household_id = h.id where id = auth.uid();
+  return h;
+end;
+$fn$;
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'ada@example.com', '{"full_name": "Ada Obi"}'),
@@ -12,7 +29,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 -- Ada creates a household.
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
-select set_config('test.hid', (public.create_household('Obi home')).id::text, true);
+select set_config('test.hid', (pg_temp.create_household('Obi home')).id::text, true);
 
 -- ---------------------------------------------------------------- only the service role
 select throws_ok(
@@ -28,7 +45,7 @@ select throws_ok(
   '42501', null, 'users cannot call invite_revoke'
 );
 select throws_ok(
-  $$ select public.leave_household(current_setting('test.hid')::uuid, auth.uid(), true) $$,
+  $$ select public.leave_household(current_setting('test.hid')::uuid, auth.uid()) $$,
   '42501', null, 'users cannot call leave_household'
 );
 select throws_ok(
@@ -116,9 +133,13 @@ select throws_ok(
 );
 
 -- ---------------------------------------------------------------- expiry and revoking
-select lives_ok(
+select throws_ok(
   $$ select * from public.invite_upsert(current_setting('test.hid')::uuid, 'chidi@example.com', repeat('c', 64), '22222222-2222-2222-2222-222222222222') $$,
-  'any member can invite'
+  'P0001', 'not_household_admin', 'members who are not household admins cannot invite'
+);
+select lives_ok(
+  $$ select * from public.invite_upsert(current_setting('test.hid')::uuid, 'chidi@example.com', repeat('c', 64), '11111111-1111-1111-1111-111111111111') $$,
+  'household admins can invite'
 );
 update public.invites set expires_at = now() - interval '1 minute' where email = 'chidi@example.com';
 select throws_ok(
@@ -129,9 +150,13 @@ select throws_ok(
   $$ select public.invite_revoke((select id from public.invites where email = 'chidi@example.com'), '33333333-3333-3333-3333-333333333333') $$,
   'P0001', 'invite_not_found', 'outsiders cannot revoke invites'
 );
+select throws_ok(
+  $$ select public.invite_revoke((select id from public.invites where email = 'chidi@example.com'), '22222222-2222-2222-2222-222222222222') $$,
+  'P0001', 'not_household_admin', 'members who are not household admins cannot revoke invites'
+);
 select lives_ok(
   $$ select public.invite_revoke((select id from public.invites where email = 'chidi@example.com'), '11111111-1111-1111-1111-111111111111') $$,
-  'any member can revoke a pending invite'
+  'household admins can revoke a pending invite'
 );
 select throws_ok(
   $$ select * from public.invite_accept(repeat('c', 64), '33333333-3333-3333-3333-333333333333', true) $$,
@@ -158,10 +183,14 @@ select throws_ok(
   $$ select * from public.invite_rotate((select id from public.invites where token_hash = repeat('d', 64)), '33333333-3333-3333-3333-333333333333', repeat('f', 64)) $$,
   'P0001', 'invite_not_found', 'outsiders cannot make a new link'
 );
+select throws_ok(
+  $$ select * from public.invite_rotate((select id from public.invites where token_hash = repeat('d', 64)), '22222222-2222-2222-2222-222222222222', repeat('f', 64)) $$,
+  'P0001', 'not_household_admin', 'members who are not household admins cannot make new links'
+);
 select is(
-  (select resent from public.invite_rotate((select id from public.invites where token_hash = repeat('d', 64)), '22222222-2222-2222-2222-222222222222', repeat('f', 64))),
+  (select resent from public.invite_rotate((select id from public.invites where token_hash = repeat('d', 64)), '11111111-1111-1111-1111-111111111111', repeat('f', 64))),
   true,
-  'any member can make a new link for a pending invite'
+  'household admins can make a new link for a pending invite'
 );
 select throws_ok(
   $$ select * from public.invite_accept(repeat('d', 64), '44444444-4444-4444-4444-444444444444', true) $$,
@@ -190,7 +219,7 @@ select throws_ok(
   'P0001', 'invite_used', 'a link works for one person only'
 );
 select is(
-  public.leave_household(current_setting('test.hid')::uuid, '44444444-4444-4444-4444-444444444444', false),
+  public.leave_household(current_setting('test.hid')::uuid, '44444444-4444-4444-4444-444444444444'),
   'left',
   'they can leave again'
 );
@@ -208,27 +237,54 @@ select throws_ok($$ select token_hash from public.invites $$, '42501', null, 'to
 select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
 select is_empty($$ select id from public.invites $$, 'outsiders see no invites');
 
--- ---------------------------------------------------------------- leaving
+-- ---------------------------------------------------------------- admin invites and roles
 reset role;
 set local role service_role;
 select is(
-  public.leave_household(current_setting('test.hid')::uuid, '22222222-2222-2222-2222-222222222222', false),
+  (select row(email, household_name)::text
+   from public.admin_create_invite(current_setting('test.hid')::uuid, ' Chidi@Example.com ', repeat('9', 64))),
+  row('chidi@example.com', 'Obi home')::text,
+  'super-admins create household admin invites'
+);
+select lives_ok(
+  $$ select * from public.invite_accept(repeat('9', 64), '33333333-3333-3333-3333-333333333333', false) $$,
+  'accepting an admin invite'
+);
+select ok(
+  public.is_household_admin_of(current_setting('test.hid')::uuid, '33333333-3333-3333-3333-333333333333'),
+  '...makes you a household admin'
+);
+select lives_ok(
+  $$ select public.admin_set_member_role(current_setting('test.hid')::uuid, '33333333-3333-3333-3333-333333333333', 'member') $$,
+  'super-admins change roles'
+);
+select throws_ok(
+  $$ select public.admin_set_member_role(current_setting('test.hid')::uuid, '44444444-4444-4444-4444-444444444444', 'admin') $$,
+  'P0001', 'not_member', 'only members have roles'
+);
+select lives_ok(
+  $$ select public.leave_household(current_setting('test.hid')::uuid, '33333333-3333-3333-3333-333333333333') $$,
+  'chidi leaves again'
+);
+
+-- ---------------------------------------------------------------- leaving
+select throws_ok(
+  $$ select public.leave_household(current_setting('test.hid')::uuid, '11111111-1111-1111-1111-111111111111') $$,
+  'P0001', 'last_admin', 'the last household admin cannot leave while others remain'
+);
+select is(
+  public.leave_household(current_setting('test.hid')::uuid, '22222222-2222-2222-2222-222222222222'),
   'left',
   'a member can leave'
 );
-select throws_ok(
-  $$ select public.leave_household(current_setting('test.hid')::uuid, '11111111-1111-1111-1111-111111111111', false) $$,
-  'P0001', 'last_member', 'the last member must confirm deletion'
-);
 select is(
-  public.leave_household(current_setting('test.hid')::uuid, '11111111-1111-1111-1111-111111111111', true),
-  'deleted',
-  'the last member leaving deletes the household'
+  public.leave_household(current_setting('test.hid')::uuid, '11111111-1111-1111-1111-111111111111'),
+  'left',
+  'the last member can leave too'
 );
 select ok(
-  not exists (select 1 from public.households where id = current_setting('test.hid')::uuid)
-  and not exists (select 1 from public.invites where household_id = current_setting('test.hid')::uuid),
-  'deleting the household removes its data'
+  exists (select 1 from public.households where id = current_setting('test.hid')::uuid),
+  'leaving never deletes the household'
 );
 
 reset role;

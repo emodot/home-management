@@ -16,42 +16,52 @@ cp apps/web/.env.example apps/web/.env # paste the anon key
 pnpm dev                               # http://localhost:5173
 ```
 
-Auth emails (sign-in links, confirmations, password resets) are caught locally by Mailpit at
+Auth emails (confirmations, password resets) are caught locally by Mailpit at
 http://127.0.0.1:54324.
 
-### Sign-in and invites
+### Sign-in, households and roles
 
-People sign in with email and password, or with an emailed sign-in link. "Forgot password?" emails
-a link to `/reset-password`. Locally new accounts can sign in straight away; the hosted project
-requires confirming the email first (`[remotes.production.auth.email]` in `supabase/config.toml`).
+People sign in with email and password only. "Forgot password?" emails a link to
+`/reset-password`. Locally new accounts can sign in straight away; the hosted project requires
+confirming the email first (`[remotes.production.auth.email]` in `supabase/config.toml`).
 
 Supabase's built-in email sender only allows a few emails an hour and is meant for testing. For
 real use, set custom SMTP (e.g. Resend: `smtp.resend.com`, port 465, user `resend`, your API key
 as the password) under Authentication → Emails → SMTP Settings in the dashboard.
 
-Members invite people from the Members page by creating a link to share (WhatsApp, SMS…) or by
-email. Anyone who opens a valid link and signs in can join; each link works once and expires
-after 7 days. Only a hash of the token is stored, so a link is shown once; "New link" replaces it.
+There are three kinds of people:
 
-### Admin area
+- **Super-admins** run the app from the admin dashboard (`/admin`, below). Only they create
+  households, and only they decide who is a household admin.
+- **Household admins** invite members from the Members page, with a link to share (WhatsApp,
+  SMS…) or by email. Each link lets one person join and expires after 7 days; only a hash of the
+  token is stored, so a link is shown once and "New link" replaces it.
+- **Members** use the household but can't invite.
 
-Admins have their own sign-in page, `/admin/sign-in`, and their own admin-only accounts: signing
-in there with a household account is refused, and an admin account that signs in to the regular
-app is sent to the admin area. The regular app has no admin links.
+A new household starts empty: its page in the dashboard makes a household admin invite link, and
+whoever accepts it joins as the household admin. Someone who signs up without an invite sees
+"You're not in a household yet". Members can leave a household but never delete it; the last
+household admin can't leave while others remain.
 
-The admin area has an overview (totals, weekly sign-ups, recent admin actions), every user (search,
-send a password reset, disable/re-enable, delete), every household (members, rename, delete) and
-the admins themselves. Deleting a user removes them from their households and deletes any
-household they were the only member of. Every action is recorded in `admin_actions`. Everyone else
-gets a 404, and the `admin` edge function refuses non-admins.
+### Admin dashboard
 
-**Adding admins:** Admins → Add admin creates a separate account (the email must not already be
-used for a household account) with a temporary password to share privately; the new admin must
-choose their own password when they first sign in. Removing an admin deletes an admin-only
-account; an account that is also in households just loses admin access.
+Super-admins have their own sign-in page, `/admin/sign-in`, and their own super-admin-only
+accounts: signing in there with a household account is refused, and a super-admin account that
+signs in to the regular app is sent to the dashboard. The regular app has no admin links.
 
-**The first admin:** create the account in the Supabase dashboard (Authentication → Add user, with
-"Auto confirm"), then in the SQL editor:
+The dashboard has an overview (totals, weekly sign-ups, recent actions), every user (search, send
+a password reset, disable/re-enable, delete), every household (create, members and their roles,
+household admin invites, rename, delete) and the super-admins themselves. Deleting a user removes
+them from their households; households are only ever deleted from the dashboard. Every action is
+recorded in `admin_actions`. Everyone else gets a 404, and the `admin` edge function refuses them.
+
+**Adding super-admins:** Super-admins → Add super-admin creates a separate account (the email must
+not already be used for a household account) with a temporary password to share privately; they
+must choose their own password when they first sign in. Removing a super-admin deletes a
+super-admin-only account; an account that is also in households just loses super-admin access.
+
+**The first super-admin:** create the account in the Supabase dashboard (Authentication → Add user,
+with "Auto confirm"), then in the SQL editor:
 
 ```sql
 insert into public.app_admins (user_id) select id from auth.users where email = 'admin@example.com';
@@ -133,12 +143,14 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 
 ### Smoke tests
 
-`pnpm e2e` runs the Playwright smoke test (sign up → household → expense with receipt → invite by
-email and by link, with a second person joining through the link → task → complete → log expense →
-sign back in) against the local stack. It needs `pnpm db:start`, the edge functions (`supabase
-functions serve --env-file supabase/functions/.env`), `apps/web/.env` pointing at the local API,
-and Chromium once: `pnpm --filter @home/web exec playwright install chromium`. The dev server is
-started for you.
+`pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
+household and an admin invite → the household admin signs up through it → expense with receipt →
+invites by email and by link, with a member joining (and seeing no invite controls) → task →
+complete → log expense → profile and password change → sign back in. It needs `pnpm db:start`, the
+edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
+pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`, default
+`superadmin@example.com` / `super-admin-e2e`; CI creates it) and Chromium once:
+`pnpm --filter @home/web exec playwright install chromium`. The dev server is started for you.
 
 App icons are generated from `apps/web/public/icon.svg` with `pnpm --filter @home/web icons`.
 

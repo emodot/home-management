@@ -55,11 +55,11 @@ export function AdminSignInPage() {
 
   return (
     <AuthCard
-      title="Admin sign in"
+      title="Super-admin sign in"
       description={
         <span className="flex items-center gap-1.5">
           <ShieldIcon className="size-4" aria-hidden />
-          For Home administrators only.
+          For Home super-admins only.
         </span>
       }
     >
@@ -70,7 +70,7 @@ export function AdminSignInPage() {
               role="alert"
               className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm"
             >
-              That isn&apos;t an admin account. Household members sign in on the{' '}
+              That isn&apos;t a super-admin account. Household members sign in on the{' '}
               <Link to="/sign-in" className="font-medium underline underline-offset-4">
                 main sign-in page
               </Link>

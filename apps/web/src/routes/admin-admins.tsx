@@ -44,9 +44,9 @@ export function AdminAdminsPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Admins</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Super-admins</h1>
           <p className="text-sm text-muted-foreground">
-            Admin accounts only work here, not in the household app.
+            Super-admin accounts only work here, not in the household app.
           </p>
         </div>
         <AddAdminDialog />
@@ -93,11 +93,11 @@ function AdminRow({ admin }: { admin: AdminAccount }) {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Remove {admin.email} as an admin?</AlertDialogTitle>
+              <AlertDialogTitle>Remove {admin.email} as a super-admin?</AlertDialogTitle>
               <AlertDialogDescription>
                 {alsoMember
-                  ? 'They lose access to the admin area but keep their regular account and households.'
-                  : 'Their admin-only account will be deleted. You can add them again later.'}
+                  ? 'They lose access to the admin dashboard but keep their regular account and households.'
+                  : 'Their super-admin account will be deleted. You can add them again later.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -105,7 +105,7 @@ function AdminRow({ admin }: { admin: AdminAccount }) {
               <AlertDialogAction
                 onClick={() => remove.mutate({ userId: admin.id, email: admin.email })}
               >
-                Remove admin
+                Remove super-admin
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -160,14 +160,14 @@ function AddAdminDialog() {
       <DialogTrigger asChild>
         <Button>
           <UserPlusIcon aria-hidden />
-          Add admin
+          Add super-admin
         </Button>
       </DialogTrigger>
       <DialogContent>
         {created ? (
           <>
             <DialogHeader>
-              <DialogTitle>Admin account created</DialogTitle>
+              <DialogTitle>Super-admin account created</DialogTitle>
               <DialogDescription>
                 Share these with {created.fullName} privately. They&apos;ll choose their own
                 password the first time they sign in.
@@ -195,10 +195,10 @@ function AddAdminDialog() {
         ) : (
           <form onSubmit={submit} noValidate>
             <DialogHeader>
-              <DialogTitle>Add an admin</DialogTitle>
+              <DialogTitle>Add a super-admin</DialogTitle>
               <DialogDescription>
-                Creates a separate admin account. Use an email that isn&apos;t already used for a
-                household account.
+                Creates a separate super-admin account. Use an email that isn&apos;t already used
+                for a household account.
               </DialogDescription>
             </DialogHeader>
             <FieldGroup className="my-4">
@@ -254,7 +254,7 @@ function AddAdminDialog() {
                 Cancel
               </Button>
               <Button type="submit" disabled={add.isPending}>
-                {add.isPending ? 'Creating…' : 'Create admin'}
+                {add.isPending ? 'Creating…' : 'Create super-admin'}
               </Button>
             </DialogFooter>
           </form>

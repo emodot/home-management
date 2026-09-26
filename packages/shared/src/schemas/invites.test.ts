@@ -38,10 +38,7 @@ describe('acceptInviteSchema', () => {
 })
 
 describe('leaveHouseholdSchema', () => {
-  it('does not delete unless asked', () => {
-    expect(leaveHouseholdSchema.parse({ householdId })).toEqual({
-      householdId,
-      deleteIfLast: false,
-    })
+  it('only needs the household', () => {
+    expect(leaveHouseholdSchema.parse({ householdId, deleteIfLast: true })).toEqual({ householdId })
   })
 })

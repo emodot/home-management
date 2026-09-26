@@ -18,29 +18,21 @@ import { useLoaderData, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { AuthCard } from '@/components/auth-card'
 import { Button } from '@/components/ui/button'
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from '@/components/ui/field'
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { requestPasswordReset, sendMagicLink, signInWithPassword, signUp } from '@/lib/auth'
+import { requestPasswordReset, signInWithPassword, signUp } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 import type { signInLoader } from './loaders'
 
-type Mode = 'sign-in' | 'sign-up' | 'magic-link' | 'forgot'
+type Mode = 'sign-in' | 'sign-up' | 'forgot'
 
 /** What was emailed, for the "check your email" screen. */
 interface Sent {
-  kind: 'magic-link' | 'confirm' | 'reset'
+  kind: 'confirm' | 'reset'
   email: string
 }
 
 const SENT_COPY: Record<Sent['kind'], { title: string; body: string }> = {
-  'magic-link': { title: 'Check your email', body: 'We sent a sign-in link to' },
   confirm: {
     title: 'Confirm your email',
     body: 'To finish creating your account, open the link we sent to',
@@ -114,25 +106,6 @@ export function SignInPage() {
           </p>
         </AuthCard>
       )
-    case 'magic-link':
-      return (
-        <AuthCard
-          title="Sign in with an email link"
-          description="We'll email you a link that signs you in, no password needed."
-        >
-          <EmailOnlyForm
-            {...common}
-            submitLabel="Email me a sign-in link"
-            onSubmitEmail={async (address) => {
-              await sendMagicLink(address, next)
-              setSent({ kind: 'magic-link', email: address })
-            }}
-          />
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            <LinkButton onClick={switchTo('sign-in')}>Sign in with a password</LinkButton>
-          </p>
-        </AuthCard>
-      )
     case 'forgot':
       return (
         <AuthCard
@@ -163,10 +136,6 @@ export function SignInPage() {
           }
         >
           <SignInForm {...common} onForgot={switchTo('forgot')} />
-          <FieldSeparator className="my-4">or</FieldSeparator>
-          <Button variant="outline" className="w-full" onClick={switchTo('magic-link')}>
-            Email me a sign-in link
-          </Button>
           <p className="mt-6 text-center text-sm text-muted-foreground">
             New here? <LinkButton onClick={switchTo('sign-up')}>Create an account</LinkButton>
           </p>

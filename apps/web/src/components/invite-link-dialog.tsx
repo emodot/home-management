@@ -27,11 +27,14 @@ export function InviteLinkDialog({
   householdName,
   timezone,
   onClose,
+  asAdmin = false,
 }: {
   link: InviteLink | null
   householdName: string
   timezone: string
   onClose: () => void
+  /** A household admin invite (made from the admin dashboard). */
+  asAdmin?: boolean
 }) {
   const [copied, setCopied] = useState(false)
   const canShare = typeof navigator.share === 'function'
@@ -80,8 +83,9 @@ export function InviteLinkDialog({
             {link?.email && !link.emailed
               ? `We couldn't email ${link.email}. Share this link with them instead. `
               : ''}
-            Anyone with this link can join {householdName}. It works once, until {expires}. Copy it
-            now: it can&apos;t be shown again.
+            Anyone with this link can join {householdName}
+            {asAdmin ? ' as its household admin' : ''}. It works once, until {expires}. Copy it now:
+            it can&apos;t be shown again.
           </DialogDescription>
         </DialogHeader>
         {link && (

@@ -1,9 +1,12 @@
 import {
   addAdminAccount,
+  createAdminHousehold,
+  createAdminHouseholdInvite,
   deleteAdminHousehold,
   deleteAdminUser,
   removeAdminAccount,
   renameAdminHousehold,
+  setAdminMemberRole,
   sendAdminPasswordReset,
   setAdminUserDisabled,
 } from '@home/shared'
@@ -46,10 +49,7 @@ export const useSendPasswordReset = () =>
 export const useDeleteUser = () =>
   useAdminMutation(
     ({ userId }: { userId: string; email: string }) => deleteAdminUser(supabase, userId),
-    ({ deletedHouseholds }, { email }) =>
-      deletedHouseholds.length > 0
-        ? `Deleted ${email} and ${deletedHouseholds.join(', ')}`
-        : `Deleted ${email}`,
+    (_, { email }) => `Deleted ${email}`,
   )
 
 export const useRenameHousehold = () =>
@@ -75,12 +75,49 @@ export const useAddAdmin = () =>
   useAdminMutation(
     (input: { email: string; fullName: string; password: string }) =>
       addAdminAccount(supabase, input),
-    (_, { email }) => `Admin account created for ${email}`,
+    (_, { email }) => `Super-admin account created for ${email}`,
   )
 
 export const useRemoveAdmin = () =>
   useAdminMutation(
     ({ userId }: { userId: string; email: string }) => removeAdminAccount(supabase, userId),
     ({ deletedAccount }, { email }) =>
-      deletedAccount ? `Deleted the admin account ${email}` : `${email} is no longer an admin`,
+      deletedAccount
+        ? `Deleted the super-admin account ${email}`
+        : `${email} is no longer a super-admin`,
+  )
+
+export const useCreateHousehold = () =>
+  useAdminMutation(
+    (name: string) => createAdminHousehold(supabase, name),
+    (_, name) => `Created ${name}`,
+  )
+
+/** A household admin invite link; no success toast (the dialog shows the link). */
+export function useCreateAdminInvite() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ householdId, email }: { householdId: string; email?: string }) =>
+      createAdminHouseholdInvite(supabase, householdId, email),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKey }),
+    onError: (error) => toast.error(errorMessage(error)),
+  })
+}
+
+export const useSetMemberRole = () =>
+  useAdminMutation(
+    ({
+      householdId,
+      userId,
+      role,
+    }: {
+      householdId: string
+      userId: string
+      name: string
+      role: 'admin' | 'member'
+    }) => setAdminMemberRole(supabase, householdId, userId, role),
+    (_, { name, role }) =>
+      role === 'admin'
+        ? `${name} is now a household admin`
+        : `${name} is no longer a household admin`,
   )

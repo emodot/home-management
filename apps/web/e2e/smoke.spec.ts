@@ -7,38 +7,52 @@ const RECEIPT_PNG = Buffer.from(
 )
 
 const PASSWORD = 'correct horse battery'
+// Seeded by CI (see .github/workflows/ci.yml); super-admins create households.
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? 'superadmin@example.com'
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? 'super-admin-e2e'
 const NEW_PASSWORD = 'battery staple horse'
-
-/** Creates an account from the sign-in page (local Supabase doesn't require confirming it). */
-async function signUp(page: Page, email: string) {
-  await page.getByRole('button', { name: 'Create an account' }).click()
-  await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password').fill(PASSWORD)
-  await page.getByRole('button', { name: 'Create account' }).click()
-}
 
 async function choose(page: Page, fieldId: string, option: string) {
   await page.locator(`#${fieldId}`).click()
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('sign up → household → expense with receipt → invite → task → complete → log expense', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → log expense', async ({
   page,
   browser,
 }) => {
   const email = `e2e-${Date.now()}@example.com`
+  let adminInviteUrl = ''
 
-  await test.step('sign up with a password', async () => {
-    await page.goto('/')
-    await expect(page).toHaveURL(/\/sign-in/)
-    await signUp(page, email)
+  await test.step('a super-admin creates the household and a household admin invite', async () => {
+    const context = await browser.newContext()
+    const admin = await context.newPage()
+    await admin.goto('/admin/sign-in')
+    await admin.getByLabel('Email').fill(ADMIN_EMAIL)
+    await admin.getByLabel('Password').fill(ADMIN_PASSWORD)
+    await admin.getByRole('button', { name: 'Sign in', exact: true }).click()
+    await expect(admin.getByRole('heading', { name: 'Overview' })).toBeVisible()
+
+    await admin.getByRole('link', { name: 'Households' }).click()
+    await admin.getByRole('button', { name: 'Create household' }).click()
+    await admin.getByLabel('Household name').fill('Obi home')
+    await admin.getByRole('dialog').getByRole('button', { name: 'Create household' }).click()
+    await expect(admin.getByRole('heading', { name: 'Obi home' })).toBeVisible()
+
+    await admin.getByRole('button', { name: 'Create admin invite link' }).click()
+    const link = admin.getByRole('dialog').getByLabel('Invite link')
+    await expect(link).toHaveValue(/\/invite\/[A-Za-z0-9_-]{43}$/)
+    adminInviteUrl = await link.inputValue()
+    await context.close()
   })
 
-  await test.step('create a household', async () => {
-    await expect(page.getByText('Set up your household')).toBeVisible()
-    await page.getByLabel('Your name').fill('Ada Obi')
-    await page.getByLabel('Household name').fill('Obi home')
-    await page.getByRole('button', { name: 'Create household' }).click()
+  await test.step('the household admin creates an account through the invite', async () => {
+    await page.goto(adminInviteUrl)
+    await expect(page.getByText('Create an account to join')).toBeVisible()
+    await page.getByLabel('Email').fill(email)
+    await page.getByLabel('Password').fill(PASSWORD)
+    await page.getByRole('button', { name: 'Create account' }).click()
+    await page.getByRole('button', { name: 'Join household' }).click()
     await expect(page.getByText('Track your first expense')).toBeVisible()
   })
 
@@ -81,6 +95,10 @@ test('sign up → household → expense with receipt → invite → task → com
     await guestPage.getByRole('button', { name: 'Create account' }).click()
     await guestPage.getByRole('button', { name: 'Join household' }).click()
     await expect(guestPage.getByText('Welcome to Obi home')).toBeVisible()
+    // Members who aren't household admins can't invite.
+    await guestPage.goto('/members')
+    await expect(guestPage.getByText('Ask a household admin to invite them')).toBeVisible()
+    await expect(guestPage.getByRole('button', { name: 'Create invite link' })).toHaveCount(0)
     await guest.close()
 
     await page.reload()

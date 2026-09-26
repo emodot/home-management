@@ -55,13 +55,12 @@ export const revokeInviteSchema = z.object({
 })
 export type RevokeInviteInput = z.input<typeof revokeInviteSchema>
 
-/** Body of the leave-household edge function. The last member must pass deleteIfLast. */
+/** Body of the leave-household edge function. Leaving never deletes the household. */
 export const leaveHouseholdSchema = z.object({
   householdId: z.uuid(),
-  deleteIfLast: z.boolean().default(false),
 })
 export type LeaveHouseholdInput = z.input<typeof leaveHouseholdSchema>
 
 export interface LeaveHouseholdResult {
-  result: 'left' | 'deleted'
+  result: 'left'
 }

@@ -3,7 +3,7 @@ import type { AuthError } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 /**
- * Where emailed links (magic link, sign-up confirmation, password reset) return to: this same
+ * Where emailed links (sign-up confirmation, password reset) return to: this same
  * site, so production and preview deployments each get their own links. `next` is where to go
  * once signed in.
  */
@@ -53,14 +53,6 @@ export async function signUp(email: string, password: string, next: string) {
   })
   if (error) throw friendly(error)
   return { needsConfirmation: data.session === null }
-}
-
-export async function sendMagicLink(email: string, next: string) {
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: callbackUrl(next), shouldCreateUser: true },
-  })
-  if (error) throw friendly(error)
 }
 
 /** Emails a link that signs the user in and opens the "choose a new password" page. */

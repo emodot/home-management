@@ -123,7 +123,7 @@ function UserRow({ user, onDelete }: { user: AdminUser; onDelete: () => void }) 
   )
 }
 
-/** Shows what deleting the account will also delete, and asks for the email to confirm. */
+/** Says which households they'll be removed from, and asks for the email to confirm. */
 function DeleteUserDialog({ user, onClose }: { user: AdminUser; onClose: () => void }) {
   const [typed, setTyped] = useState('')
   const deleteUser = useDeleteUser()
@@ -131,8 +131,7 @@ function DeleteUserDialog({ user, onClose }: { user: AdminUser; onClose: () => v
     queryKey: [...adminKey, 'user', user.id],
     queryFn: () => getAdminUser(supabase, user.id),
   })
-  const alone = detail.data?.households.filter((h) => h.memberCount === 1) ?? []
-  const shared = detail.data?.households.filter((h) => h.memberCount > 1) ?? []
+  const households = detail.data?.households ?? []
 
   return (
     <AlertDialog open onOpenChange={(open) => !open && onClose()}>
@@ -144,26 +143,12 @@ function DeleteUserDialog({ user, onClose }: { user: AdminUser; onClose: () => v
               <p>This permanently deletes the account and can&apos;t be undone.</p>
               {detail.isPending ? (
                 <p>Checking their households…</p>
-              ) : (
-                <>
-                  {alone.length > 0 && (
-                    <p>
-                      They&apos;re the only member of{' '}
-                      <span className="font-medium text-foreground">
-                        {alone.map((h) => h.name).join(', ')}
-                      </span>
-                      , so {alone.length === 1 ? 'it' : 'those'} will be deleted too, with every
-                      expense, receipt, task and provider in {alone.length === 1 ? 'it' : 'them'}.
-                    </p>
-                  )}
-                  {shared.length > 0 && (
-                    <p>
-                      They&apos;ll be removed from {shared.map((h) => h.name).join(', ')}; what they
-                      added there stays.
-                    </p>
-                  )}
-                </>
-              )}
+              ) : households.length > 0 ? (
+                <p>
+                  They&apos;ll be removed from {households.map((h) => h.name).join(', ')}. The
+                  households, and what they added there, stay.
+                </p>
+              ) : null}
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>

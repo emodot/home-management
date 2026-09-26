@@ -19,7 +19,7 @@ export async function listMembers(client: HomeClient, householdId: string) {
     await client
       .from('household_members')
       .select(
-        'user_id, joined_at, profile:profiles!household_members_user_id_fkey(id, full_name, email, avatar_url)',
+        'user_id, joined_at, role, profile:profiles!household_members_user_id_fkey(id, full_name, email, avatar_url)',
       )
       .eq('household_id', householdId)
       .order('joined_at'),

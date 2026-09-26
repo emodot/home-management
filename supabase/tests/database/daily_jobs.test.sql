@@ -2,13 +2,30 @@
 begin;
 select plan(20);
 
+-- Households are created by super-admins. This stand-in creates one and makes the caller its
+-- household admin (and their active household), as if they had joined through an admin invite.
+create function pg_temp.create_household(p_name text)
+returns public.households
+language plpgsql
+security definer
+as $fn$
+declare
+  h public.households;
+begin
+  h := public.admin_create_household(p_name);
+  insert into public.household_members (household_id, user_id, role) values (h.id, auth.uid(), 'admin');
+  update public.profiles set active_household_id = h.id where id = auth.uid();
+  return h;
+end;
+$fn$;
+
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'ada@example.com', '{"full_name": "Ada Obi"}'),
   ('22222222-2222-2222-2222-222222222222', 'bola@example.com', '{"full_name": "Bola Ade"}');
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
-select set_config('test.hid', (public.create_household('Obi home')).id::text, true);
+select set_config('test.hid', (pg_temp.create_household('Obi home')).id::text, true);
 reset role;
 insert into public.household_members (household_id, user_id)
 values (current_setting('test.hid')::uuid, '22222222-2222-2222-2222-222222222222');

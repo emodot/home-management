@@ -58,12 +58,10 @@ export function useLeaveHousehold(household: Household) {
   const revalidator = useRevalidator()
 
   return useMutation({
-    mutationFn: (deleteIfLast: boolean) =>
-      leaveHousehold(supabase, { householdId: household.id, deleteIfLast }),
-    onSuccess: async ({ result }) => {
-      toast.success(
-        result === 'deleted' ? `${household.name} was deleted` : `You left ${household.name}`,
-      )
+    mutationFn: () => leaveHousehold(supabase, { householdId: household.id }),
+    onError: (error) => toast.error(errorMessage(error)),
+    onSuccess: async () => {
+      toast.success(`You left ${household.name}`)
       // Leave the page first so nothing renders the old household while caches change.
       await navigate('/', { replace: true })
       queryClient.removeQueries({ queryKey: householdKey(household.id) })

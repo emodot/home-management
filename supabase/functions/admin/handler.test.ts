@@ -1,6 +1,7 @@
-import { assertEquals } from '@std/assert'
+import { assert, assertEquals, assertMatch } from '@std/assert'
 import type { AuthAdmin } from '../_shared/auth-admin.ts'
 import { fakeDeps, HOUSEHOLD_ID, post, USER } from '../_shared/testing.ts'
+import { hashToken } from '../_shared/tokens.ts'
 import { handler, type AdminDeps } from './handler.ts'
 
 const TARGET = '22222222-2222-4222-8222-222222222222'
@@ -103,16 +104,13 @@ Deno.test('lists users a page at a time, hiding past ban dates', async () => {
   assertEquals(rpcCalls[1]!.args, { p_search: 'ex', p_limit: 25, p_offset: 50 })
 })
 
-Deno.test('deleting a user leaves their households, deleting ones they were alone in', async () => {
+Deno.test('deleting a user deletes the account but keeps their households', async () => {
   const { deps, rpcCalls, authCalls, storage } = setup()
   const res = await handler(post({ action: 'deleteUser', userId: TARGET }), deps)
 
   assertEquals(res.status, 200)
-  assertEquals(await res.json(), { deletedHouseholds: ['Bola flat'] })
-  assertEquals(
-    rpcCalls.filter((c) => c.fn === 'leave_household').map((c) => c.args.p_delete_if_last),
-    [true, true],
-  )
+  assertEquals(await res.json(), { ok: true })
+  assertEquals(rpcCalls.filter((c) => c.fn === 'leave_household').length, 0)
   assertEquals(storage.removed, [`${TARGET}/avatar.jpg`])
   assertEquals(authCalls, [`deleteUser ${TARGET}`])
   const log = rpcCalls.find((c) => c.fn === 'admin_log')!
@@ -258,4 +256,86 @@ Deno.test('admins cannot remove their own admin access', async () => {
   const res = await handler(post({ action: 'removeAdmin', userId: USER.id }), deps)
   assertEquals(res.status, 400)
   assertEquals((await res.json()).error.code, 'cannot_modify_self')
+})
+
+Deno.test('creates households with no members', async () => {
+  const { deps, rpcCalls } = setup({
+    rpc: (fn) =>
+      fn === 'admin_create_household' ? { id: HOUSEHOLD_ID, name: 'Lekki flat' } : null,
+  })
+  const res = await handler(post({ action: 'createHousehold', name: ' Lekki flat ' }), deps)
+  assertEquals(await res.json(), { id: HOUSEHOLD_ID })
+  assertEquals(rpcCalls[1]!.args, { p_name: 'Lekki flat' })
+  assertEquals(rpcCalls[2]!.args.p_action, 'create_household')
+})
+
+Deno.test('creates a household admin invite link, emailing it when given an email', async () => {
+  const invite = {
+    invite_id: 'f0e1d2c3-b4a5-4968-8776-655443322110',
+    email: 'lead@example.com',
+    expires_at: '2026-10-04T10:00:00Z',
+    household_name: 'Lekki flat',
+  }
+  const fake = setup({ rpc: (fn) => (fn === 'admin_create_invite' ? [invite] : null) })
+  const emails: string[] = []
+  fake.deps.sendEmail = (to, email) => {
+    emails.push(`${to}: ${email.text}`)
+    return Promise.resolve()
+  }
+
+  const res = await handler(
+    post({ action: 'createAdminInvite', householdId: HOUSEHOLD_ID, email: 'Lead@Example.com' }),
+    fake.deps,
+  )
+  const body = await res.json()
+  assertEquals(body.emailed, true)
+  const token = /\/invite\/([A-Za-z0-9_-]{43})$/.exec(body.inviteUrl)?.[1]
+  assert(token, 'returns the link')
+  const call = fake.rpcCalls.find((c) => c.fn === 'admin_create_invite')!
+  assertEquals(call.args.p_email, 'lead@example.com')
+  assertEquals(await hashToken(token), call.args.p_token_hash)
+  assertEquals(emails.length, 1)
+  assertMatch(emails[0]!, /^lead@example\.com: /)
+  assert(emails[0]!.includes(body.inviteUrl), 'email contains the link')
+})
+
+Deno.test('changes a member role and logs it', async () => {
+  const { deps, rpcCalls } = setup()
+  const res = await handler(
+    post({ action: 'setMemberRole', householdId: HOUSEHOLD_ID, userId: TARGET, role: 'admin' }),
+    deps,
+  )
+  assertEquals(await res.json(), { ok: true })
+  assertEquals(rpcCalls.find((c) => c.fn === 'admin_set_member_role')!.args, {
+    p_household_id: HOUSEHOLD_ID,
+    p_user_id: TARGET,
+    p_role: 'admin',
+  })
+  assertEquals(rpcCalls.find((c) => c.fn === 'admin_log')!.args.p_details, {
+    email: 'bola@example.com',
+    role: 'admin',
+  })
+})
+
+Deno.test("deleting a household removes its files and nobody else's", async () => {
+  const other = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d'
+  const fake = setup({
+    rpc: (fn) =>
+      fn === 'admin_get_household' ? { id: HOUSEHOLD_ID, name: 'Home', members: [] } : null,
+  })
+  fake.storage.buckets.receipts = [
+    `${HOUSEHOLD_ID}/e1/a.jpg`,
+    `${HOUSEHOLD_ID}/e2/c.png`,
+    `${other}/e3/d.jpg`,
+  ]
+  const res = await handler(
+    post({ action: 'deleteHousehold', householdId: HOUSEHOLD_ID }),
+    fake.deps,
+  )
+  assertEquals(res.status, 200)
+  await res.body?.cancel()
+  assertEquals(fake.storage.removed.sort(), [
+    `${HOUSEHOLD_ID}/e1/a.jpg`,
+    `${HOUSEHOLD_ID}/e2/c.png`,
+  ])
 })

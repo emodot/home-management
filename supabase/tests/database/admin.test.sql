@@ -2,6 +2,23 @@
 begin;
 select plan(19);
 
+-- Households are created by super-admins. This stand-in creates one and makes the caller its
+-- household admin (and their active household), as if they had joined through an admin invite.
+create function pg_temp.create_household(p_name text)
+returns public.households
+language plpgsql
+security definer
+as $fn$
+declare
+  h public.households;
+begin
+  h := public.admin_create_household(p_name);
+  insert into public.household_members (household_id, user_id, role) values (h.id, auth.uid(), 'admin');
+  update public.profiles set active_household_id = h.id where id = auth.uid();
+  return h;
+end;
+$fn$;
+
 insert into auth.users (id, email, raw_user_meta_data, created_at) values
   ('11111111-1111-1111-1111-111111111111', 'ada@example.com', '{"full_name": "Ada Obi"}', now() - interval '60 days'),
   ('22222222-2222-2222-2222-222222222222', 'bola@example.com', '{"full_name": "Bola Ade"}', now() - interval '3 days'),
@@ -10,13 +27,13 @@ insert into public.app_admins (user_id) values ('11111111-1111-1111-1111-1111111
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}', true);
-select set_config('test.hid', (public.create_household('Ade home')).id::text, true);
+select set_config('test.hid', (pg_temp.create_household('Ade home')).id::text, true);
 insert into public.expenses (household_id, amount_minor, occurred_on, category_id, description)
 values (current_setting('test.hid')::uuid, 100000, current_date,
         (select id from public.expense_categories where household_id = current_setting('test.hid')::uuid and name = 'Water'),
         'Water');
 select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
-select set_config('test.other_hid', (public.create_household('Chidi flat')).id::text, true);
+select set_config('test.other_hid', (pg_temp.create_household('Chidi flat')).id::text, true);
 
 -- ---------------------------------------------------------------- access
 select is_empty($$ select 1 from public.app_admins $$, 'non-admins do not see the admin list');

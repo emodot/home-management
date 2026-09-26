@@ -8,7 +8,8 @@ const DB_ERRORS = {
   invite_expired: 410,
   invite_revoked: 410,
   invite_used: 410,
-  last_member: 409,
+  last_admin: 409,
+  not_household_admin: 403,
   household_not_found: 404,
 } as const
 

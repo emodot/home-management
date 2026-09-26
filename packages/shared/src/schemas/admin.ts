@@ -30,6 +30,19 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('getHousehold'), householdId }),
   z.object({ action: z.literal('renameHousehold'), householdId, name: householdNameSchema }),
   z.object({ action: z.literal('deleteHousehold'), householdId }),
+  z.object({ action: z.literal('createHousehold'), name: householdNameSchema }),
+  /** A link that makes whoever accepts it a household admin (optionally emailed). */
+  z.object({
+    action: z.literal('createAdminInvite'),
+    householdId,
+    email: emailSchema.optional(),
+  }),
+  z.object({
+    action: z.literal('setMemberRole'),
+    householdId,
+    userId,
+    role: z.enum(['admin', 'member']),
+  }),
   z.object({ action: z.literal('listAdmins') }),
   addAdminSchema.extend({ action: z.literal('addAdmin') }),
   z.object({ action: z.literal('removeAdmin'), userId }),
@@ -107,12 +120,21 @@ export interface AdminHouseholdDetail {
     providers: number
     pendingInvites: number
   }
-  members: { userId: string; email: string; fullName: string | null; joinedAt: string }[]
+  members: {
+    userId: string
+    email: string
+    fullName: string | null
+    joinedAt: string
+    role: 'admin' | 'member'
+  }[]
 }
 
-export interface AdminDeleteUserResult {
-  /** Households deleted because this user was their only member. */
-  deletedHouseholds: string[]
+export interface AdminInviteLink {
+  inviteUrl: string
+  expiresAt: string
+  email: string | null
+  /** False when there was no email, or sending it failed (the link still works). */
+  emailed: boolean
 }
 
 export interface AdminAccount {

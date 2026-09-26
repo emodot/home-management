@@ -2,6 +2,23 @@
 begin;
 select plan(30);
 
+-- Households are created by super-admins. This stand-in creates one and makes the caller its
+-- household admin (and their active household), as if they had joined through an admin invite.
+create function pg_temp.create_household(p_name text)
+returns public.households
+language plpgsql
+security definer
+as $fn$
+declare
+  h public.households;
+begin
+  h := public.admin_create_household(p_name);
+  insert into public.household_members (household_id, user_id, role) values (h.id, auth.uid(), 'admin');
+  update public.profiles set active_household_id = h.id where id = auth.uid();
+  return h;
+end;
+$fn$;
+
 -- ---------------------------------------------------------------- advance_date
 select is(public.advance_date('2026-01-31', 'monthly', 1, 31), '2026-02-28'::date, 'Jan 31 + 1 month = Feb 28');
 select is(public.advance_date('2026-02-28', 'monthly', 1, 31), '2026-03-31'::date, 'anchored to the 31st, Feb 28 + 1 month = Mar 31');
@@ -20,9 +37,9 @@ insert into auth.users (id, email, raw_user_meta_data) values
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
-select set_config('test.other_hid', (public.create_household('Chidi home')).id::text, true);
+select set_config('test.other_hid', (pg_temp.create_household('Chidi home')).id::text, true);
 select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
-select set_config('test.hid', (public.create_household('Obi home')).id::text, true);
+select set_config('test.hid', (pg_temp.create_household('Obi home')).id::text, true);
 select set_config('test.cat', (
   select id::text from public.expense_categories
   where household_id = current_setting('test.hid')::uuid and name = 'Internet & TV'), true);

@@ -49,6 +49,9 @@ export function MembersPage() {
   const members = useSuspenseQuery(membersQuery(household.id)).data
   const invites = useSuspenseQuery(pendingInvitesQuery(household.id)).data
   const [link, setLink] = useState<InviteLink | null>(null)
+  // Only household admins invite people; super-admins decide who is a household admin.
+  const isAdmin = members.some((m) => m.user_id === user.id && m.role === 'admin')
+  const onlyAdmin = isAdmin && members.filter((m) => m.role === 'admin').length === 1
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
@@ -61,7 +64,7 @@ export function MembersPage() {
 
       <Section title={`${members.length} ${members.length === 1 ? 'member' : 'members'}`}>
         <ul className="divide-y rounded-xl border">
-          {members.map(({ user_id, joined_at, profile }) => {
+          {members.map(({ user_id, joined_at, role, profile }) => {
             const name = profile.full_name ?? profile.email
             return (
               <li key={user_id} className="flex items-center gap-3 px-4 py-3">
@@ -72,6 +75,11 @@ export function MembersPage() {
                     {user_id === user.id && (
                       <Badge variant="secondary" className="ml-2 align-middle">
                         You
+                      </Badge>
+                    )}
+                    {role === 'admin' && (
+                      <Badge variant="outline" className="ml-2 align-middle">
+                        Household admin
                       </Badge>
                     )}
                   </p>
@@ -86,14 +94,20 @@ export function MembersPage() {
         </ul>
       </Section>
 
-      <Section
-        title="Invite someone"
-        description="Share a link on WhatsApp or anywhere else, or email it. Each link lets one person join and expires after 7 days."
-      >
-        <InviteForm householdId={household.id} onLink={setLink} />
-      </Section>
+      {isAdmin ? (
+        <Section
+          title="Invite someone"
+          description="Share a link on WhatsApp or anywhere else, or email it. Each link lets one person join and expires after 7 days."
+        >
+          <InviteForm householdId={household.id} onLink={setLink} />
+        </Section>
+      ) : (
+        <p className="rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">
+          Want someone else to join? Ask a household admin to invite them.
+        </p>
+      )}
 
-      {invites.length > 0 && (
+      {isAdmin && invites.length > 0 && (
         <Section title="Pending invites">
           <ul className="divide-y rounded-xl border">
             {invites.map((invite) => (
@@ -111,14 +125,16 @@ export function MembersPage() {
       <Section
         title="Leave household"
         description={
-          members.length === 1
-            ? "You're the only member. Leaving will permanently delete this household and everything in it."
-            : 'You will lose access until someone invites you again.'
+          onlyAdmin && members.length > 1
+            ? "You're the only household admin, so you can't leave while others are here. Ask the Home administrator to make someone else an admin first."
+            : 'You will lose access until a household admin invites you again.'
         }
       >
-        <div>
-          <LeaveHouseholdDialog household={household} isLastMember={members.length === 1} />
-        </div>
+        {!(onlyAdmin && members.length > 1) && (
+          <div>
+            <LeaveHouseholdDialog household={household} />
+          </div>
+        )}
       </Section>
 
       <InviteLinkDialog

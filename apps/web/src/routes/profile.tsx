@@ -295,7 +295,7 @@ export function PasswordSection({ onChanged }: { onChanged?: () => void }) {
             />
             <FieldError errors={[errors.current]} />
             <FieldDescription>
-              Don&apos;t know it, or only ever used email links?{' '}
+              Forgot it?{' '}
               <button
                 type="button"
                 className="font-medium text-foreground underline-offset-4 hover:underline"
