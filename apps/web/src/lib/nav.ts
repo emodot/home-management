@@ -47,6 +47,7 @@ export const BOTTOM_ITEMS: NavItem[] = [
     matches: (p) =>
       [
         '/more',
+        '/profile',
         '/insights',
         '/activity',
         '/recurring',

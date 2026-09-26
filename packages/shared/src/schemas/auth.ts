@@ -40,3 +40,24 @@ export const newPasswordSchema = z
     path: ['confirm'],
   })
 export type NewPasswordInput = z.input<typeof newPasswordSchema>
+
+export const changePasswordSchema = z
+  .object({
+    current: z.string().min(1, 'Enter your current password'),
+    password: passwordSchema,
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, {
+    message: "Passwords don't match",
+    path: ['confirm'],
+  })
+  .refine((v) => v.password !== v.current, {
+    message: 'Choose a password different from your current one',
+    path: ['password'],
+  })
+export type ChangePasswordInput = z.input<typeof changePasswordSchema>
+
+export const changeEmailSchema = z.object({
+  email: emailSchema,
+})
+export type ChangeEmailInput = z.input<typeof changeEmailSchema>

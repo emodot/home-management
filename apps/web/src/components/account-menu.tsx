@@ -1,4 +1,5 @@
-import { LogOutIcon } from 'lucide-react'
+import { LogOutIcon, UserRoundIcon } from 'lucide-react'
+import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,6 +43,12 @@ export function AccountMenu() {
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/profile">
+            <UserRoundIcon aria-hidden />
+            Profile
+          </Link>
+        </DropdownMenuItem>
         <ThemeSubmenu />
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut}>

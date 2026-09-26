@@ -51,9 +51,9 @@ export function ThemeSwitcher() {
           role="radio"
           aria-checked={theme === t.value}
           onClick={() => setTheme(t.value)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors aria-checked:bg-background aria-checked:text-foreground aria-checked:shadow-sm"
+          className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors aria-checked:bg-background aria-checked:text-foreground aria-checked:shadow-sm"
         >
-          <t.icon className="size-4" aria-hidden />
+          <t.icon className="size-4 shrink-0 max-[359px]:hidden" aria-hidden />
           {t.label}
         </button>
       ))}

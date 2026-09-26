@@ -34,3 +34,36 @@ export async function setActiveHousehold(
     await client.from('profiles').update({ active_household_id: householdId }).eq('id', userId),
   )
 }
+
+export const AVATAR_BUCKET = 'avatars'
+
+/**
+ * Uploads a (prepared, square JPEG) profile photo to {userId}/avatar.jpg and saves its public
+ * URL on the profile. The URL carries a version so browsers don't show the previous photo.
+ */
+export async function uploadAvatar(
+  client: HomeClient,
+  userId: string,
+  image: Blob,
+): Promise<Profile> {
+  const path = `${userId}/avatar.jpg`
+  const { error } = await client.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, image, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
+  if (error) throw error
+  const { publicUrl } = client.storage.from(AVATAR_BUCKET).getPublicUrl(path).data
+  return setAvatarUrl(client, userId, `${publicUrl}?v=${Date.now().toString()}`)
+}
+
+/** Removes the profile photo (and the uploaded file, if there is one). */
+export async function removeAvatar(client: HomeClient, userId: string): Promise<Profile> {
+  const { error } = await client.storage.from(AVATAR_BUCKET).remove([`${userId}/avatar.jpg`])
+  if (error) throw error
+  return setAvatarUrl(client, userId, null)
+}
+
+async function setAvatarUrl(client: HomeClient, userId: string, url: string | null) {
+  return unwrap(
+    await client.from('profiles').update({ avatar_url: url }).eq('id', userId).select('*').single(),
+  )
+}

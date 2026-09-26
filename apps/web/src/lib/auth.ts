@@ -76,6 +76,35 @@ export async function updatePassword(password: string) {
   if (error) throw friendly(error)
 }
 
+/** Checks the current password (by signing in with it) before setting a new one. */
+export async function changePassword(email: string, current: string, password: string) {
+  const { error: checkError } = await supabase.auth.signInWithPassword({ email, password: current })
+  if (checkError) {
+    throw checkError.code === 'invalid_credentials'
+      ? new Error('Your current password is wrong.')
+      : friendly(checkError)
+  }
+  await updatePassword(password)
+}
+
+/**
+ * Starts an email change. Supabase emails a confirmation link (to both addresses when secure
+ * email change is on); the new address takes effect once confirmed.
+ */
+export async function changeEmail(email: string) {
+  const { error } = await supabase.auth.updateUser(
+    { email },
+    { emailRedirectTo: callbackUrl('/profile') },
+  )
+  if (error) throw friendly(error)
+}
+
+/** Ends every session for this account, on all devices. */
+export async function signOutEverywhere() {
+  const { error } = await supabase.auth.signOut({ scope: 'global' })
+  if (error) throw error
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
   if (error) throw error

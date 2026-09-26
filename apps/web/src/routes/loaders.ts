@@ -56,7 +56,8 @@ async function requireUser(request: Request) {
 /** Every signed-in route. Children read the user with `useCurrentUser()`. */
 export async function authedLoader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
-  return { user: { id: user.id, email: user.email ?? '' } }
+  // new_email is set while an email change waits for confirmation.
+  return { user: { id: user.id, email: user.email ?? '', newEmail: user.new_email ?? null } }
 }
 
 /** The main app: needs at least one household, and makes sure one is active. */
@@ -357,5 +358,11 @@ export async function activityLoader({ request }: LoaderFunctionArgs) {
       queryClient.query(membersQuery(householdId)),
     ])
   }
+  return null
+}
+
+export async function profileLoader({ request }: LoaderFunctionArgs) {
+  const user = await requireUser(request)
+  await queryClient.query(profileQuery(user.id))
   return null
 }

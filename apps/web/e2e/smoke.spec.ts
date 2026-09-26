@@ -7,6 +7,7 @@ const RECEIPT_PNG = Buffer.from(
 )
 
 const PASSWORD = 'correct horse battery'
+const NEW_PASSWORD = 'battery staple horse'
 
 /** Creates an account from the sign-in page (local Supabase doesn't require confirming it). */
 async function signUp(page: Page, email: string) {
@@ -119,12 +120,25 @@ test('sign up → household → expense with receipt → invite → task → com
     await expect(page.getByText('joined the household')).toHaveCount(2)
   })
 
-  await test.step('sign out and back in with the password', async () => {
+  await test.step('update the profile and change the password', async () => {
+    await page.goto('/profile')
+    await page.getByLabel('Name', { exact: true }).fill('Ada O.')
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(page.getByText('Name saved')).toBeVisible()
+
+    await page.getByLabel('Current password').fill(PASSWORD)
+    await page.getByLabel('New password', { exact: true }).fill(NEW_PASSWORD)
+    await page.getByLabel('Confirm new password').fill(NEW_PASSWORD)
+    await page.getByRole('button', { name: 'Change password' }).click()
+    await expect(page.getByText('Password changed')).toBeVisible()
+  })
+
+  await test.step('sign out and back in with the new password', async () => {
     await page.goto('/more')
     await page.getByRole('button', { name: 'Sign out' }).click()
     await expect(page).toHaveURL(/\/sign-in/)
     await page.getByLabel('Email').fill(email)
-    await page.getByLabel('Password').fill(PASSWORD)
+    await page.getByLabel('Password').fill(NEW_PASSWORD)
     await page.getByRole('button', { name: 'Sign in', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Expenses' })).toBeVisible()
   })

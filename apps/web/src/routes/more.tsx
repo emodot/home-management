@@ -1,4 +1,4 @@
-import { ChevronRightIcon, LogOutIcon, PlusIcon } from 'lucide-react'
+import { ChevronRightIcon, LogOutIcon, PlusIcon, UserRoundIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { ThemeSwitcher } from '@/components/theme-menu'
@@ -13,6 +13,15 @@ export function MorePage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">More</h1>
+      <ul className="rounded-xl border">
+        <li>
+          <Link to="/profile" className={rowClass}>
+            <UserRoundIcon className="size-5 text-muted-foreground" aria-hidden />
+            <span className="flex-1">Profile</span>
+            <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
+          </Link>
+        </li>
+      </ul>
       <ul className="divide-y rounded-xl border">
         {SIDEBAR_ITEMS.filter((item) => !['/', '/tasks', '/providers'].includes(item.to)).map(
           (item) => (
