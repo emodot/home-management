@@ -33,6 +33,24 @@ Members invite people from the Members page by creating a link to share (WhatsAp
 email. Anyone who opens a valid link and signs in can join; each link works once and expires
 after 7 days. Only a hash of the token is stored, so a link is shown once; "New link" replaces it.
 
+### Admin area
+
+App admins (operators) get an Admin link in the account menu and More page, leading to `/admin`:
+an overview (totals, weekly sign-ups, recent admin actions), every user (search, send a password
+reset, disable/re-enable, delete) and every household (members, rename, delete). Deleting a user
+removes them from their households and deletes any household they were the only member of. Every
+action is recorded in `admin_actions`. Everyone else gets a 404, and the `admin` edge function
+refuses non-admins.
+
+Make someone an admin in the SQL editor (after they've signed up):
+
+```sql
+insert into public.app_admins (user_id) select id from auth.users where email = 'you@example.com';
+```
+
+Disabling an account stops new sign-ins and token refreshes; a session already open lasts until
+its access token expires (up to an hour).
+
 ### Daily jobs
 
 `pg_cron` calls the `daily-jobs` edge function at 06:00 UTC (07:00 in Lagos). It is safe to run

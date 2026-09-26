@@ -1,4 +1,5 @@
-import { LogOutIcon, UserRoundIcon } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { LogOutIcon, ShieldIcon, UserRoundIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -12,12 +13,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ThemeSubmenu } from '@/components/theme-menu'
 import { UserAvatar } from '@/components/user-avatar'
-import { useProfile } from '@/hooks/use-household'
+import { useCurrentUser, useProfile } from '@/hooks/use-household'
 import { signOut } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
+import { isAppAdminQuery } from '@/lib/queries'
 
 export function AccountMenu() {
   const profile = useProfile()
+  const isAdmin = useQuery(isAppAdminQuery(useCurrentUser().id)).data === true
   const displayName = profile.full_name ?? profile.email
 
   function handleSignOut() {
@@ -49,6 +52,14 @@ export function AccountMenu() {
             Profile
           </Link>
         </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem asChild>
+            <Link to="/admin">
+              <ShieldIcon aria-hidden />
+              Admin
+            </Link>
+          </DropdownMenuItem>
+        )}
         <ThemeSubmenu />
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut}>

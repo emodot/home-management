@@ -67,6 +67,51 @@ export type Database = {
           },
         ]
       }
+      admin_actions: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          details: Json | null
+          id: number
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: never
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: never
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
+      app_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       budgets: {
         Row: {
           category_id: string
@@ -798,6 +843,64 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_household: {
+        Args: { p_household_id: string }
+        Returns: undefined
+      }
+      admin_get_household: {
+        Args: { p_household_id: string }
+        Returns: Json
+      }
+      admin_get_user: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      admin_list_households: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string }
+        Returns: {
+          created_at: string
+          expense_count: number
+          id: string
+          last_activity_at: string | null
+          member_count: number
+          name: string
+          task_count: number
+          total_count: number
+        }[]
+      }
+      admin_list_users: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string }
+        Returns: {
+          avatar_url: string | null
+          banned_until: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          household_count: number
+          id: string
+          is_admin: boolean
+          last_sign_in_at: string | null
+          total_count: number
+        }[]
+      }
+      admin_log: {
+        Args: {
+          p_action: string
+          p_admin_id: string
+          p_details?: Json
+          p_target_id: string
+          p_target_type: string
+        }
+        Returns: undefined
+      }
+      admin_overview: {
+        Args: never
+        Returns: Json
+      }
+      admin_rename_household: {
+        Args: { p_household_id: string; p_name: string }
+        Returns: undefined
+      }
       claim_task_reminders: {
         Args: { p_today?: string }
         Returns: {
@@ -860,6 +963,10 @@ export type Database = {
       generate_recurring_expenses: {
         Args: { p_household_id?: string; p_max_per_bill?: number; p_today?: string }
         Returns: number
+      }
+      is_app_admin: {
+        Args: { p_user_id: string }
+        Returns: boolean
       }
       invite_accept: {
         Args: { p_preview: boolean; p_token_hash: string; p_user_id: string }

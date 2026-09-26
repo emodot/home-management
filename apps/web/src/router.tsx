@@ -6,6 +6,11 @@ import { RootLayout } from '@/components/root-layout'
 import { RouteError } from '@/components/route-error'
 import {
   activityLoader,
+  adminHouseholdLoader,
+  adminHouseholdsLoader,
+  adminLoader,
+  adminOverviewLoader,
+  adminUsersLoader,
   appLoader,
   authCallbackLoader,
   authedLoader,
@@ -39,6 +44,9 @@ function page<M>(load: () => Promise<M>, name: keyof M) {
 
 const routes = {
   activity: () => import('@/routes/activity'),
+  admin: () => import('@/routes/admin'),
+  adminHouseholds: () => import('@/routes/admin-households'),
+  adminUsers: () => import('@/routes/admin-users'),
   authCallback: () => import('@/routes/auth-callback'),
   budgets: () => import('@/routes/budgets'),
   categories: () => import('@/routes/categories'),
@@ -90,6 +98,39 @@ export const router = createBrowserRouter([
           },
           // Password-reset emails sign you in and land here.
           { path: 'reset-password', lazy: page(routes.resetPassword, 'ResetPasswordPage') },
+          {
+            // App admins only (the loader 404s for everyone else); no household needed.
+            path: 'admin',
+            loader: adminLoader,
+            lazy: page(routes.admin, 'AdminLayout'),
+            children: [
+              {
+                errorElement: <RouteError inline />,
+                children: [
+                  {
+                    index: true,
+                    loader: adminOverviewLoader,
+                    lazy: page(routes.admin, 'AdminOverviewPage'),
+                  },
+                  {
+                    path: 'users',
+                    loader: adminUsersLoader,
+                    lazy: page(routes.adminUsers, 'AdminUsersPage'),
+                  },
+                  {
+                    path: 'households',
+                    loader: adminHouseholdsLoader,
+                    lazy: page(routes.adminHouseholds, 'AdminHouseholdsPage'),
+                  },
+                  {
+                    path: 'households/:householdId',
+                    loader: adminHouseholdLoader,
+                    lazy: page(routes.adminHouseholds, 'AdminHouseholdPage'),
+                  },
+                ],
+              },
+            ],
+          },
           // Works with or without a household (new users join through here).
           { path: 'invite/:token', loader: inviteLoader, lazy: page(routes.invite, 'InvitePage') },
           {

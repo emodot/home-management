@@ -18,12 +18,17 @@ import { errorMessage } from '@/lib/errors'
 import { selectedMonth } from '@/lib/insights'
 import {
   activityFeedQuery,
+  adminHouseholdQuery,
+  adminHouseholdsQuery,
+  adminOverviewQuery,
+  adminUsersQuery,
   budgetsQuery,
   categoriesQuery,
   categoryTotalsQuery,
   expenseListQuery,
   expenseQuery,
   householdsQuery,
+  isAppAdminQuery,
   membersQuery,
   pendingExpensesQuery,
   pendingInvitesQuery,
@@ -364,5 +369,43 @@ export async function activityLoader({ request }: LoaderFunctionArgs) {
 export async function profileLoader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
   await queryClient.query(profileQuery(user.id))
+  return null
+}
+
+/** The admin area: app admins only. Everyone else gets a plain 404. */
+export async function adminLoader({ request }: LoaderFunctionArgs) {
+  const user = await requireUser(request)
+  if (!(await queryClient.query(isAppAdminQuery(user.id)))) throw notFound()
+  return null
+}
+
+/** Search and page from the URL, shared by the admin lists. */
+export function adminListParams(request: Request) {
+  const params = new URL(request.url).searchParams
+  const page = Math.max(0, Number.parseInt(params.get('page') ?? '0', 10) || 0)
+  return { search: params.get('q') ?? '', page }
+}
+
+export async function adminOverviewLoader() {
+  await queryClient.query(adminOverviewQuery())
+  return null
+}
+
+export async function adminUsersLoader({ request }: LoaderFunctionArgs) {
+  const { search, page } = adminListParams(request)
+  await queryClient.query(adminUsersQuery(search, page))
+  return null
+}
+
+export async function adminHouseholdsLoader({ request }: LoaderFunctionArgs) {
+  const { search, page } = adminListParams(request)
+  await queryClient.query(adminHouseholdsQuery(search, page))
+  return null
+}
+
+export async function adminHouseholdLoader({ params }: LoaderFunctionArgs) {
+  const householdId = params.householdId ?? ''
+  if (!UUID.test(householdId)) throw notFound()
+  await queryClient.query(adminHouseholdQuery(householdId))
   return null
 }

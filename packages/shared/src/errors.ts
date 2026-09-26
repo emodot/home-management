@@ -9,6 +9,10 @@ export const APP_ERROR_MESSAGES = {
   invite_revoked: 'This invite was cancelled. Ask a member to send you a new one.',
   invite_used: 'This invite has already been used.',
   last_member: "You're the last member, so leaving will delete the household.",
+  forbidden: "You don't have access to that.",
+  household_not_found: "That household doesn't exist (it may have been deleted).",
+  user_not_found: "That account doesn't exist (it may have been deleted).",
+  cannot_modify_self: "You can't do that to your own account here. Use your profile instead.",
   internal: 'Something went wrong. Please try again.',
 } as const
 

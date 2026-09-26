@@ -1,5 +1,10 @@
 import {
   EXPENSE_PAGE_SIZE,
+  getAdminHousehold,
+  getAdminOverview,
+  isAppAdmin,
+  listAdminHouseholds,
+  listAdminUsers,
   expenseFiltersToParams,
   getCategoryTotals,
   getExpense,
@@ -26,7 +31,7 @@ import {
   listTasks,
   type ExpenseFilters,
 } from '@home/shared'
-import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
+import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { supabase } from './supabase'
 
 export const profileQuery = (userId: string) =>
@@ -204,4 +209,41 @@ export const itemHistoryQuery = (
     queryKey: [...activityKey(householdId), entityType, entityId],
     queryFn: () => listItemHistory(supabase, entityType, entityId),
     staleTime: 5_000,
+  })
+
+/** Whether the signed-in user may open the admin area. */
+export const isAppAdminQuery = (userId: string) =>
+  queryOptions({
+    queryKey: ['app-admin', userId],
+    queryFn: () => isAppAdmin(supabase, userId),
+    staleTime: 5 * 60_000,
+  })
+
+/** Prefix for the admin area's data, refreshed after every admin change. */
+export const adminKey = ['admin'] as const
+
+export const adminOverviewQuery = () =>
+  queryOptions({
+    queryKey: [...adminKey, 'overview'],
+    queryFn: () => getAdminOverview(supabase),
+  })
+
+export const adminUsersQuery = (search: string, page: number) =>
+  queryOptions({
+    queryKey: [...adminKey, 'users', search, page],
+    queryFn: () => listAdminUsers(supabase, { search, page }),
+    placeholderData: keepPreviousData,
+  })
+
+export const adminHouseholdsQuery = (search: string, page: number) =>
+  queryOptions({
+    queryKey: [...adminKey, 'households', search, page],
+    queryFn: () => listAdminHouseholds(supabase, { search, page }),
+    placeholderData: keepPreviousData,
+  })
+
+export const adminHouseholdQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...adminKey, 'household', householdId],
+    queryFn: () => getAdminHousehold(supabase, householdId),
   })

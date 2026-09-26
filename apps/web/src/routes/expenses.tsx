@@ -13,7 +13,7 @@ import {
 } from '@home/shared'
 import { useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { DownloadIcon, PaperclipIcon, PlusIcon, ReceiptTextIcon, SearchIcon } from 'lucide-react'
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { CategoryIcon } from '@/components/category-icon'
@@ -22,6 +22,7 @@ import { ExpenseFiltersSheet, FilterChips } from '@/components/expense-filters'
 import { PendingExpenses } from '@/components/pending-expenses'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useProviderLookup } from '@/hooks/use-providers'
 import { downloadTextFile, slugify } from '@/lib/download'
@@ -62,27 +63,6 @@ function groupByMonth(expenses: Expense[], hasMore: boolean): MonthGroup[] {
 }
 
 /** Keeps the search box responsive and only updates the URL after typing pauses. */
-function useDebouncedSearch(value: string | undefined, onChange: (q: string) => void) {
-  const [text, setText] = useState(value ?? '')
-  const emit = useEffectEvent(onChange)
-
-  // Follow outside changes to the URL (back/forward, "Clear all"), but don't fight the user's
-  // typing: "diesel " and "diesel" are the same search.
-  const [syncedValue, setSyncedValue] = useState(value)
-  if (value !== syncedValue) {
-    setSyncedValue(value)
-    if ((value ?? '') !== text.trim()) setText(value ?? '')
-  }
-
-  useEffect(() => {
-    if (text.trim() === (value ?? '')) return
-    const timer = setTimeout(() => emit(text), 300)
-    return () => clearTimeout(timer)
-  }, [text, value])
-
-  return [text, setText] as const
-}
-
 /** Downloads every expense matching the current filters (not just the loaded pages) as CSV. */
 function ExportButton({ filters }: { filters: ExpenseFilters }) {
   const household = useActiveHousehold()
