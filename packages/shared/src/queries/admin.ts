@@ -2,6 +2,8 @@ import { unwrap, type HomeClient } from '../client.ts'
 import { invokeFunction } from '../functions.ts'
 import {
   adminRequestSchema,
+  type AdminAccount,
+  type AdminRemoveResult,
   type AdminDeleteUserResult,
   type AdminHousehold,
   type AdminHouseholdDetail,
@@ -58,3 +60,14 @@ export const renameAdminHousehold = (client: HomeClient, householdId: string, na
 
 export const deleteAdminHousehold = (client: HomeClient, householdId: string) =>
   admin<{ ok: true }>(client, { action: 'deleteHousehold', householdId })
+
+export const listAdminAccounts = (client: HomeClient) =>
+  admin<AdminAccount[]>(client, { action: 'listAdmins' })
+
+export const addAdminAccount = (
+  client: HomeClient,
+  input: { email: string; fullName: string; password: string },
+) => admin<{ id: string }>(client, { action: 'addAdmin', ...input })
+
+export const removeAdminAccount = (client: HomeClient, userId: string) =>
+  admin<AdminRemoveResult>(client, { action: 'removeAdmin', userId })

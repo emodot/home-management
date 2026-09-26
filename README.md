@@ -35,17 +35,26 @@ after 7 days. Only a hash of the token is stored, so a link is shown once; "New 
 
 ### Admin area
 
-App admins (operators) get an Admin link in the account menu and More page, leading to `/admin`:
-an overview (totals, weekly sign-ups, recent admin actions), every user (search, send a password
-reset, disable/re-enable, delete) and every household (members, rename, delete). Deleting a user
-removes them from their households and deletes any household they were the only member of. Every
-action is recorded in `admin_actions`. Everyone else gets a 404, and the `admin` edge function
-refuses non-admins.
+Admins have their own sign-in page, `/admin/sign-in`, and their own admin-only accounts: signing
+in there with a household account is refused, and an admin account that signs in to the regular
+app is sent to the admin area. The regular app has no admin links.
 
-Make someone an admin in the SQL editor (after they've signed up):
+The admin area has an overview (totals, weekly sign-ups, recent admin actions), every user (search,
+send a password reset, disable/re-enable, delete), every household (members, rename, delete) and
+the admins themselves. Deleting a user removes them from their households and deletes any
+household they were the only member of. Every action is recorded in `admin_actions`. Everyone else
+gets a 404, and the `admin` edge function refuses non-admins.
+
+**Adding admins:** Admins → Add admin creates a separate account (the email must not already be
+used for a household account) with a temporary password to share privately; the new admin must
+choose their own password when they first sign in. Removing an admin deletes an admin-only
+account; an account that is also in households just loses admin access.
+
+**The first admin:** create the account in the Supabase dashboard (Authentication → Add user, with
+"Auto confirm"), then in the SQL editor:
 
 ```sql
-insert into public.app_admins (user_id) select id from auth.users where email = 'you@example.com';
+insert into public.app_admins (user_id) select id from auth.users where email = 'admin@example.com';
 ```
 
 Disabling an account stops new sign-ins and token refreshes; a session already open lasts until

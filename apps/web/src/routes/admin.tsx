@@ -1,21 +1,31 @@
 import { formatDate, formatRelativeTime, type AdminAction } from '@home/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ArrowLeftIcon, ShieldIcon } from 'lucide-react'
+import { LogOutIcon, ShieldIcon, UserRoundIcon } from 'lucide-react'
 import { Suspense } from 'react'
-import { Link, NavLink, Outlet } from 'react-router'
+import { Link, NavLink, Outlet, useRouteLoaderData } from 'react-router'
+import { toast } from 'sonner'
 import { StatTile } from '@/components/admin'
 import { PageSkeleton } from '@/components/page-skeleton'
+import { Button } from '@/components/ui/button'
+import { signOut } from '@/lib/auth'
+import { errorMessage } from '@/lib/errors'
 import { cn } from '@/lib/utils'
 import { adminOverviewQuery } from '@/lib/queries'
+import type { adminLoader } from './loaders'
 
 const TABS = [
   { to: '/admin', label: 'Overview', end: true },
   { to: '/admin/users', label: 'Users', end: false },
   { to: '/admin/households', label: 'Households', end: false },
+  { to: '/admin/admins', label: 'Admins', end: false },
 ]
 
 /** The operator admin area: its own header and tabs, outside any household. */
 export function AdminLayout() {
+  const admin = useRouteLoaderData<typeof adminLoader>('admin')
+  // Until a new admin replaces their temporary password, only the account page is available.
+  const locked = admin?.mustChangePassword === true
+
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
@@ -25,15 +35,30 @@ export function AdminLayout() {
               <ShieldIcon className="size-5" aria-hidden />
               Admin
             </div>
-            <Link
-              to="/"
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeftIcon className="size-4" aria-hidden />
-              Back to app
-            </Link>
+            <div className="flex items-center gap-1">
+              <span className="hidden text-sm text-muted-foreground sm:inline">{admin?.email}</span>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/account">
+                  <UserRoundIcon aria-hidden />
+                  Account
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  void signOut().catch((error: unknown) => toast.error(errorMessage(error)))
+                }
+              >
+                <LogOutIcon aria-hidden />
+                Sign out
+              </Button>
+            </div>
           </div>
-          <nav className="-mb-px flex gap-4" aria-label="Admin sections">
+          <nav
+            className={cn('-mb-px flex gap-4 overflow-x-auto', locked && 'invisible')}
+            aria-label="Admin sections"
+          >
             {TABS.map((tab) => (
               <NavLink
                 key={tab.to}

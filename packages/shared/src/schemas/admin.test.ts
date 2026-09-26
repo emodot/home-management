@@ -21,4 +21,9 @@ describe('adminRequestSchema', () => {
     ).toBe(false)
     expect(adminRequestSchema.safeParse({ action: 'dropTables' }).success).toBe(false)
   })
+  it('requires a real temporary password for new admins', () => {
+    const base = { action: 'addAdmin', email: 'ops@example.com', fullName: 'Ops' }
+    expect(adminRequestSchema.safeParse({ ...base, password: 'short' }).success).toBe(false)
+    expect(adminRequestSchema.safeParse({ ...base, password: 'long enough pw' }).success).toBe(true)
+  })
 })

@@ -36,8 +36,8 @@ select is(
   (select jsonb_build_object('users', o -> 'users', 'households', o -> 'households', 'expenses', o -> 'expenses',
                              'newUsers30d', o -> 'newUsers30d', 'activeHouseholds30d', o -> 'activeHouseholds30d')
    from (select public.admin_overview() as o) x),
-  '{"users": 3, "households": 2, "expenses": 1, "newUsers30d": 2, "activeHouseholds30d": 2}'::jsonb,
-  'overview counts across all households'
+  '{"users": 2, "households": 2, "expenses": 1, "newUsers30d": 2, "activeHouseholds30d": 2}'::jsonb,
+  'overview counts across all households (admin accounts are not users)'
 );
 select is(
   (select jsonb_array_length(public.admin_overview() -> 'signupsByWeek')),
@@ -54,8 +54,8 @@ select is(
 -- ---------------------------------------------------------------- users
 select is(
   (select array_agg(email order by email) from public.admin_list_users()),
-  array['ada@example.com', 'bola@example.com', 'chidi@example.com'],
-  'lists every user'
+  array['bola@example.com', 'chidi@example.com'],
+  'lists every user except admin accounts'
 );
 select is(
   (select row(email, household_count, is_admin, total_count)::text from public.admin_list_users('BOLA')),
@@ -63,8 +63,8 @@ select is(
   'searches by email or name, case-insensitively'
 );
 select is(
-  (select count(*)::int from public.admin_list_users(null, 2, 0)),
-  2,
+  (select count(*)::int from public.admin_list_users(null, 1, 0)),
+  1,
   'pages'
 );
 select is(

@@ -5,6 +5,8 @@ import { handler, type AdminDeps } from './handler.ts'
 
 const TARGET = '22222222-2222-4222-8222-222222222222'
 const OTHER_HOUSEHOLD = '33333333-3333-4333-8333-333333333333'
+const NEW_ADMIN = '55555555-5555-4555-8555-555555555555'
+const ADMIN_ONLY = '66666666-6666-4666-8666-666666666666'
 
 const target = {
   id: TARGET,
@@ -19,7 +21,7 @@ const target = {
 
 type RpcHandler = (fn: string, args: Record<string, unknown>) => unknown
 
-function setup(options: { isAdmin?: boolean; rpc?: RpcHandler } = {}) {
+function setup(options: { isAdmin?: boolean; targetIsAdmin?: boolean; rpc?: RpcHandler } = {}) {
   const authCalls: string[] = []
   const authAdmin: AuthAdmin = {
     setDisabled: (id, disabled) => {
@@ -34,12 +36,24 @@ function setup(options: { isAdmin?: boolean; rpc?: RpcHandler } = {}) {
       authCalls.push(`reset ${email} ${redirectTo}`)
       return Promise.resolve()
     },
+    createAdminAccount: (email, fullName, password) => {
+      authCalls.push(`create ${email} ${fullName} ${password}`)
+      return Promise.resolve(NEW_ADMIN)
+    },
   }
   const fake = fakeDeps({
     rpc: (fn, args) => {
       if (fn === 'is_app_admin') return { data: options.isAdmin ?? true, error: null }
-      if (fn === 'admin_get_user')
-        return { data: args.p_user_id === TARGET ? target : null, error: null }
+      if (fn === 'admin_get_user') {
+        if (args.p_user_id === ADMIN_ONLY) {
+          return { data: { ...target, id: ADMIN_ONLY, isAdmin: true, households: [] }, error: null }
+        }
+        const found = args.p_user_id === TARGET
+        return {
+          data: found ? { ...target, isAdmin: options.targetIsAdmin ?? false } : null,
+          error: null,
+        }
+      }
       if (fn === 'leave_household') {
         return { data: args.p_household_id === OTHER_HOUSEHOLD ? 'deleted' : 'left', error: null }
       }
@@ -176,4 +190,72 @@ Deno.test('rejects unknown actions', async () => {
   assertEquals(res.status, 400)
   await res.body?.cancel()
   assertEquals(rpcCalls.length, 0)
+})
+
+Deno.test('adds an admin with a fresh, separate account', async () => {
+  const { deps, rpcCalls, authCalls } = setup({
+    rpc: (fn) => (fn === 'admin_find_user_by_email' ? [] : null),
+  })
+  const body = {
+    action: 'addAdmin',
+    email: 'Ops@Example.com',
+    fullName: 'Ops Person',
+    password: 'temporary pass',
+  }
+  const res = await handler(post(body), deps)
+  assertEquals(res.status, 200)
+  assertEquals(await res.json(), { id: NEW_ADMIN })
+  assertEquals(authCalls, ['create ops@example.com Ops Person temporary pass'])
+  assertEquals(
+    rpcCalls.filter((c) => c.fn === 'admin_grant').map((c) => c.args.p_user_id),
+    [NEW_ADMIN],
+  )
+})
+
+Deno.test('refuses an email that already has an account', async () => {
+  for (const [isAdmin, code] of [
+    [false, 'email_in_use'],
+    [true, 'already_admin'],
+  ] as const) {
+    const { deps, authCalls } = setup({
+      rpc: (fn) => (fn === 'admin_find_user_by_email' ? [{ id: TARGET, is_admin: isAdmin }] : null),
+    })
+    const res = await handler(
+      post({
+        action: 'addAdmin',
+        email: 'bola@example.com',
+        fullName: 'B',
+        password: 'long enough',
+      }),
+      deps,
+    )
+    assertEquals(res.status, 409)
+    assertEquals((await res.json()).error.code, code)
+    assertEquals(authCalls, [])
+  }
+})
+
+Deno.test('removing an admin deletes an admin-only account, or just revokes access', async () => {
+  const { deps, rpcCalls, authCalls } = setup()
+  const adminOnly = await handler(post({ action: 'removeAdmin', userId: ADMIN_ONLY }), deps)
+  assertEquals(await adminOnly.json(), { deletedAccount: true })
+  assertEquals(authCalls, [`deleteUser ${ADMIN_ONLY}`])
+
+  // TARGET is also in households.
+  const { deps: deps2, rpcCalls: calls2, authCalls: auth2 } = setup({ targetIsAdmin: true })
+  const member = await handler(post({ action: 'removeAdmin', userId: TARGET }), deps2)
+  assertEquals(await member.json(), { deletedAccount: false })
+  assertEquals(auth2, [])
+  assertEquals(
+    calls2.filter((c) => c.fn === 'admin_revoke').map((c) => c.args.p_user_id),
+    [TARGET],
+  )
+  assertEquals(rpcCalls.filter((c) => c.fn === 'admin_revoke').length, 0)
+})
+
+Deno.test('admins cannot remove their own admin access', async () => {
+  const { deps } = setup()
+  const res = await handler(post({ action: 'removeAdmin', userId: USER.id }), deps)
+  assertEquals(res.status, 400)
+  assertEquals((await res.json()).error.code, 'cannot_modify_self')
 })

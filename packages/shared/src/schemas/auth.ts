@@ -12,7 +12,7 @@ export const emailSignInSchema = z.object({
 export type EmailSignInInput = z.input<typeof emailSignInSchema>
 
 /** Supabase caps passwords at 72 characters (bcrypt). */
-const passwordSchema = z
+export const passwordSchema = z
   .string()
   .min(8, 'Use at least 8 characters')
   .max(72, 'Use at most 72 characters')

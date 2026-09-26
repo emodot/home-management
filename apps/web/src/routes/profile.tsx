@@ -253,7 +253,8 @@ function EmailSection() {
   )
 }
 
-function PasswordSection() {
+/** Change password (asks for the current one). Also used by the admin area's account page. */
+export function PasswordSection({ onChanged }: { onChanged?: () => void }) {
   const user = useCurrentUser()
   const form = useForm<ChangePasswordInput>({
     resolver: zodResolver(changePasswordSchema),
@@ -272,6 +273,7 @@ function PasswordSection() {
       await changePassword(user.email, current, password)
       form.reset()
       toast.success('Password changed')
+      onChanged?.()
     } catch (error) {
       const message = errorMessage(error)
       form.setError(message.includes('current password') ? 'current' : 'password', { message })

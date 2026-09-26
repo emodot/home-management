@@ -6,10 +6,12 @@ import { RootLayout } from '@/components/root-layout'
 import { RouteError } from '@/components/route-error'
 import {
   activityLoader,
+  adminAccountsLoader,
   adminHouseholdLoader,
   adminHouseholdsLoader,
   adminLoader,
   adminOverviewLoader,
+  adminSignInLoader,
   adminUsersLoader,
   appLoader,
   authCallbackLoader,
@@ -45,7 +47,10 @@ function page<M>(load: () => Promise<M>, name: keyof M) {
 const routes = {
   activity: () => import('@/routes/activity'),
   admin: () => import('@/routes/admin'),
+  adminAccount: () => import('@/routes/admin-account'),
+  adminAdmins: () => import('@/routes/admin-admins'),
   adminHouseholds: () => import('@/routes/admin-households'),
+  adminSignIn: () => import('@/routes/admin-sign-in'),
   adminUsers: () => import('@/routes/admin-users'),
   authCallback: () => import('@/routes/auth-callback'),
   budgets: () => import('@/routes/budgets'),
@@ -82,6 +87,11 @@ export const router = createBrowserRouter([
     children: [
       { path: 'sign-in', loader: signInLoader, lazy: page(routes.signIn, 'SignInPage') },
       {
+        path: 'admin/sign-in',
+        loader: adminSignInLoader,
+        lazy: page(routes.adminSignIn, 'AdminSignInPage'),
+      },
+      {
         path: 'auth/callback',
         loader: authCallbackLoader,
         lazy: page(routes.authCallback, 'AuthCallbackPage'),
@@ -99,7 +109,9 @@ export const router = createBrowserRouter([
           // Password-reset emails sign you in and land here.
           { path: 'reset-password', lazy: page(routes.resetPassword, 'ResetPasswordPage') },
           {
-            // App admins only (the loader 404s for everyone else); no household needed.
+            // Admin accounts only (the loader 404s for everyone else); signing in is at
+            // /admin/sign-in.
+            id: 'admin',
             path: 'admin',
             loader: adminLoader,
             lazy: page(routes.admin, 'AdminLayout'),
@@ -127,6 +139,12 @@ export const router = createBrowserRouter([
                     loader: adminHouseholdLoader,
                     lazy: page(routes.adminHouseholds, 'AdminHouseholdPage'),
                   },
+                  {
+                    path: 'admins',
+                    loader: adminAccountsLoader,
+                    lazy: page(routes.adminAdmins, 'AdminAdminsPage'),
+                  },
+                  { path: 'account', lazy: page(routes.adminAccount, 'AdminAccountPage') },
                 ],
               },
             ],

@@ -847,6 +847,10 @@ export type Database = {
         Args: { p_household_id: string }
         Returns: undefined
       }
+      admin_find_user_by_email: {
+        Args: { p_email: string }
+        Returns: { id: string; is_admin: boolean }[]
+      }
       admin_get_household: {
         Args: { p_household_id: string }
         Returns: Json
@@ -854,6 +858,21 @@ export type Database = {
       admin_get_user: {
         Args: { p_user_id: string }
         Returns: Json
+      }
+      admin_grant: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      admin_list_admins: {
+        Args: never
+        Returns: {
+          admin_since: string
+          email: string
+          full_name: string | null
+          household_count: number
+          id: string
+          last_sign_in_at: string | null
+        }[]
       }
       admin_list_households: {
         Args: { p_limit?: number; p_offset?: number; p_search?: string }
@@ -899,6 +918,10 @@ export type Database = {
       }
       admin_rename_household: {
         Args: { p_household_id: string; p_name: string }
+        Returns: undefined
+      }
+      admin_revoke: {
+        Args: { p_user_id: string }
         Returns: undefined
       }
       claim_task_reminders: {

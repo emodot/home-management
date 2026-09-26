@@ -18,6 +18,7 @@ import { errorMessage } from '@/lib/errors'
 import { selectedMonth } from '@/lib/insights'
 import {
   activityFeedQuery,
+  adminAccountsQuery,
   adminHouseholdQuery,
   adminHouseholdsQuery,
   adminOverviewQuery,
@@ -49,7 +50,15 @@ import { supabase } from '@/lib/supabase'
 function signInRedirect(request: Request) {
   const url = new URL(request.url)
   const next = url.pathname + url.search
-  return redirect(next === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(next)}`)
+  // The admin area has its own sign-in page.
+  const signIn = url.pathname.startsWith('/admin') ? '/admin/sign-in' : '/sign-in'
+  const home = signIn === '/sign-in' ? '/' : '/admin'
+  return redirect(next === home ? signIn : `${signIn}?next=${encodeURIComponent(next)}`)
+}
+
+/** Admin accounts are admin-only: the regular app sends them to the admin area. */
+async function redirectAdmins(userId: string) {
+  if (await queryClient.query(isAppAdminQuery(userId))) throw redirect('/admin')
 }
 
 async function requireUser(request: Request) {
@@ -68,6 +77,7 @@ export async function authedLoader({ request }: LoaderFunctionArgs) {
 /** The main app: needs at least one household, and makes sure one is active. */
 export async function appLoader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
+  await redirectAdmins(user.id)
   const [profile, households] = await Promise.all([
     queryClient.query(profileQuery(user.id)),
     queryClient.query(householdsQuery(user.id)),
@@ -307,7 +317,8 @@ export async function inviteLoader({
   request,
   params,
 }: LoaderFunctionArgs): Promise<InviteLoaderData> {
-  await requireUser(request)
+  const user = await requireUser(request)
+  await redirectAdmins(user.id)
   const token = inviteTokenSchema.safeParse(params.token)
   if (!token.success) {
     return { status: 'error', message: new AppError('invite_not_found').message }
@@ -323,6 +334,7 @@ export async function inviteLoader({
 /** First run: only for users who don't belong to a household yet. */
 export async function onboardingLoader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
+  await redirectAdmins(user.id)
   const [households] = await Promise.all([
     queryClient.query(householdsQuery(user.id)),
     queryClient.query(profileQuery(user.id)),
@@ -376,7 +388,22 @@ export async function profileLoader({ request }: LoaderFunctionArgs) {
 export async function adminLoader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
   if (!(await queryClient.query(isAppAdminQuery(user.id)))) throw notFound()
-  return null
+  // New admins start with a temporary password and must choose their own first.
+  const mustChange = user.user_metadata.must_change_password === true
+  if (mustChange && new URL(request.url).pathname !== '/admin/account') {
+    throw redirect('/admin/account')
+  }
+  return { email: user.email ?? '', mustChangePassword: mustChange }
+}
+
+/** Already signed in as an admin: straight to the admin area. */
+export async function adminSignInLoader({ request }: LoaderFunctionArgs) {
+  const next = safeNextPath(new URL(request.url).searchParams.get('next'))
+  const user = await getSessionUser()
+  if (user && (await queryClient.query(isAppAdminQuery(user.id)))) {
+    throw redirect(next.startsWith('/admin') ? next : '/admin')
+  }
+  return { next: next.startsWith('/admin') ? next : '/admin' }
 }
 
 /** Search and page from the URL, shared by the admin lists. */
@@ -407,5 +434,10 @@ export async function adminHouseholdLoader({ params }: LoaderFunctionArgs) {
   const householdId = params.householdId ?? ''
   if (!UUID.test(householdId)) throw notFound()
   await queryClient.query(adminHouseholdQuery(householdId))
+  return null
+}
+
+export async function adminAccountsLoader() {
+  await queryClient.query(adminAccountsQuery())
   return null
 }

@@ -3,6 +3,7 @@ import {
   getAdminHousehold,
   getAdminOverview,
   isAppAdmin,
+  listAdminAccounts,
   listAdminHouseholds,
   listAdminUsers,
   expenseFiltersToParams,
@@ -246,4 +247,10 @@ export const adminHouseholdQuery = (householdId: string) =>
   queryOptions({
     queryKey: [...adminKey, 'household', householdId],
     queryFn: () => getAdminHousehold(supabase, householdId),
+  })
+
+export const adminAccountsQuery = () =>
+  queryOptions({
+    queryKey: [...adminKey, 'admins'],
+    queryFn: () => listAdminAccounts(supabase),
   })

@@ -1,6 +1,8 @@
 import {
+  addAdminAccount,
   deleteAdminHousehold,
   deleteAdminUser,
+  removeAdminAccount,
   renameAdminHousehold,
   sendAdminPasswordReset,
   setAdminUserDisabled,
@@ -67,4 +69,18 @@ export const useDeleteHousehold = () =>
       [...adminKey, 'households'],
       [...adminKey, 'overview'],
     ],
+  )
+
+export const useAddAdmin = () =>
+  useAdminMutation(
+    (input: { email: string; fullName: string; password: string }) =>
+      addAdminAccount(supabase, input),
+    (_, { email }) => `Admin account created for ${email}`,
+  )
+
+export const useRemoveAdmin = () =>
+  useAdminMutation(
+    ({ userId }: { userId: string; email: string }) => removeAdminAccount(supabase, userId),
+    ({ deletedAccount }, { email }) =>
+      deletedAccount ? `Deleted the admin account ${email}` : `${email} is no longer an admin`,
   )

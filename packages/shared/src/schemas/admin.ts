@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { householdNameSchema } from './household.ts'
+import { emailSchema, passwordSchema } from './auth.ts'
+import { fullNameSchema, householdNameSchema } from './household.ts'
 
 export const ADMIN_PAGE_SIZE = 25
 
@@ -7,6 +8,15 @@ const search = z.string().trim().max(100).optional()
 const page = z.number().int().min(0).max(10_000).default(0)
 const userId = z.uuid()
 const householdId = z.uuid()
+
+/** The "add an admin" form: a separate admin-only account with a temporary password. */
+export const addAdminSchema = z.object({
+  fullName: fullNameSchema,
+  email: emailSchema,
+  /** Temporary: the new admin must choose their own on first sign-in. */
+  password: passwordSchema,
+})
+export type AddAdminInput = z.input<typeof addAdminSchema>
 
 /** Body of the `admin` edge function: one action per request. App admins only. */
 export const adminRequestSchema = z.discriminatedUnion('action', [
@@ -20,6 +30,9 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('getHousehold'), householdId }),
   z.object({ action: z.literal('renameHousehold'), householdId, name: householdNameSchema }),
   z.object({ action: z.literal('deleteHousehold'), householdId }),
+  z.object({ action: z.literal('listAdmins') }),
+  addAdminSchema.extend({ action: z.literal('addAdmin') }),
+  z.object({ action: z.literal('removeAdmin'), userId }),
 ])
 export type AdminRequest = z.input<typeof adminRequestSchema>
 
@@ -100,4 +113,19 @@ export interface AdminHouseholdDetail {
 export interface AdminDeleteUserResult {
   /** Households deleted because this user was their only member. */
   deletedHouseholds: string[]
+}
+
+export interface AdminAccount {
+  id: string
+  email: string
+  fullName: string | null
+  adminSince: string
+  lastSignInAt: string | null
+  /** Non-zero for an account that is also a regular household member. */
+  householdCount: number
+}
+
+export interface AdminRemoveResult {
+  /** True when the account was admin-only and has been deleted; false when it was kept. */
+  deletedAccount: boolean
 }

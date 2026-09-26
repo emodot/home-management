@@ -27,10 +27,14 @@ export function listenForAuthChanges(router: Router, queryClient: QueryClient) {
       }
       // Keep invite links working across a sign-out (e.g. switching to the invited account).
       const { pathname } = router.state.location
+      // Already on a sign-in page (e.g. a non-admin just turned away at the admin sign-in).
+      if (pathname === '/sign-in' || pathname === '/admin/sign-in') return
       void router.navigate(
-        pathname.startsWith('/invite/')
-          ? `/sign-in?next=${encodeURIComponent(pathname)}`
-          : '/sign-in',
+        pathname.startsWith('/admin')
+          ? '/admin/sign-in'
+          : pathname.startsWith('/invite/')
+            ? `/sign-in?next=${encodeURIComponent(pathname)}`
+            : '/sign-in',
       )
     }, 0)
   })

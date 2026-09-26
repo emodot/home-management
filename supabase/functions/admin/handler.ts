@@ -1,11 +1,13 @@
 import {
   ADMIN_PAGE_SIZE,
   adminRequestSchema,
+  type AdminAccount,
   type AdminDeleteUserResult,
   type AdminHousehold,
   type AdminHouseholdDetail,
   type AdminOverview,
   type AdminPage,
+  type AdminRemoveResult,
   type AdminUser,
   type AdminUserDetail,
 } from '../../../packages/shared/src/schemas/admin.ts'
@@ -64,6 +66,60 @@ export const handler = endpoint(adminRequestSchema, async (request, user, deps: 
   }
 
   switch (request.action) {
+    case 'listAdmins': {
+      const rows = await rpc<
+        {
+          id: string
+          email: string
+          full_name: string | null
+          admin_since: string
+          last_sign_in_at: string | null
+          household_count: number
+        }[]
+      >(db.rpc('admin_list_admins'))
+      const admins: AdminAccount[] = rows.map((r) => ({
+        id: r.id,
+        email: r.email,
+        fullName: r.full_name,
+        adminSince: r.admin_since,
+        lastSignInAt: r.last_sign_in_at,
+        householdCount: r.household_count,
+      }))
+      return admins
+    }
+
+    case 'addAdmin': {
+      // Admin accounts are separate from regular ones, so the email must be unused.
+      const existing = await rpc<{ id: string; is_admin: boolean }[]>(
+        db.rpc('admin_find_user_by_email', { p_email: request.email }),
+      )
+      if (existing[0]) {
+        throw new HttpError(409, existing[0].is_admin ? 'already_admin' : 'email_in_use')
+      }
+      const id = await deps.authAdmin.createAdminAccount(
+        request.email,
+        request.fullName,
+        request.password,
+      )
+      await rpc(db.rpc('admin_grant', { p_user_id: id }))
+      await log('add_admin', 'user', id, { email: request.email })
+      return { id }
+    }
+
+    case 'removeAdmin': {
+      notSelf(request.userId)
+      const target = await getUser(request.userId)
+      if (!target.isAdmin) throw new HttpError(404, 'user_not_found')
+      // An admin-only account has no other use, so it goes; one that's also in households stays
+      // as a regular account.
+      const deletedAccount = target.households.length === 0
+      if (deletedAccount) await deps.authAdmin.deleteUser(request.userId)
+      else await rpc(db.rpc('admin_revoke', { p_user_id: request.userId }))
+      await log('remove_admin', 'user', request.userId, { email: target.email, deletedAccount })
+      const result: AdminRemoveResult = { deletedAccount }
+      return result
+    }
+
     case 'overview':
       return rpc<AdminOverview>(db.rpc('admin_overview'))
 

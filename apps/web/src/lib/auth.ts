@@ -72,7 +72,11 @@ export async function requestPasswordReset(email: string) {
 }
 
 export async function updatePassword(password: string) {
-  const { error } = await supabase.auth.updateUser({ password })
+  // Also clears the "choose your own password" flag new admin accounts start with.
+  const { error } = await supabase.auth.updateUser({
+    password,
+    data: { must_change_password: false },
+  })
   if (error) throw friendly(error)
 }
 

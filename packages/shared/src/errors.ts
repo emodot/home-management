@@ -12,6 +12,9 @@ export const APP_ERROR_MESSAGES = {
   forbidden: "You don't have access to that.",
   household_not_found: "That household doesn't exist (it may have been deleted).",
   user_not_found: "That account doesn't exist (it may have been deleted).",
+  email_in_use:
+    'That email already has a regular account. Admin accounts must use an email of their own.',
+  already_admin: 'That email already belongs to an admin.',
   cannot_modify_self: "You can't do that to your own account here. Use your profile instead.",
   internal: 'Something went wrong. Please try again.',
 } as const
