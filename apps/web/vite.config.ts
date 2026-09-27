@@ -19,9 +19,10 @@ export default defineConfig(({ command, mode }) => {
       react(),
       tailwindcss(),
       VitePWA({
-        // A new deploy takes over on the next load; there is no offline data to migrate.
+        // A new deploy takes over as soon as it's downloaded (see src/lib/pwa.ts); there is no
+        // offline data to migrate.
         registerType: 'autoUpdate',
-        injectRegister: 'script-defer',
+        injectRegister: false,
         includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
         manifest: {
           name: 'Home',
@@ -47,6 +48,11 @@ export default defineConfig(({ command, mode }) => {
           ],
         },
         workbox: {
+          // A new version takes over as soon as it installs, instead of waiting for every tab
+          // (or the installed app) to close. The plugin only does this by itself with
+          // injectRegister 'auto'; src/lib/pwa.ts then reloads the page.
+          skipWaiting: true,
+          clientsClaim: true,
           // Precache the app shell only; household data always comes from the network.
           globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
           navigateFallback: '/index.html',
