@@ -9,3 +9,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/** Where the receipt-scanning OCR files are served from, e.g. "/ocr/7.0.0-7.0.0-1.0.0/". */
+declare const __OCR_ASSETS__: string

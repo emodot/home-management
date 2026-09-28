@@ -1,5 +1,6 @@
 import { unwrap, type HomeClient } from '../client.ts'
 import type { Tables } from '../database.types.ts'
+import { vendorSearchTerm } from '../receipt-parser.ts'
 import { expenseInputSchema, type ExpenseFilters, type ExpenseInput } from '../schemas/expenses.ts'
 
 export const EXPENSE_PAGE_SIZE = 50
@@ -100,6 +101,44 @@ export async function listExpenses(
       .range(page.offset, page.offset + limit - 1),
   )
   return rows.map(toExpense)
+}
+
+/**
+ * The category this household most often files a vendor under, judged from the descriptions of
+ * its 50 most recent matching expenses (ties go to the most recent). Null if there's no match.
+ */
+export async function suggestCategoryId(
+  client: HomeClient,
+  householdId: string,
+  vendor: string,
+): Promise<string | null> {
+  const term = vendorSearchTerm(vendor)
+  if (!term) return null
+  const rows = unwrap(
+    await client
+      .from('expense_list')
+      .select('category_id')
+      .eq('household_id', householdId)
+      .eq('status', 'confirmed')
+      .is('deleted_at', null)
+      .ilike('description', `%${escapeLike(term)}%`)
+      .order('occurred_on', { ascending: false })
+      .limit(50),
+  )
+  const counts = new Map<string, number>()
+  for (const { category_id: id } of rows) {
+    if (id) counts.set(id, (counts.get(id) ?? 0) + 1)
+  }
+  let best: string | null = null
+  let bestCount = 0
+  // Maps keep insertion order (most recent first), so a strict > keeps the most recent on ties.
+  for (const [id, count] of counts) {
+    if (count > bestCount) {
+      best = id
+      bestCount = count
+    }
+  }
+  return best
 }
 
 /** Pending expenses generated from recurring bills, oldest due first. */

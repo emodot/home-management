@@ -12,6 +12,8 @@ export default defineConfig(
     '**/.turbo',
     '**/database.types.ts',
     'packages/emails/generated',
+    // Copied from node_modules by the ocr-assets plugin in apps/web/vite.config.ts.
+    'apps/web/public/ocr',
     // shadcn/ui components are generated and kept close to upstream.
     'apps/web/src/components/ui',
     // Deno edge functions are checked with `deno lint` / `deno check`.

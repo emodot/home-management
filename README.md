@@ -91,6 +91,19 @@ Set up per project:
 
 Run it by hand with `select public.invoke_daily_jobs();`.
 
+### Receipt scanning
+
+"Scan receipt" on Add expense reads a photo or PDF on the device and fills in the amount, date,
+shop and (from the household's past expenses) category, leaving anything already typed alone.
+Nothing is sent anywhere: PDFs with a text layer are read with pdf.js, and photos and scanned PDFs
+with Tesseract.js OCR. The parser is `packages/shared/src/receipt-parser.ts`.
+
+The OCR engine and English data are copied from `node_modules` into
+`apps/web/public/ocr/<versions>/` by a plugin in `apps/web/vite.config.ts` when the dev server or
+a build starts. A browser downloads about 7 MB of it once (one 4 MB engine build for its
+WebAssembly support, plus the 3 MB language model). These files and pdf.js aren't precached by
+the service worker, so installs stay small; they're cached the first time someone scans.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.
@@ -146,7 +159,7 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 `pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
 household and an admin invite → the household admin signs up through it → expense with receipt →
 invites by email and by link, with a member joining (and seeing no invite controls) → task →
-complete → log expense → profile and password change → sign back in. It needs `pnpm db:start`, the
+complete → scan a receipt PDF to log the expense → profile and password change → sign back in. It needs `pnpm db:start`, the
 edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
 pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`, default
 `superadmin@example.com` / `super-admin-e2e`; CI creates it) and Chromium once:

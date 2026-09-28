@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useMediaQuery } from '@/hooks/use-lookups'
 import { errorMessage } from '@/lib/errors'
-import { prepareReceiptFile, type PreparedReceipt } from '@/lib/images'
+import { prepareReceiptFile, toPickedReceipt, type PreparedReceipt } from '@/lib/images'
 
 export interface PickedReceipt {
   key: string
@@ -111,34 +111,25 @@ export function ReceiptPicker({
   onBusyChange?: (busy: boolean) => void
   disabled?: boolean
 }) {
-  // Preview URLs created here, revoked on removal or when the picker goes away.
-  const previewUrls = useRef(new Set<string>())
+  // Preview URLs are revoked on removal, and for whatever is still listed when the picker goes.
+  const latest = useRef(value)
   useEffect(() => {
-    const urls = previewUrls.current
-    return () => {
-      for (const url of urls) URL.revokeObjectURL(url)
-    }
-  }, [])
+    latest.current = value
+  })
+  useEffect(
+    () => () => {
+      for (const r of latest.current) if (r.previewUrl) URL.revokeObjectURL(r.previewUrl)
+    },
+    [],
+  )
 
   function add(files: PreparedReceipt[]) {
-    onChange([
-      ...value,
-      ...files.map((file) => {
-        const previewUrl = file.mimeType.startsWith('image/')
-          ? URL.createObjectURL(file.data)
-          : null
-        if (previewUrl) previewUrls.current.add(previewUrl)
-        return { key: crypto.randomUUID(), file, previewUrl }
-      }),
-    ])
+    onChange([...value, ...files.map(toPickedReceipt)])
   }
 
   function remove(key: string) {
     const removed = value.find((r) => r.key === key)
-    if (removed?.previewUrl) {
-      URL.revokeObjectURL(removed.previewUrl)
-      previewUrls.current.delete(removed.previewUrl)
-    }
+    if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl)
     onChange(value.filter((r) => r.key !== key))
   }
 

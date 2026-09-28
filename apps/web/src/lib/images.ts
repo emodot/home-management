@@ -1,4 +1,5 @@
 import { isReceiptMimeType, MAX_RECEIPT_BYTES } from '@home/shared'
+import type { PickedReceipt } from '@/components/receipt-picker'
 
 export interface PreparedReceipt {
   data: Blob
@@ -76,6 +77,12 @@ export async function prepareReceiptFile(file: File): Promise<PreparedReceipt> {
 
   if (file.size > MAX_RECEIPT_BYTES) throw new Error(`${file.name} is larger than 10 MB`)
   return { data: file, fileName: file.name, mimeType, size: file.size }
+}
+
+/** A picked file with a thumbnail URL for photos. ReceiptPicker revokes the URL. */
+export function toPickedReceipt(file: PreparedReceipt): PickedReceipt {
+  const previewUrl = file.mimeType.startsWith('image/') ? URL.createObjectURL(file.data) : null
+  return { key: crypto.randomUUID(), file, previewUrl }
 }
 
 const AVATAR_SIZE = 256

@@ -30,3 +30,6 @@ playwright-report/
 
 # local tooling
 .claude/
+
+# receipt-scan OCR files, copied from node_modules by apps/web/vite.config.ts
+apps/web/public/ocr/

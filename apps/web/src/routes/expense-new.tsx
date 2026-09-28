@@ -43,6 +43,12 @@ export function NewExpensePage() {
         // Remount once the linked task has loaded so its values become the defaults.
         key={linked?.completion.id ?? 'new'}
         withReceipts
+        withScan
+        // A scan doesn't replace what came from the task.
+        keep={[
+          ...(task?.title ? (['description'] as const) : []),
+          ...(categoryId ? (['categoryId'] as const) : []),
+        ]}
         categories={categories}
         members={members}
         submitLabel="Save expense"

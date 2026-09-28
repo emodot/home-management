@@ -6,6 +6,29 @@ const RECEIPT_PNG = Buffer.from(
   'base64',
 )
 
+/** A one-page PDF with a text layer, like an emailed e-receipt: one line of text per entry. */
+function textPdf(lines: string[]): Buffer {
+  const stream = `BT /F1 14 Tf 18 TL 50 780 Td ${lines.map((l) => `(${l}) Tj T*`).join(' ')} ET`
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+  ]
+  let pdf = '%PDF-1.4\n'
+  const offsets = objects.map((object, i) => {
+    const offset = pdf.length
+    pdf += `${i + 1} 0 obj\n${object}\nendobj\n`
+    return offset
+  })
+  const xref = pdf.length
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
+  pdf += offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`
+  return Buffer.from(pdf, 'latin1')
+}
+
 const PASSWORD = 'correct horse battery'
 // Seeded by CI (see .github/workflows/ci.yml); super-admins create households.
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? 'superadmin@example.com'
@@ -17,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → log expense', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense', async ({
   page,
   browser,
 }) => {
@@ -120,7 +143,19 @@ test('super-admin creates a household → its admin joins → expense with recei
 
     await expect(page.getByText('For “Service generator”')).toBeVisible()
     await expect(page.getByLabel('What was it for?')).toHaveValue('Service generator')
-    await page.getByLabel('Amount').fill('25000')
+    // Scanning the receipt fills in the amount but keeps the task's title.
+    await page.getByLabel('Receipt to scan').setInputFiles({
+      name: 'generator-receipt.pdf',
+      mimeType: 'application/pdf',
+      buffer: textPdf([
+        'KUNLE GENERATOR SERVICES',
+        'Servicing and oil change',
+        'TOTAL NGN 25,000.00',
+      ]),
+    })
+    await expect(page.getByLabel('Amount')).toHaveValue('25,000')
+    await expect(page.getByLabel('What was it for?')).toHaveValue('Service generator')
+    await expect(page.getByText('Filled in the amount from the receipt')).toBeVisible()
     await page.getByRole('button', { name: 'Save expense' }).click()
 
     // Back on the task, the completion lists the expense logged for it.

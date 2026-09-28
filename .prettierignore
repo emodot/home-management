@@ -8,3 +8,4 @@ supabase/.branches
 SPEC.md
 packages/emails/generated
 supabase/functions/*/deno.lock
+apps/web/public/ocr

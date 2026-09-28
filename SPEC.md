@@ -141,6 +141,7 @@ supabase/
 ### 6.3 Expenses (main priority — make this excellent)
 - **Add expense:** amount, date (default today), category, description, paid by (default current user), optional provider, optional notes, attach 0–n receipts. Must be fast on a phone: amount field first, numeric keyboard, one-screen form.
 - **Receipts:** upload from camera or files; show thumbnails (PDF icon for PDFs); tap to view full size; delete individual receipts.
+- **Scan receipt** (added after Phase 1): on Add expense, read a photo or PDF on the device (pdf.js text layer, else Tesseract.js OCR) and fill in the amount, date, shop and a category from the household's history. Only fields the user hasn't edited are filled (a completed task's title and category are kept); filled fields are marked "From the receipt"; the file is attached. The text itself isn't stored.
 - **List view:** grouped by month, newest first. Filters: date range, category, provider, paid by, has receipt / no receipt. Text search on description and notes.
 - **Detail view:** all fields, receipts gallery, linked provider and task, created/updated by and when.
 - **Edit / delete** (soft delete with undo toast and "Recently deleted" restore).
@@ -228,7 +229,7 @@ Home inventory · documents vault · floor plans · AI assistant · public provi
 Design Phase 1 so these can be added without rework: keep `packages/shared` platform-agnostic for the mobile app, and keep the storage path convention (`{household_id}/...`) reusable for documents and inventory photos.
 
 ### Not planned
-Roles or permissions of any kind · removing other members · splitting/settling expenses · receipt OCR · multi-currency conversion.
+Roles or permissions of any kind · removing other members · splitting/settling expenses · multi-currency conversion.
 
 ---
 
