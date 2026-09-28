@@ -52,7 +52,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.118.0
 
       # Starts Postgres only and applies supabase/migrations + seed.sql.
       - run: supabase db start
@@ -79,7 +79,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.118.0
 
       - name: Start the local stack
         run: supabase start -x studio,imgproxy,vector,logflare,supavisor
