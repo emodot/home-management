@@ -1,13 +1,15 @@
 import {
   budgetInputSchema,
+  categoryTree,
   formatMoney,
   monthRange,
-  rollUpTotals,
+  setBudget,
+  spendingByCategory,
   todayIn,
+  totalBudgetMinor,
   type Category,
 } from '@home/shared'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { setBudget } from '@home/shared'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { BudgetMeter } from '@/components/budget-meter'
@@ -21,12 +23,20 @@ import { supabase } from '@/lib/supabase'
 
 function BudgetRow({
   category,
+  label = category.name,
+  isSub = false,
+  note,
   budgetMinor,
   spentMinor,
   currency,
   onSave,
 }: {
   category: Category
+  /** Defaults to the category's name; "Parent › Sub" when shown without its parent. */
+  label?: string
+  /** Indented under its parent. */
+  isSub?: boolean
+  note?: string
   budgetMinor: number | undefined
   spentMinor: number
   currency: string
@@ -55,11 +65,15 @@ function BudgetRow({
   }
 
   return (
-    <li className="flex flex-col gap-3 px-4 py-4">
+    <li
+      className={
+        isSub ? 'flex flex-col gap-3 py-3 pr-4 pl-7 sm:pl-12' : 'flex flex-col gap-3 px-4 py-4'
+      }
+    >
       <div className="flex items-center gap-3">
-        <CategoryIcon icon={category.icon} />
+        <CategoryIcon icon={category.icon} className={isSub ? 'size-7' : undefined} />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">{category.name}</p>
+          <p className={isSub ? 'truncate text-sm font-medium' : 'truncate font-medium'}>{label}</p>
           <p className="text-sm text-muted-foreground">
             {formatMoney(spentMinor, currency)} spent this month
           </p>
@@ -71,7 +85,7 @@ function BudgetRow({
           <Input
             inputMode="decimal"
             placeholder="No budget"
-            aria-label={`Monthly budget for ${category.name}`}
+            aria-label={`Monthly budget for ${label}`}
             aria-invalid={!!error}
             className="pl-7 text-right tabular-nums"
             value={value}
@@ -84,6 +98,7 @@ function BudgetRow({
         </div>
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {note && <p className="text-sm text-muted-foreground">{note}</p>}
       {budgetMinor !== undefined && (
         <BudgetMeter spentMinor={spentMinor} budgetMinor={budgetMinor} currency={currency} />
       )}
@@ -100,16 +115,12 @@ export function BudgetsPage() {
   const totals = useSuspenseQuery(categoryTotalsQuery(household.id, range)).data
 
   const budgetByCategory = new Map(budgets.map((b) => [b.category_id, b.monthly_amount_minor]))
-  // Budgets are on top-level categories and include their sub-categories' spending.
+  // A top-level category's budget includes its sub-categories' spending; a sub's is its own.
   const lookup = new Map(categories.map((c) => [c.id, c]))
-  const spentByCategory = new Map(
-    rollUpTotals(totals, lookup).map((t) => [t.categoryId, t.totalMinor]),
-  )
+  const spentByCategory = spendingByCategory(totals, lookup)
   // Archived categories stay listed only while they still have a budget, so it can be removed.
-  const rows = categories.filter(
-    (c) => c.parent_id === null && (!c.is_archived || budgetByCategory.has(c.id)),
-  )
-  const totalBudget = budgets.reduce((sum, b) => sum + b.monthly_amount_minor, 0)
+  const listed = (c: Category) => !c.is_archived || budgetByCategory.has(c.id)
+  const totalBudget = totalBudgetMinor(budgets, lookup)
 
   const { queryKey } = budgetsQuery(household.id)
   const save = useMutation({
@@ -149,8 +160,9 @@ export function BudgetsPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">Budgets</h1>
         <p className="text-sm text-muted-foreground">
-          Monthly limits per category. Bars turn amber at 80% and red when you go over. Leave a
-          field empty for no budget.
+          Monthly limits per category or sub-category. A category's budget includes what's spent on
+          its sub-categories. Bars turn amber at 80% and red when you go over. Leave a field empty
+          for no budget.
         </p>
         {totalBudget > 0 && (
           <p className="text-sm">
@@ -160,16 +172,35 @@ export function BudgetsPage() {
         )}
       </div>
       <ul className="divide-y rounded-xl border">
-        {rows.map((category) => (
-          <BudgetRow
-            key={category.id}
-            category={category}
-            budgetMinor={budgetByCategory.get(category.id)}
-            spentMinor={spentByCategory.get(category.id) ?? 0}
-            currency={household.currency}
-            onSave={(amountMinor) => save.mutate({ categoryId: category.id, amountMinor })}
-          />
-        ))}
+        {categoryTree(categories).flatMap(({ category, children }) => {
+          const subs = children.filter(listed)
+          const showParent = listed(category)
+          const parentBudget = budgetByCategory.get(category.id)
+          const subBudgets = subs.reduce((sum, c) => sum + (budgetByCategory.get(c.id) ?? 0), 0)
+          const row = (c: Category, props: { isSub?: boolean; label?: string; note?: string }) => (
+            <BudgetRow
+              key={c.id}
+              category={c}
+              {...props}
+              budgetMinor={budgetByCategory.get(c.id)}
+              spentMinor={spentByCategory.get(c.id) ?? 0}
+              currency={household.currency}
+              onSave={(amountMinor) => save.mutate({ categoryId: c.id, amountMinor })}
+            />
+          )
+          return [
+            showParent &&
+              row(category, {
+                note:
+                  parentBudget !== undefined && subBudgets > parentBudget
+                    ? `Its sub-category budgets add up to ${formatMoney(subBudgets, household.currency)}, more than this budget.`
+                    : undefined,
+              }),
+            ...subs.map((c) =>
+              row(c, showParent ? { isSub: true } : { label: `${category.name} › ${c.name}` }),
+            ),
+          ]
+        })}
       </ul>
     </div>
   )

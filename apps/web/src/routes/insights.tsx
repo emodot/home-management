@@ -1,9 +1,11 @@
 import {
+  categoryPath,
   formatMoney,
   formatMonth,
   monthRange,
   percentChange,
   rollUpTotals,
+  spendingByCategory,
   todayIn,
   type CategoryTotal,
   type RolledUpTotal,
@@ -73,14 +75,14 @@ export function InsightsPage() {
   const total = sum(totals)
   const previousTotal = sum(previousTotals)
   const change = percentChange(total, previousTotal)
-  // Sub-categories roll up into their parent (budgets are on top-level categories too).
+  // Sub-categories roll up into their parent, here and in the parent's budget.
   const byCategory = rollUpTotals(totals, categories)
   const largest = byCategory[0]?.totalMinor ?? 0
-  const spentByCategory = new Map(byCategory.map((t) => [t.categoryId, t.totalMinor]))
+  const spentByCategory = spendingByCategory(totals, categories)
   const budgetRows = budgets
     .map((b) => ({
       budget: b,
-      category: categories.get(b.category_id),
+      name: categoryPath(b.category_id, categories),
       spent: spentByCategory.get(b.category_id) ?? 0,
     }))
     .sort(
@@ -272,10 +274,10 @@ export function InsightsPage() {
           </div>
         ) : (
           <ul className="flex flex-col gap-4">
-            {budgetRows.map(({ budget, category, spent }) => (
+            {budgetRows.map(({ budget, name, spent }) => (
               <li key={budget.id} className="flex flex-col gap-2">
                 <div className="flex items-baseline justify-between gap-2 text-sm">
-                  <span className="truncate font-medium">{category?.name ?? 'Unknown'}</span>
+                  <span className="truncate font-medium">{name}</span>
                   <span className="shrink-0 text-muted-foreground tabular-nums">
                     <span className="font-semibold text-foreground">
                       {formatMoney(spent, budget.currency)}

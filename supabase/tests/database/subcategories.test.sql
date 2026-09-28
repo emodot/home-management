@@ -1,7 +1,7 @@
--- Sub-categories: one level, unique among siblings, archiving cascades, budgets on top level,
+-- Sub-categories: one level, unique among siblings, archiving cascades, budgets on any level,
 -- and expense_list exposes the parent for roll-up filters.
 begin;
-select plan(13);
+select plan(15);
 
 -- Households are created by super-admins. This stand-in creates one and makes the caller its
 -- household admin (and their active household), as if they had joined through an admin invite.
@@ -65,18 +65,30 @@ select lives_ok(
   $$ select public.set_budget(current_setting('test.hid')::uuid, current_setting('test.water')::uuid, 500000) $$,
   'budget on a top-level category'
 );
-select throws_ok(
-  $$ select public.set_budget(current_setting('test.hid')::uuid, current_setting('test.borehole')::uuid, 500000) $$,
-  '23514', null, 'no budgets on sub-categories'
+select lives_ok(
+  $$ select public.set_budget(current_setting('test.hid')::uuid, current_setting('test.borehole')::uuid, 200000) $$,
+  'budget on a sub-category'
 );
 select lives_ok(
   $$ update public.expense_categories set parent_id = current_setting('test.utilities')::uuid
      where id = current_setting('test.water')::uuid $$,
   'a top-level category can move under another'
 );
-select is_empty(
-  $$ select 1 from public.budgets where category_id = current_setting('test.water')::uuid $$,
-  '...and loses its budget'
+select is(
+  (select monthly_amount_minor::int from public.budgets where category_id = current_setting('test.water')::uuid),
+  500000,
+  '...and keeps its budget'
+);
+select lives_ok(
+  $$ update public.expense_categories set parent_id = null
+     where id = current_setting('test.water')::uuid $$,
+  'a sub-category can move back to the top level'
+);
+select is(
+  (select count(*)::int from public.budgets
+   where category_id in (current_setting('test.water')::uuid, current_setting('test.borehole')::uuid)),
+  2,
+  'budgets survive moves'
 );
 
 -- ---------------------------------------------------------------- archiving

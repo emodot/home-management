@@ -1,6 +1,6 @@
 /**
  * Sub-categories are one level deep: a category has a parent_id, or is top-level. Insights,
- * budgets and filters roll sub-categories up into their parent.
+ * filters and a parent's budget roll sub-categories up into their parent.
  */
 
 interface CategoryLike {
@@ -84,4 +84,37 @@ export function rollUpTotals(
   return [...rolled.values()]
     .map((r) => ({ ...r, children: r.children.sort(byTotal) }))
     .sort(byTotal)
+}
+
+/**
+ * What counts against each category's budget: a top-level category's own spending plus its
+ * sub-categories', and a sub-category's own spending.
+ */
+export function spendingByCategory(
+  totals: CategoryTotalLike[],
+  byId: ReadonlyMap<string, CategoryLike>,
+): Map<string, number> {
+  const spent = new Map<string, number>()
+  const add = (id: string, minor: number) => spent.set(id, (spent.get(id) ?? 0) + minor)
+  for (const t of totals) {
+    const top = topLevelId(t.categoryId, byId)
+    add(top, t.totalMinor)
+    if (top !== t.categoryId) add(t.categoryId, t.totalMinor)
+  }
+  return spent
+}
+
+/**
+ * The household's total monthly budget. A sub-category's budget is part of its parent's when the
+ * parent has one too, so it's only counted on its own when the parent has none.
+ */
+export function totalBudgetMinor(
+  budgets: { category_id: string; monthly_amount_minor: number }[],
+  byId: ReadonlyMap<string, CategoryLike>,
+): number {
+  const budgeted = new Set(budgets.map((b) => b.category_id))
+  return budgets.reduce((sum, b) => {
+    const top = topLevelId(b.category_id, byId)
+    return top !== b.category_id && budgeted.has(top) ? sum : sum + b.monthly_amount_minor
+  }, 0)
 }
