@@ -125,8 +125,9 @@ domain.
 
 ### 2. Vercel
 
-Import the GitHub repo into Vercel and leave the root directory as the repo root; `vercel.json`
-sets the build command, output directory, SPA fallback and cache headers. Add these environment
+Import the GitHub repo into Vercel and set the root directory to `apps/web` (Vercel installs
+the whole pnpm workspace and builds with `vite build`). `apps/web/vercel.json` sets the SPA
+fallback, security headers and cache headers. Add these environment
 variables (Production):
 
 | Variable                 | Value                           |
