@@ -1,18 +1,12 @@
 // Hand-written to match `supabase gen types typescript` output until a local Supabase stack is
 // available. Regenerate with `pnpm db:types` (overwrites this file).
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: '13.0.5'
   }
   public: {
     Tables: {
@@ -52,18 +46,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "activity_log_actor_id_fkey"
-            columns: ["actor_id"]
+            foreignKeyName: 'activity_log_actor_id_fkey'
+            columns: ['actor_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "activity_log_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'activity_log_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -136,18 +130,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "budgets_household_id_category_id_fkey"
-            columns: ["household_id", "category_id"]
+            foreignKeyName: 'budgets_household_id_category_id_fkey'
+            columns: ['household_id', 'category_id']
             isOneToOne: false
-            referencedRelation: "expense_categories"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'expense_categories'
+            referencedColumns: ['household_id', 'id']
           },
           {
-            foreignKeyName: "budgets_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'budgets_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -158,6 +152,7 @@ export type Database = {
           id: string
           is_archived: boolean
           name: string
+          parent_id: string | null
           sort_order: number
         }
         Insert: {
@@ -166,6 +161,7 @@ export type Database = {
           id?: string
           is_archived?: boolean
           name: string
+          parent_id?: string | null
           sort_order?: number
         }
         Update: {
@@ -174,15 +170,16 @@ export type Database = {
           id?: string
           is_archived?: boolean
           name?: string
+          parent_id?: string | null
           sort_order?: number
         }
         Relationships: [
           {
-            foreignKeyName: "expense_categories_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'expense_categories_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -225,32 +222,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "expense_receipts_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: 'expense_receipts_created_by_fkey'
+            columns: ['created_by']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "expense_receipts_household_id_expense_id_fkey"
-            columns: ["household_id", "expense_id"]
+            foreignKeyName: 'expense_receipts_household_id_expense_id_fkey'
+            columns: ['household_id', 'expense_id']
             isOneToOne: false
-            referencedRelation: "expenses"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'expenses'
+            referencedColumns: ['household_id', 'id']
           },
           {
-            foreignKeyName: "expense_receipts_household_id_expense_id_fkey"
-            columns: ["household_id", "expense_id"]
+            foreignKeyName: 'expense_receipts_household_id_expense_id_fkey'
+            columns: ['household_id', 'expense_id']
             isOneToOne: false
-            referencedRelation: "expense_list"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'expense_list'
+            referencedColumns: ['household_id', 'id']
           },
           {
-            foreignKeyName: "expense_receipts_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'expense_receipts_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -317,39 +314,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "expenses_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: 'expenses_created_by_fkey'
+            columns: ['created_by']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "expenses_household_id_category_id_fkey"
-            columns: ["household_id", "category_id"]
+            foreignKeyName: 'expenses_household_id_category_id_fkey'
+            columns: ['household_id', 'category_id']
             isOneToOne: false
-            referencedRelation: "expense_categories"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'expense_categories'
+            referencedColumns: ['household_id', 'id']
           },
           {
-            foreignKeyName: "expenses_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'expenses_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "expenses_paid_by_fkey"
-            columns: ["paid_by"]
+            foreignKeyName: 'expenses_paid_by_fkey'
+            columns: ['paid_by']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "expenses_updated_by_fkey"
-            columns: ["updated_by"]
+            foreignKeyName: 'expenses_updated_by_fkey'
+            columns: ['updated_by']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -374,18 +371,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "household_members_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'household_members_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "household_members_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'household_members_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -452,18 +449,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "invites_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'invites_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "invites_invited_by_fkey"
-            columns: ["invited_by"]
+            foreignKeyName: 'invites_invited_by_fkey'
+            columns: ['invited_by']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -494,11 +491,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_active_household_fk"
-            columns: ["active_household_id", "id"]
+            foreignKeyName: 'profiles_active_household_fk'
+            columns: ['active_household_id', 'id']
             isOneToOne: false
-            referencedRelation: "household_members"
-            referencedColumns: ["household_id", "user_id"]
+            referencedRelation: 'household_members'
+            referencedColumns: ['household_id', 'user_id']
           },
         ]
       }
@@ -556,11 +553,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "providers_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'providers_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -624,18 +621,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "recurring_expenses_household_id_category_id_fkey"
-            columns: ["household_id", "category_id"]
+            foreignKeyName: 'recurring_expenses_household_id_category_id_fkey'
+            columns: ['household_id', 'category_id']
             isOneToOne: false
-            referencedRelation: "expense_categories"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'expense_categories'
+            referencedColumns: ['household_id', 'id']
           },
           {
-            foreignKeyName: "recurring_expenses_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'recurring_expenses_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -702,18 +699,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "task_completions_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'task_completions_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "task_completions_household_id_task_id_fkey"
-            columns: ["household_id", "task_id"]
+            foreignKeyName: 'task_completions_household_id_task_id_fkey'
+            columns: ['household_id', 'task_id']
             isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'tasks'
+            referencedColumns: ['household_id', 'id']
           },
         ]
       }
@@ -783,25 +780,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tasks_household_id_default_category_id_fkey"
-            columns: ["household_id", "default_category_id"]
+            foreignKeyName: 'tasks_household_id_default_category_id_fkey'
+            columns: ['household_id', 'default_category_id']
             isOneToOne: false
-            referencedRelation: "expense_categories"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'expense_categories'
+            referencedColumns: ['household_id', 'id']
           },
           {
-            foreignKeyName: "tasks_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'tasks_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tasks_household_id_provider_id_fkey"
-            columns: ["household_id", "provider_id"]
+            foreignKeyName: 'tasks_household_id_provider_id_fkey'
+            columns: ['household_id', 'provider_id']
             isOneToOne: false
-            referencedRelation: "providers"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'providers'
+            referencedColumns: ['household_id', 'id']
           },
         ]
       }
@@ -811,6 +808,7 @@ export type Database = {
         Row: {
           amount_minor: number | null
           category_id: string | null
+          category_parent_id: string | null
           created_at: string | null
           created_by: string | null
           currency: string | null
@@ -832,18 +830,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "expenses_household_id_category_id_fkey"
-            columns: ["household_id", "category_id"]
+            foreignKeyName: 'expenses_household_id_category_id_fkey'
+            columns: ['household_id', 'category_id']
             isOneToOne: false
-            referencedRelation: "expense_categories"
-            referencedColumns: ["household_id", "id"]
+            referencedRelation: 'expense_categories'
+            referencedColumns: ['household_id', 'id']
           },
           {
-            foreignKeyName: "expenses_household_id_fkey"
-            columns: ["household_id"]
+            foreignKeyName: 'expenses_household_id_fkey'
+            columns: ['household_id']
             isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
+            referencedRelation: 'households'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -859,8 +857,8 @@ export type Database = {
           timezone: string
         }
         SetofOptions: {
-          from: "*"
-          to: "households"
+          from: '*'
+          to: 'households'
           isOneToOne: true
           isSetofReturn: false
         }
@@ -1092,33 +1090,31 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1127,23 +1123,22 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1152,23 +1147,22 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U

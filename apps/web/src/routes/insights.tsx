@@ -3,8 +3,10 @@ import {
   formatMonth,
   monthRange,
   percentChange,
+  rollUpTotals,
   todayIn,
   type CategoryTotal,
+  type RolledUpTotal,
 } from '@home/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import {
@@ -71,9 +73,10 @@ export function InsightsPage() {
   const total = sum(totals)
   const previousTotal = sum(previousTotals)
   const change = percentChange(total, previousTotal)
-  const byCategory = [...totals].sort((a, b) => b.totalMinor - a.totalMinor)
+  // Sub-categories roll up into their parent (budgets are on top-level categories too).
+  const byCategory = rollUpTotals(totals, categories)
   const largest = byCategory[0]?.totalMinor ?? 0
-  const spentByCategory = new Map(totals.map((t) => [t.categoryId, t.totalMinor]))
+  const spentByCategory = new Map(byCategory.map((t) => [t.categoryId, t.totalMinor]))
   const budgetRows = budgets
     .map((b) => ({
       budget: b,
@@ -193,6 +196,15 @@ export function InsightsPage() {
                       </span>
                     </div>
                   </Link>
+                  {t.children.length > 0 && (
+                    <SubcategoryBreakdown
+                      parent={t}
+                      parentName={category?.name ?? 'this category'}
+                      names={categories}
+                      currency={household.currency}
+                      linkTo={(categoryId) => expensesLink({ category: categoryId })}
+                    />
+                  )}
                 </li>
               )
             })}
@@ -283,5 +295,48 @@ export function InsightsPage() {
         )}
       </Card>
     </div>
+  )
+}
+
+/** Under a category's bar: how its spending splits across sub-categories (as text). */
+function SubcategoryBreakdown({
+  parent,
+  parentName,
+  names,
+  currency,
+  linkTo,
+}: {
+  parent: RolledUpTotal
+  parentName: string
+  names: ReadonlyMap<string, { name: string }>
+  currency: string
+  /** The month's expenses in a category. */
+  linkTo: (categoryId: string) => string
+}) {
+  const direct = parent.totalMinor - parent.children.reduce((sum, c) => sum + c.totalMinor, 0)
+  const rows = [
+    ...parent.children.map((c) => ({
+      id: c.categoryId,
+      label: names.get(c.categoryId)?.name ?? 'Unknown',
+      totalMinor: c.totalMinor,
+    })),
+    ...(direct > 0
+      ? [{ id: parent.categoryId, label: `${parentName} (no sub-category)`, totalMinor: direct }]
+      : []),
+  ]
+  return (
+    <ul className="flex flex-col pb-1 pl-8" aria-label={`${parentName} by sub-category`}>
+      {rows.map((row) => (
+        <li key={`${row.id}-${row.label}`}>
+          <Link
+            to={linkTo(row.id)}
+            className="-mx-2 flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+          >
+            <span className="truncate">{row.label}</span>
+            <span className="tabular-nums">{formatMoney(row.totalMinor, currency)}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   )
 }

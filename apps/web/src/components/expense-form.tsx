@@ -8,9 +8,9 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { CategoryIcon } from '@/components/category-icon'
 import { ProviderCombobox } from '@/components/provider-combobox'
 import { ReceiptPicker, type PickedReceipt } from '@/components/receipt-picker'
+import { CategoryOptions } from '@/components/category-options'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -123,12 +123,7 @@ export function ExpenseForm({
                   <SelectValue placeholder="Choose a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categoryOptions.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      <CategoryIcon icon={c.icon} className="size-6 bg-transparent" />
-                      {c.name}
-                    </SelectItem>
-                  ))}
+                  <CategoryOptions categories={categoryOptions} icons />
                 </SelectContent>
               </Select>
             )}

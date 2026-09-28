@@ -17,6 +17,7 @@ export function NewProviderPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Add provider</h1>
       <ProviderForm
         defaultValues={EMPTY_PROVIDER}
+        fromContacts
         submitLabel="Add provider"
         onCancel={() => void navigate(-1)}
         onSubmit={async (values) => {

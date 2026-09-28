@@ -7,6 +7,7 @@ import {
 } from '@home/shared'
 import { SlidersHorizontalIcon, XIcon } from 'lucide-react'
 import { useState } from 'react'
+import { CategoryOptions } from '@/components/category-options'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -133,12 +134,7 @@ export function ExpenseFiltersSheet({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ANY}>Any category</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.is_archived ? ' (archived)' : ''}
-                  </SelectItem>
-                ))}
+                <CategoryOptions categories={categories} markArchived />
               </SelectContent>
             </Select>
           </Field>

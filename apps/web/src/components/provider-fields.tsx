@@ -6,7 +6,10 @@ import {
   type ProviderValues,
 } from '@home/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ContactRoundIcon } from 'lucide-react'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { StarRatingInput } from '@/components/star-rating'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -19,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { canPickContacts, pickContact } from '@/lib/contacts'
 
 /**
  * The provider form. `compact` shows just name, trade and phone (for adding one inline from an
@@ -30,18 +34,38 @@ export function ProviderForm({
   onSubmit,
   onCancel,
   compact = false,
+  fromContacts = false,
 }: {
   defaultValues: ProviderInput
   submitLabel: string
   onSubmit: (values: ProviderValues) => Promise<void>
   onCancel: () => void
   compact?: boolean
+  /** Offer "Choose from contacts" (adding a provider, on phones that allow it). */
+  fromContacts?: boolean
 }) {
   const form = useForm<ProviderInput, unknown, ProviderValues>({
     resolver: zodResolver(providerInputSchema),
     defaultValues,
   })
   const { errors, isSubmitting } = form.formState
+  const [contactsAvailable] = useState(() => fromContacts && canPickContacts())
+
+  async function fillFromContact() {
+    try {
+      const contact = await pickContact()
+      if (!contact) return
+      const set = (field: 'name' | 'phone' | 'email', value: string | null) => {
+        if (value) form.setValue(field, value, { shouldDirty: true, shouldValidate: true })
+      }
+      set('name', contact.name)
+      set('phone', contact.phone)
+      // The compact form has no email field.
+      if (!compact) set('email', contact.email)
+    } catch {
+      toast.error("Couldn't open your contacts.")
+    }
+  }
 
   const submit = form.handleSubmit((values) =>
     onSubmit({ ...values, whatsapp: values.whatsapp ?? (compact ? values.phone : null) }),
@@ -57,6 +81,17 @@ export function ProviderForm({
       className="flex flex-col gap-6"
     >
       <FieldGroup className="gap-4">
+        {contactsAvailable && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-fit"
+            onClick={() => void fillFromContact()}
+          >
+            <ContactRoundIcon aria-hidden />
+            Choose from contacts
+          </Button>
+        )}
         <Field data-invalid={!!errors.name}>
           <FieldLabel htmlFor="provider-name">Name</FieldLabel>
           <Input

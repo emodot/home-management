@@ -1,4 +1,11 @@
-import { budgetInputSchema, formatMoney, monthRange, todayIn, type Category } from '@home/shared'
+import {
+  budgetInputSchema,
+  formatMoney,
+  monthRange,
+  rollUpTotals,
+  todayIn,
+  type Category,
+} from '@home/shared'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { setBudget } from '@home/shared'
 import { useState } from 'react'
@@ -93,9 +100,15 @@ export function BudgetsPage() {
   const totals = useSuspenseQuery(categoryTotalsQuery(household.id, range)).data
 
   const budgetByCategory = new Map(budgets.map((b) => [b.category_id, b.monthly_amount_minor]))
-  const spentByCategory = new Map(totals.map((t) => [t.categoryId, t.totalMinor]))
+  // Budgets are on top-level categories and include their sub-categories' spending.
+  const lookup = new Map(categories.map((c) => [c.id, c]))
+  const spentByCategory = new Map(
+    rollUpTotals(totals, lookup).map((t) => [t.categoryId, t.totalMinor]),
+  )
   // Archived categories stay listed only while they still have a budget, so it can be removed.
-  const rows = categories.filter((c) => !c.is_archived || budgetByCategory.has(c.id))
+  const rows = categories.filter(
+    (c) => c.parent_id === null && (!c.is_archived || budgetByCategory.has(c.id)),
+  )
   const totalBudget = budgets.reduce((sum, b) => sum + b.monthly_amount_minor, 0)
 
   const { queryKey } = budgetsQuery(household.id)

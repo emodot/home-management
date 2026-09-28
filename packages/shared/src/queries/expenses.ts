@@ -82,7 +82,10 @@ export async function listExpenses(
 
   if (filters.from) query = query.gte('occurred_on', filters.from)
   if (filters.to) query = query.lte('occurred_on', filters.to)
-  if (filters.category) query = query.eq('category_id', filters.category)
+  // A category includes its sub-categories.
+  if (filters.category) {
+    query = query.or(`category_id.eq.${filters.category},category_parent_id.eq.${filters.category}`)
+  }
   if (filters.paidBy) query = query.eq('paid_by', filters.paidBy)
   if (filters.provider) query = query.eq('provider_id', filters.provider)
   if (filters.receipt === 'with') query = query.gt('receipt_count', 0)

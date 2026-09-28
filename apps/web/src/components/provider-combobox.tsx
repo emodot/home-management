@@ -138,6 +138,7 @@ export function ProviderCombobox({
           </DialogHeader>
           {adding !== null && (
             <ProviderForm
+              fromContacts
               compact
               defaultValues={{ ...EMPTY_PROVIDER, name: adding }}
               submitLabel="Add provider"

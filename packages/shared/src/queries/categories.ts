@@ -21,12 +21,14 @@ export async function createCategory(
   householdId: string,
   input: CategoryInput,
   sortOrder: number,
+  /** Makes it a sub-category of this (top-level) category. */
+  parentId: string | null = null,
 ): Promise<Category> {
   const { name, icon } = categoryInputSchema.parse(input)
   return unwrap(
     await client
       .from('expense_categories')
-      .insert({ household_id: householdId, name, icon, sort_order: sortOrder })
+      .insert({ household_id: householdId, name, icon, sort_order: sortOrder, parent_id: parentId })
       .select('*')
       .single(),
   )
@@ -35,7 +37,7 @@ export async function createCategory(
 export async function updateCategory(
   client: HomeClient,
   id: string,
-  changes: Partial<CategoryInput> & { isArchived?: boolean },
+  changes: Partial<CategoryInput> & { isArchived?: boolean; parentId?: string | null },
 ): Promise<Category> {
   const parsed = categoryInputSchema.partial().parse(changes)
   return unwrap(
@@ -45,6 +47,7 @@ export async function updateCategory(
         ...(parsed.name !== undefined && { name: parsed.name }),
         ...(parsed.icon !== undefined && { icon: parsed.icon }),
         ...(changes.isArchived !== undefined && { is_archived: changes.isArchived }),
+        ...(changes.parentId !== undefined && { parent_id: changes.parentId }),
       })
       .eq('id', id)
       .select('*')

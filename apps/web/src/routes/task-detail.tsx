@@ -1,4 +1,5 @@
 import {
+  categoryPath,
   describeDue,
   describeSchedule,
   formatDate,
@@ -59,7 +60,6 @@ export function TaskDetailPage() {
 
   const deleted = task.deleted_at !== null
   const provider = task.provider_id ? providers.get(task.provider_id) : undefined
-  const category = task.default_category_id ? categories.get(task.default_category_id) : undefined
   const due = { nextDueOn: task.next_due_on, isActive: task.is_active }
   const overdue = taskDueState(due, today).state === 'overdue'
   const nameOf = (id: string | null) =>
@@ -134,7 +134,11 @@ export function TaskDetailPage() {
         </div>
         <div>
           <dt className="text-muted-foreground">Expense category</dt>
-          <dd className="font-medium">{category?.name ?? 'Not set'}</dd>
+          <dd className="font-medium">
+            {task.default_category_id
+              ? categoryPath(task.default_category_id, categories)
+              : 'Not set'}
+          </dd>
         </div>
         <div className="sm:col-span-2">
           <dt className="text-muted-foreground">Provider</dt>

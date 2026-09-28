@@ -1,4 +1,5 @@
 import {
+  categoryPath,
   expenseFiltersToParams,
   expensesToCsv,
   formatDate,
@@ -76,7 +77,7 @@ function ExportButton({ filters }: { filters: ExpenseFilters }) {
     try {
       const expenses = await listAllExpenses(supabase, household.id, filters)
       const csv = expensesToCsv(expenses, {
-        category: (id) => categories.get(id)?.name ?? '',
+        category: (id) => categoryPath(id, categories, ''),
         person: (id) => (id ? (memberNames.get(id) ?? 'Former member') : ''),
         provider: (id) => (id ? (providers.get(id)?.name ?? '') : ''),
       })
@@ -275,7 +276,7 @@ export function ExpensesPage() {
                           <p className="truncate font-medium">{expense.description}</p>
                           <p className="truncate text-sm text-muted-foreground">
                             {[
-                              category?.name,
+                              category && categoryPath(category.id, categoryLookup),
                               formatDate(expense.occurredOn, { day: 'numeric', month: 'short' }),
                               payer,
                             ]

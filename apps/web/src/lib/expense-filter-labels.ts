@@ -1,4 +1,11 @@
-import { formatDate, monthRange, yearRange, type Category, type ExpenseFilters } from '@home/shared'
+import {
+  categoryPath,
+  formatDate,
+  monthRange,
+  yearRange,
+  type Category,
+  type ExpenseFilters,
+} from '@home/shared'
 
 export type Period = 'all' | 'this-month' | 'last-month' | 'this-year' | 'custom'
 
@@ -56,7 +63,7 @@ export function describeFilters(
     chips.push({ key: 'period', label: PERIOD_LABELS[period] })
   }
   if (filters.category) {
-    chips.push({ key: 'category', label: categories.get(filters.category)?.name ?? 'Category' })
+    chips.push({ key: 'category', label: categoryPath(filters.category, categories, 'Category') })
   }
   if (filters.paidBy) {
     chips.push({

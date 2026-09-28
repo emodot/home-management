@@ -12,9 +12,9 @@ import { categoriesQuery } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
 
 function friendlyError(error: unknown) {
-  // 23505: the unique (household, lower(name)) index.
+  // 23505: names are unique among siblings (household, parent, lower(name)).
   if ((error as { code?: string } | null)?.code === '23505') {
-    return 'A category with that name already exists.'
+    return 'A category with that name already exists there.'
   }
   return errorMessage(error)
 }
@@ -23,10 +23,13 @@ export function useCreateCategory(householdId: string) {
   const queryClient = useQueryClient()
   const { queryKey } = categoriesQuery(householdId)
   return useMutation({
-    mutationFn: (input: CategoryInput) => {
-      const existing = queryClient.getQueryData(queryKey) ?? []
-      const nextOrder = Math.max(0, ...existing.map((c) => c.sort_order)) + 1
-      return createCategory(supabase, householdId, input, nextOrder)
+    /** With `parentId`, a sub-category of that category. New ones go last among their siblings. */
+    mutationFn: ({ parentId = null, ...input }: CategoryInput & { parentId?: string | null }) => {
+      const siblings = (queryClient.getQueryData(queryKey) ?? []).filter(
+        (c) => c.parent_id === parentId,
+      )
+      const nextOrder = Math.max(0, ...siblings.map((c) => c.sort_order)) + 1
+      return createCategory(supabase, householdId, input, nextOrder, parentId)
     },
     onSuccess: (category) => toast.success(`Added ${category.name}`),
     onError: (error) => toast.error(friendlyError(error)),
@@ -43,7 +46,7 @@ export function useUpdateCategory(householdId: string) {
       changes,
     }: {
       id: string
-      changes: Partial<CategoryInput> & { isArchived?: boolean }
+      changes: Partial<CategoryInput> & { isArchived?: boolean; parentId?: string | null }
     }) => updateCategory(supabase, id, changes),
     onMutate: async ({ id, changes }) => {
       await queryClient.cancelQueries({ queryKey })
@@ -56,8 +59,12 @@ export function useUpdateCategory(householdId: string) {
                 name: changes.name?.trim() ?? c.name,
                 icon: changes.icon ?? c.icon,
                 is_archived: changes.isArchived ?? c.is_archived,
+                parent_id: changes.parentId !== undefined ? changes.parentId : c.parent_id,
               }
-            : c,
+            : // Archiving a category archives its sub-categories (the database does the same).
+              changes.isArchived !== undefined && c.parent_id === id
+              ? { ...c, is_archived: changes.isArchived }
+              : c,
         ),
       )
       return { previous }
@@ -70,6 +77,7 @@ export function useUpdateCategory(householdId: string) {
   })
 }
 
+/** Saves a new order for one set of siblings (top-level categories, or one category's subs). */
 export function useReorderCategories(householdId: string) {
   const queryClient = useQueryClient()
   const { queryKey } = categoriesQuery(householdId)

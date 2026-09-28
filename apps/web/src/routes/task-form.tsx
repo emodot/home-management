@@ -16,6 +16,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
+import { CategoryOptions } from '@/components/category-options'
 import { ProviderCombobox } from '@/components/provider-combobox'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -306,13 +307,11 @@ function TaskForm({ existing }: { existing?: Task }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE}>Not set</SelectItem>
-                  {categories
-                    .filter((c) => !c.is_archived || c.id === existing?.default_category_id)
-                    .map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
+                  <CategoryOptions
+                    categories={categories.filter(
+                      (c) => !c.is_archived || c.id === existing?.default_category_id,
+                    )}
+                  />
                 </SelectContent>
               </Select>
             )}

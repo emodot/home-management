@@ -1,4 +1,4 @@
-import { formatDate, formatMoney, formatRelativeTime } from '@home/shared'
+import { categoryPath, formatDate, formatMoney, formatRelativeTime } from '@home/shared'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import {
   ArrowLeftIcon,
@@ -137,7 +137,7 @@ export function ExpenseDetailPage() {
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <CategoryIcon icon={category?.icon} className="size-5 bg-transparent" />
-            {category?.name ?? 'Unknown category'}
+            {categoryPath(expense.categoryId, categories, 'Unknown category')}
           </span>
           <span className="flex items-center gap-1.5">
             <CalendarIcon className="size-4" aria-hidden />
