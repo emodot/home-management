@@ -15,7 +15,7 @@ import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
 import { errorMessage } from '@/lib/errors'
-import { selectedMonth } from '@/lib/insights'
+import { budgetMonthParam, selectedMonth } from '@/lib/insights'
 import {
   activityFeedQuery,
   adminAccountsQuery,
@@ -208,7 +208,7 @@ export async function insightsLoader({ request }: LoaderFunctionArgs) {
       queryClient.query(categoryTotalsQuery(householdId, monthRange(`${month}-01`, -1))),
       queryClient.query(providerTotalsQuery(householdId, monthRange(`${month}-01`))),
       queryClient.query(providersQuery(householdId)),
-      queryClient.query(budgetsQuery(householdId)),
+      queryClient.query(budgetsQuery(householdId, month)),
       queryClient.query(categoriesQuery(householdId)),
     ])
   }
@@ -220,9 +220,13 @@ export async function budgetsLoader({ request }: LoaderFunctionArgs) {
   if (householdId) {
     const households = await queryClient.query(householdsQuery(user.id))
     const timezone = households.find((h) => h.id === householdId)?.timezone
+    const month = budgetMonthParam(
+      new URL(request.url).searchParams.get('month'),
+      todayIn(timezone),
+    )
     await Promise.all([
-      queryClient.query(categoryTotalsQuery(householdId, monthRange(todayIn(timezone)))),
-      queryClient.query(budgetsQuery(householdId)),
+      queryClient.query(categoryTotalsQuery(householdId, monthRange(`${month}-01`))),
+      queryClient.query(budgetsQuery(householdId, month)),
       queryClient.query(categoriesQuery(householdId)),
     ])
   }

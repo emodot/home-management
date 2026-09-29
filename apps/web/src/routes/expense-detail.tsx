@@ -1,8 +1,15 @@
-import { categoryPath, formatDate, formatMoney, formatRelativeTime } from '@home/shared'
+import {
+  categoryPath,
+  formatDate,
+  formatMoney,
+  formatMonth,
+  formatRelativeTime,
+} from '@home/shared'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import {
   ArrowLeftIcon,
   CalendarIcon,
+  CalendarRangeIcon,
   CheckIcon,
   ClipboardCheckIcon,
   RepeatIcon,
@@ -19,6 +26,7 @@ import { ContactButtons } from '@/components/contact-buttons'
 import { ConfirmExpenseDialog } from '@/components/pending-expenses'
 import { ReceiptGallery } from '@/components/receipt-gallery'
 import { Button } from '@/components/ui/button'
+import { countsTowardLabel } from '@/lib/budget-month'
 import { useDeleteExpense, useRestoreExpense, useSkipExpense } from '@/hooks/use-expenses'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useCategoryLookup, useMemberNames } from '@/hooks/use-lookups'
@@ -143,6 +151,12 @@ export function ExpenseDetailPage() {
             <CalendarIcon className="size-4" aria-hidden />
             {formatDate(expense.occurredOn, { dateStyle: 'full' })}
           </span>
+          {countsTowardLabel(expense) && (
+            <span className="flex items-center gap-1.5">
+              <CalendarRangeIcon className="size-4" aria-hidden />
+              Counts toward {formatMonth(expense.budgetMonth)}
+            </span>
+          )}
           {linkedTask && (
             <Link
               to={`/tasks/${linkedTask.task.id}`}

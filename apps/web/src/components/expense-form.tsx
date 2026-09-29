@@ -1,5 +1,6 @@
 import {
   expenseFormSchema,
+  monthOf,
   suggestCategoryId,
   type Category,
   type ExpenseFormInput,
@@ -10,8 +11,9 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ScanTextIcon } from 'lucide-react'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
+import { BudgetMonthField } from '@/components/budget-month-field'
 import { ProviderCombobox } from '@/components/provider-combobox'
 import { ReceiptPicker, type PickedReceipt } from '@/components/receipt-picker'
 import { ScanReceiptButton } from '@/components/receipt-scan'
@@ -90,6 +92,19 @@ export function ExpenseForm({
     defaultValues,
   })
   const { errors, isSubmitting } = form.formState
+  const [occurredOn, budgetMonth] = useWatch({
+    control: form.control,
+    name: ['occurredOn', 'budgetMonth'],
+  })
+  const paidMonth = /^\d{4}-\d{2}-\d{2}$/.test(occurredOn) ? monthOf(occurredOn) : budgetMonth
+
+  // The month it counts toward follows the payment date until it's set to a different month.
+  const [followsDate, setFollowsDate] = useState(
+    defaultValues.budgetMonth === monthOf(defaultValues.occurredOn),
+  )
+  function followDate(date: string) {
+    if (followsDate && /^\d{4}-\d{2}-\d{2}$/.test(date)) form.setValue('budgetMonth', monthOf(date))
+  }
 
   // Archived categories only appear when the expense already uses one.
   const categoryOptions = categories.filter(
@@ -117,6 +132,7 @@ export function ExpenseForm({
     const fill = (name: ScanField, value: string | null) => {
       if (value === null || !canFill(name)) return
       form.setValue(name, value, { shouldValidate: true })
+      if (name === 'occurredOn') followDate(value)
       filled.push(name)
     }
     fill('amount', parsed.amountMinor === null ? null : formatAmountInput(parsed.amountMinor))
@@ -254,7 +270,12 @@ export function ExpenseForm({
               id="occurredOn"
               type="date"
               aria-invalid={!!errors.occurredOn}
-              {...form.register('occurredOn', { onChange: () => unmark('occurredOn') })}
+              {...form.register('occurredOn', {
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                  unmark('occurredOn')
+                  followDate(e.target.value)
+                },
+              })}
             />
             {fromReceipt.has('occurredOn') && <FromReceipt />}
             <FieldError errors={[errors.occurredOn]} />
@@ -289,6 +310,16 @@ export function ExpenseForm({
             />
           </Field>
         </div>
+
+        <BudgetMonthField
+          paidMonth={paidMonth}
+          value={budgetMonth}
+          disabled={isSubmitting}
+          onChange={(month) => {
+            form.setValue('budgetMonth', month, { shouldDirty: true })
+            setFollowsDate(month === paidMonth)
+          }}
+        />
 
         <Field data-invalid={!!errors.notes}>
           <FieldLabel htmlFor="notes">Notes (optional)</FieldLabel>

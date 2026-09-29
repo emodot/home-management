@@ -27,6 +27,7 @@ export function EditExpensePage() {
         defaultValues={{
           amount: formatAmountInput(expense.amountMinor),
           occurredOn: expense.occurredOn,
+          budgetMonth: expense.budgetMonth,
           categoryId: expense.categoryId,
           description: expense.description,
           paidBy: expense.paidBy,

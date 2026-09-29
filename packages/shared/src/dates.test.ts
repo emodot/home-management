@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   addDays,
+  addMonths,
   formatDate,
   formatMonth,
   formatRelativeTime,
@@ -56,5 +57,13 @@ describe('date-only helpers', () => {
   it('adds days across month ends', () => {
     expect(addDays('2026-09-30', 1)).toBe('2026-10-01')
     expect(addDays('2026-03-01', -1)).toBe('2026-02-28')
+  })
+})
+
+describe('addMonths', () => {
+  it('moves across year ends both ways', () => {
+    expect(addMonths('2026-12', 1)).toBe('2027-01')
+    expect(addMonths('2026-01', -1)).toBe('2025-12')
+    expect(addMonths('2026-09', 0)).toBe('2026-09')
   })
 })

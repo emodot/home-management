@@ -38,6 +38,7 @@ describe('expenseFormSchema', () => {
         paidBy: null,
         providerId: null,
         notes: '   ',
+        budgetMonth: '2026-10',
       }),
     ).toEqual({
       amountMinor: 4_500_000,
@@ -47,6 +48,7 @@ describe('expenseFormSchema', () => {
       paidBy: null,
       providerId: null,
       notes: null,
+      budgetMonth: '2026-10',
     })
   })
 
@@ -59,6 +61,7 @@ describe('expenseFormSchema', () => {
       paidBy: null,
       providerId: null,
       notes: null,
+      budgetMonth: '2026-09',
     })
     expect(result.error?.issues.map((i) => [i.path[0], i.message])).toEqual([
       ['categoryId', 'Choose a category'],
@@ -73,6 +76,7 @@ describe('expenseFormSchema', () => {
       description: 'x',
       paidBy: null,
       providerId: null,
+      budgetMonth: '2026-02',
       notes: null,
     })
     expect(result.success).toBe(false)

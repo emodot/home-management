@@ -34,6 +34,7 @@ function toColumns(input: RecurringExpenseInput) {
     frequency: parsed.frequency,
     interval_count: parsed.intervalCount,
     next_due_on: parsed.nextDueOn,
+    for_next_month: parsed.forNextMonth,
   }
 }
 

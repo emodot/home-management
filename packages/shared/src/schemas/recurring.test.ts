@@ -11,6 +11,7 @@ const valid = {
   frequency: 'monthly',
   intervalCount: '1',
   nextDueOn: '2026-10-01',
+  forNextMonth: true,
 } as const
 
 describe('recurringExpenseFormSchema', () => {
@@ -24,6 +25,7 @@ describe('recurringExpenseFormSchema', () => {
       frequency: 'monthly',
       intervalCount: 1,
       nextDueOn: '2026-10-01',
+      forNextMonth: true,
     })
   })
 

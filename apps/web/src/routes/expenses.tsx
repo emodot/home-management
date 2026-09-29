@@ -21,11 +21,13 @@ import { CategoryIcon } from '@/components/category-icon'
 import { EmptyState } from '@/components/empty-state'
 import { ExpenseFiltersSheet, FilterChips } from '@/components/expense-filters'
 import { PendingExpenses } from '@/components/pending-expenses'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useProviderLookup } from '@/hooks/use-providers'
+import { countsTowardLabel } from '@/lib/budget-month'
 import { downloadTextFile, slugify } from '@/lib/download'
 import { errorMessage } from '@/lib/errors'
 import { describeFilters } from '@/lib/expense-filter-labels'
@@ -273,7 +275,14 @@ export function ExpensesPage() {
                       >
                         <CategoryIcon icon={category?.icon} />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium">{expense.description}</p>
+                          <p className="flex min-w-0 items-center gap-2">
+                            <span className="truncate font-medium">{expense.description}</span>
+                            {countsTowardLabel(expense) && (
+                              <Badge variant="secondary" className="shrink-0">
+                                {countsTowardLabel(expense)}
+                              </Badge>
+                            )}
+                          </p>
                           <p className="truncate text-sm text-muted-foreground">
                             {[
                               category && categoryPath(category.id, categoryLookup),

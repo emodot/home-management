@@ -112,21 +112,24 @@ export type Database = {
           currency: string
           household_id: string
           id: string
-          monthly_amount_minor: number
+          monthly_amount_minor: number | null
+          starts_on: string
         }
         Insert: {
           category_id: string
           currency?: string
           household_id: string
           id?: string
-          monthly_amount_minor: number
+          monthly_amount_minor?: number | null
+          starts_on: string
         }
         Update: {
           category_id?: string
           currency?: string
           household_id?: string
           id?: string
-          monthly_amount_minor?: number
+          monthly_amount_minor?: number | null
+          starts_on?: string
         }
         Relationships: [
           {
@@ -254,6 +257,7 @@ export type Database = {
       expenses: {
         Row: {
           amount_minor: number
+          budget_month: string
           category_id: string
           created_at: string
           created_by: string | null
@@ -274,6 +278,7 @@ export type Database = {
         }
         Insert: {
           amount_minor: number
+          budget_month?: string
           category_id: string
           created_at?: string
           created_by?: string | null
@@ -294,6 +299,7 @@ export type Database = {
         }
         Update: {
           amount_minor?: number
+          budget_month?: string
           category_id?: string
           created_at?: string
           created_by?: string | null
@@ -569,6 +575,7 @@ export type Database = {
           created_by: string | null
           currency: string
           description: string
+          for_next_month: boolean
           frequency: string
           household_id: string
           id: string
@@ -588,6 +595,7 @@ export type Database = {
           created_by?: string | null
           currency?: string
           description: string
+          for_next_month?: boolean
           frequency: string
           household_id: string
           id?: string
@@ -607,6 +615,7 @@ export type Database = {
           created_by?: string | null
           currency?: string
           description?: string
+          for_next_month?: boolean
           frequency?: string
           household_id?: string
           id?: string
@@ -807,6 +816,7 @@ export type Database = {
       expense_list: {
         Row: {
           amount_minor: number | null
+          budget_month: string | null
           category_id: string | null
           category_parent_id: string | null
           created_at: string | null
@@ -975,6 +985,23 @@ export type Database = {
           task_title: string
         }[]
       }
+      budgets_for_month: {
+        Args: { p_household_id: string; p_month: string }
+        Returns: {
+          category_id: string
+          currency: string
+          household_id: string
+          id: string
+          monthly_amount_minor: number | null
+          starts_on: string
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'budgets'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       complete_task: {
         Args: { p_completed_on?: string; p_notes?: string; p_task_id: string }
         Returns: string
@@ -1064,14 +1091,24 @@ export type Database = {
         Args: { p_household_id: string; p_ids: string[] }
         Returns: undefined
       }
-      set_budget: {
-        Args: {
-          p_amount_minor: number | null
-          p_category_id: string
-          p_household_id: string
-        }
-        Returns: undefined
-      }
+      set_budget:
+        | {
+            Args: {
+              p_amount_minor: number | null
+              p_category_id: string
+              p_household_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_amount_minor: number | null
+              p_category_id: string
+              p_household_id: string
+              p_month: string
+            }
+            Returns: undefined
+          }
       undo_task_completion: {
         Args: { p_completion_id: string }
         Returns: undefined

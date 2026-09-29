@@ -64,7 +64,7 @@ export function InsightsPage() {
 
   const totals = useSuspenseQuery(categoryTotalsQuery(household.id, range)).data
   const previousTotals = useSuspenseQuery(categoryTotalsQuery(household.id, previousRange)).data
-  const budgets = useSuspenseQuery(budgetsQuery(household.id)).data
+  const budgets = useSuspenseQuery(budgetsQuery(household.id, month)).data
   const categories = useCategoryLookup(household.id)
   const providers = useProviderLookup(household.id)
   const topProviders = [...useSuspenseQuery(providerTotalsQuery(household.id, range)).data]
@@ -93,8 +93,9 @@ export function InsightsPage() {
     setSearchParams(target === today.slice(0, 7) ? {} : { month: target }, { replace: true })
   }
 
+  // By the month expenses count toward, so the list adds up to these totals.
   const expensesLink = (params: Record<string, string>) =>
-    `/?${new URLSearchParams({ from: range.from, to: range.to, ...params }).toString()}`
+    `/?${new URLSearchParams({ month, ...params }).toString()}`
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -261,7 +262,9 @@ export function InsightsPage() {
         title="Budgets"
         action={
           <Button variant="outline" size="sm" asChild>
-            <Link to="/budgets">{budgets.length ? 'Manage' : 'Set budgets'}</Link>
+            <Link to={isCurrentMonth ? '/budgets' : `/budgets?month=${month}`}>
+              {budgets.length ? 'Manage' : 'Set budgets'}
+            </Link>
           </Button>
         }
       >

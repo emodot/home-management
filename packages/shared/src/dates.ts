@@ -52,6 +52,11 @@ export function monthOf(date: IsoDate): string {
   return date.slice(0, 7)
 }
 
+/** "2026-09" shifted by `offset` months: addMonths("2026-12", 1) → "2027-01". */
+export function addMonths(month: string, offset: number): string {
+  return monthOf(monthRange(`${month}-01`, offset).from)
+}
+
 /** "September 2026" for "2026-09" */
 export function formatMonth(month: string): string {
   return new Intl.DateTimeFormat(DEFAULT_LOCALE, {

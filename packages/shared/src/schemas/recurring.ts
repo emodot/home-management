@@ -26,6 +26,8 @@ export const recurringExpenseInputSchema = z.object({
   frequency: z.enum(RECURRING_FREQUENCIES),
   intervalCount,
   nextDueOn: isoDateSchema,
+  /** Each occurrence counts toward the month after it's due (e.g. rent due on the 25th). */
+  forNextMonth: z.boolean().default(false),
 })
 export type RecurringExpenseInput = z.input<typeof recurringExpenseInputSchema>
 
@@ -40,6 +42,7 @@ export const recurringExpenseFormSchema = z
     frequency: z.enum(RECURRING_FREQUENCIES),
     intervalCount,
     nextDueOn: isoDateSchema,
+    forNextMonth: z.boolean(),
   })
   .transform(({ amount, ...rest }) => ({ amountMinor: amount, ...rest }))
 export type RecurringExpenseFormInput = z.input<typeof recurringExpenseFormSchema>

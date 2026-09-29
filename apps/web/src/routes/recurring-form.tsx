@@ -61,6 +61,7 @@ function RecurringExpenseForm({ existing }: { existing?: RecurringExpense }) {
           frequency: existing.frequency,
           intervalCount: String(existing.interval_count),
           nextDueOn: existing.next_due_on,
+          forNextMonth: existing.for_next_month,
         }
       : {
           description: '',
@@ -71,6 +72,7 @@ function RecurringExpenseForm({ existing }: { existing?: RecurringExpense }) {
           frequency: 'monthly',
           intervalCount: '1',
           nextDueOn: todayIn(household.timezone),
+          forNextMonth: false,
         },
   })
   const { errors, isSubmitting } = form.formState
@@ -257,6 +259,28 @@ function RecurringExpenseForm({ existing }: { existing?: RecurringExpense }) {
             />
           </Field>
         </div>
+
+        <Field>
+          <FieldLabel htmlFor="forNextMonth">Counts toward</FieldLabel>
+          <Controller
+            control={form.control}
+            name="forNextMonth"
+            render={({ field }) => (
+              <Select
+                value={field.value ? 'next' : 'due'}
+                onValueChange={(v) => field.onChange(v === 'next')}
+              >
+                <SelectTrigger id="forNextMonth" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="due">The month it's due</SelectItem>
+                  <SelectItem value="next">The month after (e.g. rent paid ahead)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </Field>
 
         {preview.length > 0 && (
           <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">

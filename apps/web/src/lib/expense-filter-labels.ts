@@ -1,6 +1,7 @@
 import {
   categoryPath,
   formatDate,
+  formatMonth,
   monthRange,
   yearRange,
   type Category,
@@ -61,6 +62,9 @@ export function describeFilters(
     chips.push({ key: 'period', label: `${from} – ${to}` })
   } else if (period !== 'all') {
     chips.push({ key: 'period', label: PERIOD_LABELS[period] })
+  }
+  if (filters.month) {
+    chips.push({ key: 'month', label: `Counting toward ${formatMonth(filters.month)}` })
   }
   if (filters.category) {
     chips.push({ key: 'category', label: categoryPath(filters.category, categories, 'Category') })

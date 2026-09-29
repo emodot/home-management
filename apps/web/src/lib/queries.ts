@@ -116,10 +116,14 @@ export const categoryTotalsQuery = (householdId: string, range: { from: string; 
     queryFn: () => getCategoryTotals(supabase, householdId, range),
   })
 
-export const budgetsQuery = (householdId: string) =>
+export const budgetsKey = (householdId: string) =>
+  [...householdKey(householdId), 'budgets'] as const
+
+/** The budgets in force in a month ("2026-10"). */
+export const budgetsQuery = (householdId: string, month: string) =>
   queryOptions({
-    queryKey: [...householdKey(householdId), 'budgets'],
-    queryFn: () => listBudgets(supabase, householdId),
+    queryKey: [...budgetsKey(householdId), month],
+    queryFn: () => listBudgets(supabase, householdId, month),
   })
 
 export const pendingExpensesQuery = (householdId: string) =>

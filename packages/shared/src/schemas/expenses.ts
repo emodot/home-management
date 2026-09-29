@@ -3,6 +3,9 @@ import { MAX_AMOUNT_MINOR, toMinor } from '../money.ts'
 
 export const isoDateSchema = z.iso.date('Enter a valid date')
 
+/** A calendar month, "2026-10". */
+export const monthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Choose a month')
+
 /** A user-typed amount ("45,000.50") → positive integer minor units. */
 export const amountInputSchema = z
   .string()
@@ -49,6 +52,8 @@ export const expenseInputSchema = z.object({
   paidBy: z.uuid().nullable(),
   providerId: z.uuid().nullable(),
   notes: notesSchema,
+  /** The month it counts toward in budgets and insights; the payment date's month if omitted. */
+  budgetMonth: monthSchema.optional(),
 })
 export type ExpenseInput = z.input<typeof expenseInputSchema>
 
@@ -62,6 +67,7 @@ export const expenseFormSchema = z
     paidBy: z.uuid().nullable(),
     providerId: z.uuid().nullable(),
     notes: notesSchema,
+    budgetMonth: monthSchema,
   })
   .transform(({ amount, ...rest }) => ({ amountMinor: amount, ...rest }))
 export type ExpenseFormInput = z.input<typeof expenseFormSchema>
@@ -81,6 +87,8 @@ export const expenseFiltersSchema = z.object({
   paidBy: optional(z.uuid()),
   provider: optional(z.uuid()),
   receipt: optional(z.enum(['with', 'without'])),
+  /** Expenses counting toward this month ("2026-10"), whatever their payment date. */
+  month: optional(monthSchema),
   q: optional(
     z
       .string()
@@ -98,7 +106,16 @@ export function parseExpenseFilters(params: Record<string, string | undefined>):
 /** Filters → search params, omitting empty values (stable key order for query keys). */
 export function expenseFiltersToParams(filters: ExpenseFilters): Record<string, string> {
   const params: Record<string, string> = {}
-  for (const key of ['from', 'to', 'category', 'paidBy', 'provider', 'receipt', 'q'] as const) {
+  for (const key of [
+    'from',
+    'to',
+    'month',
+    'category',
+    'paidBy',
+    'provider',
+    'receipt',
+    'q',
+  ] as const) {
     const value = filters[key]
     if (value) params[key] = value
   }

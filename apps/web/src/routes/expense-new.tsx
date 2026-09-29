@@ -1,4 +1,4 @@
-import { formatDate, todayIn } from '@home/shared'
+import { formatDate, monthOf, todayIn } from '@home/shared'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { ClipboardCheckIcon } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router'
@@ -30,6 +30,8 @@ export function NewExpensePage() {
       ? task.default_category_id
       : ''
 
+  const paidOn = linked?.completion.completed_on ?? todayIn(household.timezone)
+
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">Add expense</h1>
@@ -54,7 +56,8 @@ export function NewExpensePage() {
         submitLabel="Save expense"
         defaultValues={{
           amount: '',
-          occurredOn: linked?.completion.completed_on ?? todayIn(household.timezone),
+          occurredOn: paidOn,
+          budgetMonth: monthOf(paidOn),
           categoryId,
           description: task?.title ?? '',
           paidBy: user.id,

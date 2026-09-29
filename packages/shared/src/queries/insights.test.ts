@@ -13,6 +13,7 @@ const expense: Expense = {
   notes: null,
   paidBy: 'u1',
   status: 'confirmed',
+  budgetMonth: '2026-10',
   createdBy: 'u2',
   updatedBy: 'u2',
   createdAt: '2026-09-20T10:00:00.000Z',
@@ -32,9 +33,9 @@ describe('expensesToCsv', () => {
       provider: (id) => (id === 'p1' ? 'Musa Electric' : ''),
     })
     expect(csv.replace(/^\uFEFF/, '').split('\r\n')).toEqual([
-      'Date,Description,Category,Amount,Currency,Paid by,Provider,Notes,Receipts,Added by,Added at',
-      '2026-09-20,"Diesel, 50L",Fuel & Generator,45000.50,NGN,Ada Obi,Musa Electric,,2,Bola Ade,2026-09-20T10:00:00.000Z',
-      '2026-09-20,"Diesel, 50L",Fuel & Generator,10000.00,NGN,,Musa Electric,,2,Bola Ade,2026-09-20T10:00:00.000Z',
+      'Date,Counts toward,Description,Category,Amount,Currency,Paid by,Provider,Notes,Receipts,Added by,Added at',
+      '2026-09-20,2026-10,"Diesel, 50L",Fuel & Generator,45000.50,NGN,Ada Obi,Musa Electric,,2,Bola Ade,2026-09-20T10:00:00.000Z',
+      '2026-09-20,2026-10,"Diesel, 50L",Fuel & Generator,10000.00,NGN,,Musa Electric,,2,Bola Ade,2026-09-20T10:00:00.000Z',
       '',
     ])
   })

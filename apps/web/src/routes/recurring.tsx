@@ -37,6 +37,7 @@ function BillRow({ bill }: { bill: RecurringExpense }) {
         <p className="flex items-center gap-2 truncate font-medium">
           <span className="truncate">{bill.description}</span>
           {!bill.is_active && <Badge variant="secondary">Paused</Badge>}
+          {bill.for_next_month && <Badge variant="secondary">For next month</Badge>}
         </p>
         <p className="truncate text-sm text-muted-foreground">
           {formatMoney(bill.amount_minor, bill.currency)} ·{' '}

@@ -88,7 +88,7 @@ supabase/
 
 **recurring_expenses** — `id`, `household_id`, `description`, `amount_minor`, `currency`, `category_id`, `provider_id`, `paid_by`, `frequency` (`weekly | monthly | quarterly | yearly`), `interval_count int default 1`, `next_due_on date`, `is_active`, audit columns.
 
-**budgets** — `id`, `household_id`, `category_id`, `monthly_amount_minor`, `currency`. Unique `(household_id, category_id)`.
+**budgets** — `id`, `household_id`, `category_id`, `starts_on` (1st of a month), `monthly_amount_minor` (null = no budget from then on), `currency`. Unique `(household_id, category_id, starts_on)`; a row applies from its month until the category's next row. *(Added after Phase 1; expenses also gained `budget_month` and recurring bills `for_next_month`.)*
 
 ### Providers
 
@@ -147,6 +147,7 @@ supabase/
 - **Edit / delete** (soft delete with undo toast and "Recently deleted" restore).
 - **Summary dashboard:** total this month vs last month, breakdown by category (bar or donut chart), top providers by spend, budget progress per category.
 - **Budgets:** set a monthly budget per category; show progress, amber at 80%, red when over.
+- **Budget months** (added after Phase 1): an expense keeps its payment date and counts toward a month (by default the date's month; e.g. rent paid on 29 Sep for October). Budgets and insights use that month; the list shows a "For October" badge and can filter by it. Recurring bills can count toward the month after they're due. The Budgets page has a month switcher: a budget set for a month applies from then on until changed, past months are read-only.
 - **Categories:** add, rename, archive, reorder. Archived categories stay on old expenses.
 - **Recurring expenses:** define bills that repeat (e.g. internet monthly, estate dues quarterly). The daily job creates a **pending** expense when due. Pending expenses appear at the top of the list with "Confirm" (optionally edit amount, add receipt) and "Skip".
 - **Export:** CSV of the current filtered list.

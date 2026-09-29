@@ -16,6 +16,8 @@ export interface Expense {
   notes: string | null
   paidBy: string | null
   status: 'confirmed' | 'pending'
+  /** The month it counts toward in budgets and insights, "2026-10". */
+  budgetMonth: string
   createdBy: string | null
   updatedBy: string | null
   createdAt: string
@@ -49,6 +51,7 @@ export function toExpense(row: ExpenseListRow): Expense {
     notes: row.notes,
     paidBy: row.paid_by,
     status: row.status === 'pending' ? 'pending' : 'confirmed',
+    budgetMonth: required(row.budget_month, 'budget_month').slice(0, 7),
     createdBy: row.created_by,
     updatedBy: row.updated_by,
     createdAt: required(row.created_at, 'created_at'),
@@ -83,6 +86,7 @@ export async function listExpenses(
 
   if (filters.from) query = query.gte('occurred_on', filters.from)
   if (filters.to) query = query.lte('occurred_on', filters.to)
+  if (filters.month) query = query.eq('budget_month', `${filters.month}-01`)
   // A category includes its sub-categories.
   if (filters.category) {
     query = query.or(`category_id.eq.${filters.category},category_parent_id.eq.${filters.category}`)
@@ -192,6 +196,7 @@ function toColumns(input: ExpenseInput) {
     paid_by: parsed.paidBy,
     provider_id: parsed.providerId,
     notes: parsed.notes,
+    ...(parsed.budgetMonth && { budget_month: `${parsed.budgetMonth}-01` }),
   }
 }
 

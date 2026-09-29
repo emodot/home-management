@@ -5,7 +5,8 @@ import { fromMinor } from '../money.ts'
 import type { ExpenseFilters } from '../schemas/expenses.ts'
 import { listExpenses, type Expense } from './expenses.ts'
 
-export type Budget = Tables<'budgets'>
+/** A budget in force in a month (from budgets_for_month, so it always has an amount). */
+export type Budget = Tables<'budgets'> & { monthly_amount_minor: number }
 
 export interface CategoryTotal {
   categoryId: string
@@ -13,7 +14,10 @@ export interface CategoryTotal {
   expenseCount: number
 }
 
-/** Confirmed spending per category between two dates (inclusive). */
+/**
+ * Confirmed spending per category for the months from `range.from`'s month to `range.to`, by the
+ * month each expense counts toward (pass whole months).
+ */
 export async function getCategoryTotals(
   client: HomeClient,
   householdId: string,
@@ -33,21 +37,34 @@ export async function getCategoryTotals(
   }))
 }
 
-export async function listBudgets(client: HomeClient, householdId: string): Promise<Budget[]> {
-  return unwrap(await client.from('budgets').select('*').eq('household_id', householdId))
+/** The budgets in force in a month ("2026-10"): each category's latest change up to then. */
+export async function listBudgets(
+  client: HomeClient,
+  householdId: string,
+  month: string,
+): Promise<Budget[]> {
+  const rows = unwrap(
+    await client.rpc('budgets_for_month', { p_household_id: householdId, p_month: `${month}-01` }),
+  )
+  return rows.filter((b): b is Budget => b.monthly_amount_minor !== null)
 }
 
-/** Sets a category's monthly budget, or removes it with `null`. */
+/**
+ * Sets a category's budget from `month` onward (until its next change), or removes it from then
+ * on with `null`. Only this month and later can be changed.
+ */
 export async function setBudget(
   client: HomeClient,
   householdId: string,
   categoryId: string,
+  month: string,
   amountMinor: number | null,
 ): Promise<void> {
   unwrap(
     await client.rpc('set_budget', {
       p_household_id: householdId,
       p_category_id: categoryId,
+      p_month: `${month}-01`,
       p_amount_minor: amountMinor,
     }),
   )
@@ -79,6 +96,7 @@ export function expensesToCsv(
   return toCsv([
     [
       'Date',
+      'Counts toward',
       'Description',
       'Category',
       'Amount',
@@ -92,6 +110,7 @@ export function expensesToCsv(
     ],
     ...expenses.map((e) => [
       e.occurredOn,
+      e.budgetMonth,
       e.description,
       names.category(e.categoryId),
       fromMinor(e.amountMinor, e.currency, { fixed: true }),

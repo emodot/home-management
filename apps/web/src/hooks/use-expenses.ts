@@ -131,6 +131,7 @@ export function useUpdateExpense(householdId: string, expenseId: string) {
         ...expense,
         amountMinor: input.amountMinor,
         occurredOn: input.occurredOn,
+        budgetMonth: input.budgetMonth ?? expense.budgetMonth,
         categoryId: input.categoryId,
         description: input.description.trim(),
         paidBy: input.paidBy,
