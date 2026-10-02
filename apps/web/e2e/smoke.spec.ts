@@ -105,7 +105,9 @@ test('super-admin creates a household → its admin joins → expense with recei
     // ₦500,000 income less the ₦45,000 water tanker.
     await expect(page.getByText('₦455,000')).toBeVisible()
     await page.goto('/insights')
-    await expect(page.getByRole('link', { name: /Net \(income − spent\)\s*₦455,000/ })).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: /Net \(income − spent\)\s*₦455,000/ }),
+    ).toBeVisible()
   })
 
   await test.step('invite members by email and by a shared link', async () => {
