@@ -1,7 +1,6 @@
 import {
   describeFrequency,
   formatDate,
-  formatMoney,
   recurringIncomeFormSchema,
   RECURRING_FREQUENCIES,
   todayIn,
@@ -26,6 +25,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/empty-state'
+import { IncomeAmount, IncomeVisibilityToggle } from '@/components/income-visibility'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -82,7 +82,7 @@ function RecurringIncomeRow({ item }: { item: RecurringIncome }) {
           {item.for_next_month && <Badge variant="secondary">For next month</Badge>}
         </p>
         <p className="truncate text-sm text-muted-foreground">
-          {formatMoney(item.amount_minor, item.currency)} ·{' '}
+          <IncomeAmount minor={item.amount_minor} currency={item.currency} /> ·{' '}
           {describeFrequency(item.frequency, item.interval_count).toLowerCase()}
           {item.is_active &&
             ` · next ${formatDate(item.next_due_on, { day: 'numeric', month: 'short', year: 'numeric' })}`}
@@ -145,7 +145,10 @@ export function RecurringIncomePage() {
       </Button>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Regular income</h1>
+          <div className="flex items-center gap-1">
+            <h1 className="text-2xl font-semibold tracking-tight">Regular income</h1>
+            <IncomeVisibilityToggle />
+          </div>
           <p className="max-w-md text-sm text-muted-foreground">
             Income that repeats, like a salary. On each pay day it appears at the top of Income to
             confirm (with the actual amount) or skip.

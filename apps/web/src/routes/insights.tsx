@@ -20,9 +20,11 @@ import {
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 import { BudgetMeter } from '@/components/budget-meter'
+import { IncomeAmount, IncomeVisibilityToggle } from '@/components/income-visibility'
 import { CategoryIcon } from '@/components/category-icon'
 import { Button } from '@/components/ui/button'
 import { useActiveHousehold, useIsHouseholdAdmin } from '@/hooks/use-household'
+import { useIncomeHidden } from '@/hooks/use-income-hidden'
 import { useCategoryLookup } from '@/hooks/use-lookups'
 import { useProviderLookup } from '@/hooks/use-providers'
 import { selectedMonth } from '@/lib/insights'
@@ -79,6 +81,7 @@ export function InsightsPage() {
 
   // Income and net for household admins (members get no income rows).
   const isAdmin = useIsHouseholdAdmin()
+  const incomeHidden = useIncomeHidden()
   const income = useSuspenseQuery(incomeTotalsQuery(household.id, range)).data.reduce(
     (acc, t) => acc + t.totalMinor,
     0,
@@ -163,23 +166,30 @@ export function InsightsPage() {
           )}
         </div>
         {isAdmin && (
-          <Link
-            to={isCurrentMonth ? '/income' : `/income?month=${month}`}
-            className="flex flex-col gap-1 rounded-xl border p-4 transition-colors hover:bg-muted/40 sm:p-5"
-          >
-            <p className="text-sm text-muted-foreground">Net (income − spent)</p>
+          <div className="flex flex-col gap-1 rounded-xl border p-4 sm:p-5">
+            <div className="-my-1 flex items-center justify-between gap-2">
+              <p className="text-sm text-muted-foreground">Net (income − spent)</p>
+              <IncomeVisibilityToggle />
+            </div>
             <p
               className={cn(
                 'text-2xl font-semibold tracking-tight tabular-nums',
-                net < 0 ? 'text-delta-bad' : net > 0 && 'text-delta-good',
+                // The colour would give away the sign of a hidden figure.
+                !incomeHidden && (net < 0 ? 'text-delta-bad' : net > 0 && 'text-delta-good'),
               )}
             >
-              {formatMoney(net, household.currency)}
+              <IncomeAmount minor={net} currency={household.currency} />
             </p>
             <p className="text-sm text-muted-foreground">
-              {formatMoney(income, household.currency)} income
+              <IncomeAmount minor={income} currency={household.currency} /> income ·{' '}
+              <Link
+                to={isCurrentMonth ? '/income' : `/income?month=${month}`}
+                className="underline-offset-4 hover:underline"
+              >
+                View income
+              </Link>
             </p>
-          </Link>
+          </div>
         )}
         <div className="flex flex-col gap-1 rounded-xl border p-4 sm:p-5">
           <p className="text-sm text-muted-foreground">{formatMonth(previousMonth)}</p>

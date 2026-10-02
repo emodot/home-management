@@ -287,19 +287,27 @@ export function ExpensesPage() {
         </div>
       )}
 
-      <div className="relative">
-        <SearchIcon
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden
-        />
-        <Input
-          type="search"
-          placeholder="Search descriptions and notes"
-          aria-label="Search expenses"
-          className="pl-9"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <SearchIcon
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <Input
+            type="search"
+            placeholder="Search expenses"
+            aria-label="Search expenses"
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Button asChild>
+          <Link to="/expenses/new">
+            <PlusIcon aria-hidden />
+            Add expense
+          </Link>
+        </Button>
       </div>
 
       <FilterChips

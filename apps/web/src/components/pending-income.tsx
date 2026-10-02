@@ -1,8 +1,9 @@
-import { amountInputSchema, formatDate, formatMoney, type Income } from '@home/shared'
+import { amountInputSchema, formatDate, type Income } from '@home/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { CheckIcon, RepeatIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { IncomeAmount } from '@/components/income-visibility'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -112,7 +113,7 @@ function PendingRow({ income }: { income: Income }) {
         </p>
         <p className="truncate text-sm text-muted-foreground">
           Due {formatDate(income.receivedOn, { day: 'numeric', month: 'short' })} ·{' '}
-          {formatMoney(income.amountMinor, income.currency)}
+          <IncomeAmount minor={income.amountMinor} currency={income.currency} />
         </p>
       </div>
       <div className="ml-auto flex gap-1">

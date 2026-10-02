@@ -1,4 +1,5 @@
 import { EmptyState } from '@/components/empty-state'
+import { IncomeAmount } from '@/components/income-visibility'
 import { formatMoney, formatRelativeTime } from '@home/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { FileTextIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react'
@@ -75,8 +76,8 @@ export function RecentlyDeletedPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{entry.source}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatMoney(entry.amountMinor, entry.currency)} · deleted{' '}
-                        {formatRelativeTime(entry.deletedAt ?? '')}
+                        <IncomeAmount minor={entry.amountMinor} currency={entry.currency} /> ·
+                        deleted {formatRelativeTime(entry.deletedAt ?? '')}
                       </p>
                     </div>
                     <Button variant="outline" size="sm" onClick={() => restoreIncome.mutate(entry)}>

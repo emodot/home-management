@@ -105,9 +105,12 @@ test('super-admin creates a household → its admin joins → expense with recei
     // ₦500,000 income less the ₦45,000 water tanker.
     await expect(page.getByText('₦455,000')).toBeVisible()
     await page.goto('/insights')
-    await expect(
-      page.getByRole('link', { name: /Net \(income − spent\)\s*₦455,000/ }),
-    ).toBeVisible()
+    await expect(page.getByText('Net (income − spent)')).toBeVisible()
+    await expect(page.getByText('₦455,000')).toBeVisible()
+    // The eye toggle hides every income figure.
+    await page.getByRole('button', { name: 'Hide income figures' }).click()
+    await expect(page.getByText('₦455,000')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Show income figures' }).click()
   })
 
   await test.step('invite members by email and by a shared link', async () => {

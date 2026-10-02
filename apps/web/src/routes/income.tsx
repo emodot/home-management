@@ -19,12 +19,14 @@ import {
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/empty-state'
+import { IncomeAmount, IncomeVisibilityToggle } from '@/components/income-visibility'
 import { IncomeForm } from '@/components/income-form'
 import { PendingIncome } from '@/components/pending-income'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser, useActiveHousehold } from '@/hooks/use-household'
 import { useCreateIncome, useDeleteIncome, useUpdateIncome } from '@/hooks/use-income'
+import { useIncomeHidden } from '@/hooks/use-income-hidden'
 import { useMemberNames } from '@/hooks/use-lookups'
 import { formatAmountInput } from '@/lib/amount'
 import { countsTowardLabel } from '@/lib/budget-month'
@@ -39,7 +41,15 @@ import {
 } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 
-function Stat({ label, value, className }: { label: string; value: string; className?: string }) {
+function Stat({
+  label,
+  value,
+  className,
+}: {
+  label: string
+  value: React.ReactNode
+  className?: string
+}) {
   return (
     <div className="flex min-w-0 flex-col gap-1 rounded-xl border p-3 sm:p-4">
       <p className="text-sm text-muted-foreground">{label}</p>
@@ -70,6 +80,7 @@ export function IncomePage() {
   const income = received.reduce((sum, t) => sum + t.totalMinor, 0)
   const spent = spentTotals.reduce((sum, t) => sum + t.totalMinor, 0)
   const net = income - spent
+  const incomeHidden = useIncomeHidden()
 
   function goTo(target: string) {
     setSearchParams(target === thisMonth ? {} : { month: target }, { replace: true })
@@ -78,7 +89,10 @@ export function IncomePage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Income</h1>
+        <div className="flex items-center gap-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Income</h1>
+          <IncomeVisibilityToggle />
+        </div>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -107,12 +121,24 @@ export function IncomePage() {
       <PendingIncome />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <Stat label="Income" value={formatMoney(income, household.currency)} />
+        <Stat
+          label="Income"
+          value={<IncomeAmount minor={income} currency={household.currency} />}
+        />
         <Stat label="Spent" value={formatMoney(spent, household.currency)} />
         <Stat
           label="Net"
-          value={formatMoney(net, household.currency)}
-          className={net < 0 ? 'text-delta-bad' : net > 0 ? 'text-delta-good' : undefined}
+          value={<IncomeAmount minor={net} currency={household.currency} />}
+          // The colour would give away the sign of a hidden figure.
+          className={
+            incomeHidden
+              ? undefined
+              : net < 0
+                ? 'text-delta-bad'
+                : net > 0
+                  ? 'text-delta-good'
+                  : undefined
+          }
         />
       </div>
 
@@ -177,8 +203,13 @@ export function IncomePage() {
                       .join(' · ')}
                   </p>
                 </div>
-                <span className="shrink-0 font-semibold text-delta-good tabular-nums">
-                  +{formatMoney(entry.amountMinor, entry.currency)}
+                <span
+                  className={cn(
+                    'shrink-0 font-semibold tabular-nums',
+                    !incomeHidden && 'text-delta-good',
+                  )}
+                >
+                  <IncomeAmount minor={entry.amountMinor} currency={entry.currency} prefix="+" />
                 </span>
               </Link>
             </li>
