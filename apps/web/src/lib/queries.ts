@@ -9,6 +9,7 @@ import {
   expenseFiltersToParams,
   getCategoryTotals,
   getExpense,
+  hasExpenses,
   getIncome,
   getIncomeTotals,
   getProfile,
@@ -82,6 +83,13 @@ export const expenseListQuery = (householdId: string, filters: ExpenseFilters) =
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) =>
       lastPage.length < EXPENSE_PAGE_SIZE ? undefined : pages.length * EXPENSE_PAGE_SIZE,
+  })
+
+/** Under expensesKey so adding the first expense updates it. */
+export const anyExpensesQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...expensesKey(householdId), 'any'],
+    queryFn: () => hasExpenses(supabase, householdId),
   })
 
 export const expenseQuery = (householdId: string, expenseId: string) =>

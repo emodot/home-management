@@ -41,6 +41,7 @@ import { describeFilters } from '@/lib/expense-filter-labels'
 import { expenseView, expenseViewParams } from '@/lib/expense-view'
 import { useCategoryLookup, useMemberNames } from '@/hooks/use-lookups'
 import {
+  anyExpensesQuery,
   categoriesQuery,
   expenseListQuery,
   membersQuery,
@@ -129,6 +130,7 @@ export function ExpensesPage() {
   )
   const list = useSuspenseInfiniteQuery(expenseListQuery(household.id, filters))
   const pendingCount = useSuspenseQuery(pendingExpensesQuery(household.id)).data.length
+  const hasAny = useSuspenseQuery(anyExpensesQuery(household.id)).data
 
   const expenses = useMemo(() => list.data.pages.flat(), [list.data])
   const groups = useMemo(
@@ -180,7 +182,8 @@ export function ExpensesPage() {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  if (expenses.length === 0 && !hasFilters && pendingCount === 0 && month === null) {
+  // A household with no expenses yet gets a welcome, whichever month is in view.
+  if (!hasAny && !hasFilters && pendingCount === 0) {
     return (
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>

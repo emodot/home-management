@@ -146,6 +146,20 @@ export async function suggestCategoryId(
   return best
 }
 
+/** Whether the household has any confirmed, non-deleted expense yet (for the first-run screen). */
+export async function hasExpenses(client: HomeClient, householdId: string): Promise<boolean> {
+  const rows = unwrap(
+    await client
+      .from('expense_list')
+      .select('id')
+      .eq('household_id', householdId)
+      .eq('status', 'confirmed')
+      .is('deleted_at', null)
+      .limit(1),
+  )
+  return rows.length > 0
+}
+
 /** Pending expenses generated from recurring bills, oldest due first. */
 export async function listPendingExpenses(
   client: HomeClient,

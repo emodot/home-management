@@ -24,6 +24,7 @@ import {
   adminOverviewQuery,
   adminUsersQuery,
   budgetsQuery,
+  anyExpensesQuery,
   categoriesQuery,
   categoryTotalsQuery,
   expenseListQuery,
@@ -146,6 +147,7 @@ export async function expensesLoader({ request }: LoaderFunctionArgs) {
       queryClient.query(categoriesQuery(householdId)),
       queryClient.query(membersQuery(householdId)),
       queryClient.infiniteQuery(expenseListQuery(householdId, filters)),
+      queryClient.query(anyExpensesQuery(householdId)),
       queryClient.query(pendingExpensesQuery(householdId)),
       queryClient.query(providersQuery(householdId)),
     ])
