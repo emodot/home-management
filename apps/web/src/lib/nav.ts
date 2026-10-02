@@ -2,6 +2,7 @@ import {
   ChartColumnIcon,
   ClipboardCheckIcon,
   EllipsisIcon,
+  HandCoinsIcon,
   HardHatIcon,
   HistoryIcon,
   PiggyBankIcon,
@@ -19,6 +20,8 @@ export interface NavItem {
   icon: LucideIcon
   /** Extra paths that should highlight this item. */
   matches?: (pathname: string) => boolean
+  /** Shown to household admins only. */
+  adminOnly?: boolean
 }
 
 const isExpensesPath = (pathname: string) => pathname === '/' || pathname.startsWith('/expenses')
@@ -27,6 +30,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/', label: 'Expenses', icon: ReceiptTextIcon, matches: isExpensesPath },
   { to: '/tasks', label: 'Tasks', icon: ClipboardCheckIcon },
   { to: '/providers', label: 'Providers', icon: HardHatIcon },
+  { to: '/income', label: 'Income', icon: HandCoinsIcon, adminOnly: true },
   { to: '/insights', label: 'Insights', icon: ChartColumnIcon },
   { to: '/activity', label: 'Activity', icon: HistoryIcon },
   { to: '/recurring', label: 'Recurring bills', icon: RepeatIcon },
@@ -48,6 +52,7 @@ export const BOTTOM_ITEMS: NavItem[] = [
       [
         '/more',
         '/profile',
+        '/income',
         '/insights',
         '/activity',
         '/recurring',

@@ -1,6 +1,7 @@
 import { unwrap, type HomeClient } from '../client.ts'
 import type { Tables } from '../database.types.ts'
 import { vendorSearchTerm } from '../receipt-parser.ts'
+import { listDeletedIncome, type Income } from './income.ts'
 import { expenseInputSchema, type ExpenseFilters, type ExpenseInput } from '../schemas/expenses.ts'
 
 export const EXPENSE_PAGE_SIZE = 50
@@ -248,6 +249,8 @@ export interface DeletedItems {
   providers: Tables<'providers'>[]
   tasks: Tables<'tasks'>[]
   receipts: (Tables<'expense_receipts'> & { expense: { description: string } })[]
+  /** Empty unless the caller is a household admin. */
+  income: Income[]
 }
 
 /** Expenses and receipts deleted in the last `days` days, most recent first. */
@@ -257,7 +260,7 @@ export async function listRecentlyDeleted(
   days = 30,
 ): Promise<DeletedItems> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
-  const [expenses, receipts, providers, tasks] = await Promise.all([
+  const [expenses, receipts, providers, tasks, income] = await Promise.all([
     client
       .from('expense_list')
       .select('*')
@@ -284,11 +287,13 @@ export async function listRecentlyDeleted(
       .eq('household_id', householdId)
       .gte('deleted_at', since)
       .order('deleted_at', { ascending: false }),
+    listDeletedIncome(client, householdId, since),
   ])
   return {
     expenses: unwrap(expenses).map(toExpense),
     providers: unwrap(providers),
     tasks: unwrap(tasks),
+    income,
     receipts: unwrap(receipts).map((r) => ({
       ...r,
       expense: { description: r.expense.description },

@@ -30,6 +30,9 @@ import {
   expenseQuery,
   householdsQuery,
   isAppAdminQuery,
+  incomeEntryQuery,
+  incomeMonthQuery,
+  incomeTotalsQuery,
   membersQuery,
   pendingExpensesQuery,
   pendingInvitesQuery,
@@ -93,6 +96,8 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
       active_household_id: first.id,
     })
   }
+  // The navigation shows admin-only pages (Income) from the caller's role.
+  await queryClient.query(membersQuery(pickActiveHousehold(profile, households)?.id ?? first.id))
   return null
 }
 
@@ -210,7 +215,52 @@ export async function insightsLoader({ request }: LoaderFunctionArgs) {
       queryClient.query(providersQuery(householdId)),
       queryClient.query(budgetsQuery(householdId, month)),
       queryClient.query(categoriesQuery(householdId)),
+      queryClient.query(incomeTotalsQuery(householdId, monthRange(`${month}-01`))),
     ])
+  }
+  return null
+}
+
+/** Income pages are for household admins; everyone else goes back to expenses. */
+async function requireHouseholdAdmin(request: Request) {
+  const { user, householdId } = await requireHousehold(request)
+  if (!householdId) return { user, householdId }
+  const members = await queryClient.query(membersQuery(householdId))
+  if (!members.some((m) => m.user_id === user.id && m.role === 'admin')) throw redirect('/')
+  return { user, householdId }
+}
+
+export async function incomeLoader({ request }: LoaderFunctionArgs) {
+  const { user, householdId } = await requireHouseholdAdmin(request)
+  if (householdId) {
+    const households = await queryClient.query(householdsQuery(user.id))
+    const timezone = households.find((h) => h.id === householdId)?.timezone
+    const month = budgetMonthParam(
+      new URL(request.url).searchParams.get('month'),
+      todayIn(timezone),
+    )
+    const range = monthRange(`${month}-01`)
+    await Promise.all([
+      queryClient.query(incomeMonthQuery(householdId, month)),
+      queryClient.query(incomeTotalsQuery(householdId, range)),
+      queryClient.query(categoryTotalsQuery(householdId, range)),
+    ])
+  }
+  return null
+}
+
+export async function incomeFormLoader({ request }: LoaderFunctionArgs) {
+  await requireHouseholdAdmin(request)
+  return null
+}
+
+export async function incomeEntryLoader({ request, params }: LoaderFunctionArgs) {
+  const { householdId } = await requireHouseholdAdmin(request)
+  const id = params.incomeId ?? ''
+  if (!UUID.test(id)) throw notFound()
+  if (householdId) {
+    const entry = await queryClient.query(incomeEntryQuery(householdId, id))
+    if (!entry || entry.deletedAt) throw notFound()
   }
   return null
 }

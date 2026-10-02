@@ -416,6 +416,65 @@ export type Database = {
         }
         Relationships: []
       }
+      income: {
+        Row: {
+          amount_minor: number
+          budget_month: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          deleted_at: string | null
+          household_id: string
+          id: string
+          notes: string | null
+          received_by: string | null
+          received_on: string
+          source: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount_minor: number
+          budget_month?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deleted_at?: string | null
+          household_id: string
+          id?: string
+          notes?: string | null
+          received_by?: string | null
+          received_on: string
+          source: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          budget_month?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deleted_at?: string | null
+          household_id?: string
+          id?: string
+          notes?: string | null
+          received_by?: string | null
+          received_on?: string
+          source?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'income_household_id_fkey'
+            columns: ['household_id']
+            isOneToOne: false
+            referencedRelation: 'households'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       invites: {
         Row: {
           accepted_at: string | null
@@ -1023,6 +1082,15 @@ export type Database = {
           total_minor: number
         }[]
       }
+      income_totals: {
+        Args: { p_from: string; p_household_id: string; p_to: string }
+        Returns: {
+          entry_count: number
+          month: string
+          total_minor: number
+        }[]
+      }
+      is_household_admin: { Args: { hid: string }; Returns: boolean }
       generate_due_recurring_expenses: {
         Args: { p_household_id: string }
         Returns: number

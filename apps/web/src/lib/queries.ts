@@ -9,6 +9,8 @@ import {
   expenseFiltersToParams,
   getCategoryTotals,
   getExpense,
+  getIncome,
+  getIncomeTotals,
   getProfile,
   getProviderTotals,
   getReceiptUrls,
@@ -18,6 +20,7 @@ import {
   listBudgets,
   listCategories,
   listExpenses,
+  listIncome,
   listItemHistory,
   listMembers,
   listMyHouseholds,
@@ -118,6 +121,28 @@ export const categoryTotalsQuery = (householdId: string, range: { from: string; 
 
 export const budgetsKey = (householdId: string) =>
   [...householdKey(householdId), 'budgets'] as const
+
+export const incomeKey = (householdId: string) => [...householdKey(householdId), 'income'] as const
+
+/** Income counting toward a month ("2026-10"). Household admins only. */
+export const incomeMonthQuery = (householdId: string, month: string) =>
+  queryOptions({
+    queryKey: [...incomeKey(householdId), 'month', month],
+    queryFn: () => listIncome(supabase, householdId, month),
+  })
+
+export const incomeEntryQuery = (householdId: string, id: string) =>
+  queryOptions({
+    queryKey: [...incomeKey(householdId), 'entry', id],
+    queryFn: () => getIncome(supabase, id),
+  })
+
+/** Income per month for a range of months (empty for members who aren't admins). */
+export const incomeTotalsQuery = (householdId: string, range: { from: string; to: string }) =>
+  queryOptions({
+    queryKey: [...incomeKey(householdId), 'totals', range.from, range.to],
+    queryFn: () => getIncomeTotals(supabase, householdId, range),
+  })
 
 /** The budgets in force in a month ("2026-10"). */
 export const budgetsQuery = (householdId: string, month: string) =>

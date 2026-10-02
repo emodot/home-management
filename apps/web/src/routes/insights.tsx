@@ -22,11 +22,16 @@ import { Link, useSearchParams } from 'react-router'
 import { BudgetMeter } from '@/components/budget-meter'
 import { CategoryIcon } from '@/components/category-icon'
 import { Button } from '@/components/ui/button'
-import { useActiveHousehold } from '@/hooks/use-household'
+import { useActiveHousehold, useIsHouseholdAdmin } from '@/hooks/use-household'
 import { useCategoryLookup } from '@/hooks/use-lookups'
 import { useProviderLookup } from '@/hooks/use-providers'
 import { selectedMonth } from '@/lib/insights'
-import { budgetsQuery, categoryTotalsQuery, providerTotalsQuery } from '@/lib/queries'
+import {
+  budgetsQuery,
+  categoryTotalsQuery,
+  incomeTotalsQuery,
+  providerTotalsQuery,
+} from '@/lib/queries'
 import { cn } from '@/lib/utils'
 
 const sum = (totals: CategoryTotal[]) => totals.reduce((acc, t) => acc + t.totalMinor, 0)
@@ -72,7 +77,14 @@ export function InsightsPage() {
     .slice(0, 5)
   const topProviderMax = topProviders[0]?.totalMinor ?? 0
 
+  // Income and net for household admins (members get no income rows).
+  const isAdmin = useIsHouseholdAdmin()
+  const income = useSuspenseQuery(incomeTotalsQuery(household.id, range)).data.reduce(
+    (acc, t) => acc + t.totalMinor,
+    0,
+  )
   const total = sum(totals)
+  const net = income - total
   const previousTotal = sum(previousTotals)
   const change = percentChange(total, previousTotal)
   // Sub-categories roll up into their parent, here and in the parent's budget.
@@ -124,7 +136,7 @@ export function InsightsPage() {
       </div>
 
       {/* KPI row: a headline number with its comparison, not a chart. */}
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className={cn('grid gap-3', isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
         <div className="flex flex-col gap-1 rounded-xl border p-4 sm:p-5">
           <p className="text-sm text-muted-foreground">
             Spent {isCurrentMonth ? 'this month' : `in ${formatMonth(month)}`}
@@ -150,6 +162,25 @@ export function InsightsPage() {
             </p>
           )}
         </div>
+        {isAdmin && (
+          <Link
+            to={isCurrentMonth ? '/income' : `/income?month=${month}`}
+            className="flex flex-col gap-1 rounded-xl border p-4 transition-colors hover:bg-muted/40 sm:p-5"
+          >
+            <p className="text-sm text-muted-foreground">Net (income − spent)</p>
+            <p
+              className={cn(
+                'text-2xl font-semibold tracking-tight tabular-nums',
+                net < 0 ? 'text-delta-bad' : net > 0 && 'text-delta-good',
+              )}
+            >
+              {formatMoney(net, household.currency)}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {formatMoney(income, household.currency)} income
+            </p>
+          </Link>
+        )}
         <div className="flex flex-col gap-1 rounded-xl border p-4 sm:p-5">
           <p className="text-sm text-muted-foreground">{formatMonth(previousMonth)}</p>
           <p className="text-2xl font-semibold tracking-tight">

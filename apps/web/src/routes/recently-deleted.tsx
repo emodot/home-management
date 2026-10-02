@@ -4,6 +4,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { FileTextIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRestoreExpense, useRestoreReceipt } from '@/hooks/use-expenses'
+import { useRestoreIncome } from '@/hooks/use-income'
 import { useRestoreProvider } from '@/hooks/use-providers'
 import { useRestoreTask } from '@/hooks/use-tasks'
 import { useActiveHousehold } from '@/hooks/use-household'
@@ -11,13 +12,14 @@ import { recentlyDeletedQuery } from '@/lib/queries'
 
 export function RecentlyDeletedPage() {
   const household = useActiveHousehold()
-  const { expenses, receipts, providers, tasks } = useSuspenseQuery(
+  const { expenses, receipts, providers, tasks, income } = useSuspenseQuery(
     recentlyDeletedQuery(household.id),
   ).data
   const restoreExpense = useRestoreExpense(household.id)
   const restoreReceipt = useRestoreReceipt(household.id)
   const restoreProvider = useRestoreProvider(household.id)
   const restoreTask = useRestoreTask(household.id)
+  const restoreIncome = useRestoreIncome(household.id)
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
@@ -31,7 +33,8 @@ export function RecentlyDeletedPage() {
       {expenses.length === 0 &&
       receipts.length === 0 &&
       providers.length === 0 &&
-      tasks.length === 0 ? (
+      tasks.length === 0 &&
+      income.length === 0 ? (
         <EmptyState icon={Trash2Icon} title="Nothing here" size="sm">
           Expenses, receipts, providers and tasks you delete will show up here for 30 days.
         </EmptyState>
@@ -55,6 +58,28 @@ export function RecentlyDeletedPage() {
                       size="sm"
                       onClick={() => restoreExpense.mutate(expense)}
                     >
+                      <RotateCcwIcon aria-hidden />
+                      Restore
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {income.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2 className="font-semibold">Income</h2>
+              <ul className="divide-y rounded-xl border">
+                {income.map((entry) => (
+                  <li key={entry.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{entry.source}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatMoney(entry.amountMinor, entry.currency)} · deleted{' '}
+                        {formatRelativeTime(entry.deletedAt ?? '')}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => restoreIncome.mutate(entry)}>
                       <RotateCcwIcon aria-hidden />
                       Restore
                     </Button>

@@ -96,6 +96,18 @@ test('super-admin creates a household → its admin joins → expense with recei
     await expect(page.getByRole('heading', { name: 'Receipts (1)' })).toBeVisible()
   })
 
+  await test.step('record income and see the net for the month', async () => {
+    await page.goto('/income/new')
+    await page.getByLabel('Amount').fill('500000')
+    await page.getByLabel('Where did it come from?').fill('Salary')
+    await page.getByRole('button', { name: 'Save income' }).click()
+    await expect(page.getByText('Income added')).toBeVisible()
+    // ₦500,000 income less the ₦45,000 water tanker.
+    await expect(page.getByText('₦455,000')).toBeVisible()
+    await page.goto('/insights')
+    await expect(page.getByRole('link', { name: /Net \(income − spent\)₦455,000/ })).toBeVisible()
+  })
+
   await test.step('invite members by email and by a shared link', async () => {
     await page.goto('/members')
     await page.getByLabel('Or email an invite').fill('bola@example.com')

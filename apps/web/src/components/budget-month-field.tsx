@@ -15,8 +15,8 @@ import { cn } from '@/lib/utils'
 const OTHER_MONTHS = 12
 
 /**
- * "Counts toward September 2026 · Change": the month an expense counts toward in budgets and
- * insights. Collapsed by default; opens to last / this / next month (around `paidMonth`) and a
+ * "Counts toward September 2026 · Change": the month an expense (or income) counts toward in
+ * budgets and insights. Collapsed by default; opens to last / this / next month (around `paidMonth`) and a
  * list of other months.
  */
 export function BudgetMonthField({
@@ -24,12 +24,15 @@ export function BudgetMonthField({
   value,
   onChange,
   disabled,
+  hint = 'For budgets and insights, e.g. rent paid at the end of one month for the next.',
 }: {
   /** The payment date's month, "2026-09". */
   paidMonth: string
   value: string
   onChange: (month: string) => void
   disabled?: boolean
+  /** Shown under the month choices. */
+  hint?: string
 }) {
   const [open, setOpen] = useState(value !== paidMonth)
   const quick = [-1, 0, 1].map((offset) => addMonths(paidMonth, offset))
@@ -94,9 +97,7 @@ export function BudgetMonthField({
           </SelectContent>
         </Select>
       </div>
-      <p className="text-sm text-muted-foreground">
-        For budgets and insights, e.g. rent paid at the end of one month for the next.
-      </p>
+      <p className="text-sm text-muted-foreground">{hint}</p>
     </div>
   )
 }

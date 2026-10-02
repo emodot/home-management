@@ -2,7 +2,7 @@ import { setActiveHousehold, type Household, type Profile } from '@home/shared'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { createContext, useContext } from 'react'
 import { useRouteLoaderData } from 'react-router'
-import { householdsQuery, profileQuery } from '@/lib/queries'
+import { householdsQuery, membersQuery, profileQuery } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
 import type { authedLoader } from '@/routes/loaders'
 
@@ -61,4 +61,12 @@ export function useSwitchHousehold() {
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   })
+}
+
+/** Whether the current user is an admin of the active household (who can see income). */
+export function useIsHouseholdAdmin(): boolean {
+  const household = useActiveHousehold()
+  const user = useCurrentUser()
+  const members = useSuspenseQuery(membersQuery(household.id)).data
+  return members.some((m) => m.user_id === user.id && m.role === 'admin')
 }

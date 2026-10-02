@@ -1,6 +1,7 @@
 import { PlusIcon } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { BOTTOM_ITEMS, SIDEBAR_ITEMS, type NavItem } from '@/lib/nav'
+import { useIsHouseholdAdmin } from '@/hooks/use-household'
 import { cn } from '@/lib/utils'
 
 function useIsActive() {
@@ -10,12 +11,13 @@ function useIsActive() {
 
 export function Sidebar() {
   const isActive = useIsActive()
+  const isAdmin = useIsHouseholdAdmin()
   return (
     <nav
       aria-label="Main"
       className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-56 shrink-0 flex-col gap-1 border-r p-3 md:flex"
     >
-      {SIDEBAR_ITEMS.map((item) => (
+      {SIDEBAR_ITEMS.filter((item) => isAdmin || !item.adminOnly).map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
