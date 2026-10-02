@@ -57,7 +57,7 @@ export function BudgetMeter({
         aria-valuetext={`${formatMoney(spentMinor, currency)} of ${formatMoney(budgetMinor, currency)} (${percent}%)`}
       >
         <div
-          className={cn('h-full rounded-r-[4px] transition-[width]', level.fill)}
+          className={cn('animate-grow-x h-full rounded-r-[4px] transition-[width]', level.fill)}
           style={{ width: `${Math.min(100, status.ratio * 100)}%` }}
         />
       </div>

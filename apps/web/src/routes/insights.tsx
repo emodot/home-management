@@ -48,7 +48,7 @@ function Card({
   children: React.ReactNode
 }) {
   return (
-    <section className="flex flex-col gap-4 rounded-xl border p-4 sm:p-5">
+    <section className="flex flex-col gap-4 border-t pt-6">
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-semibold">{title}</h2>
         {action}
@@ -138,13 +138,18 @@ export function InsightsPage() {
         </div>
       </div>
 
-      {/* KPI row: a headline number with its comparison, not a chart. */}
-      <div className={cn('grid gap-3', isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
-        <div className="flex flex-col gap-1 rounded-xl border p-4 sm:p-5">
+      {/* KPI row: one headline number with its comparison, then smaller figures. No boxes. */}
+      <div
+        className={cn(
+          'grid gap-6',
+          isAdmin ? 'sm:grid-cols-[1.4fr_1fr_1fr]' : 'sm:grid-cols-[1.4fr_1fr]',
+        )}
+      >
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground">
             Spent {isCurrentMonth ? 'this month' : `in ${formatMonth(month)}`}
           </p>
-          <p className="text-4xl font-semibold tracking-tight">
+          <p className="text-5xl font-semibold tracking-tight">
             {formatMoney(total, household.currency)}
           </p>
           {change !== null && (
@@ -166,7 +171,7 @@ export function InsightsPage() {
           )}
         </div>
         {isAdmin && (
-          <div className="flex flex-col gap-1 rounded-xl border p-4 sm:p-5">
+          <div className="flex flex-col gap-1 sm:border-l sm:pl-6">
             <div className="-my-1 flex items-center justify-between gap-2">
               <p className="text-sm text-muted-foreground">Net (income − spent)</p>
               <IncomeVisibilityToggle />
@@ -191,7 +196,7 @@ export function InsightsPage() {
             </p>
           </div>
         )}
-        <div className="flex flex-col gap-1 rounded-xl border p-4 sm:p-5">
+        <div className="flex flex-col gap-1 sm:border-l sm:pl-6">
           <p className="text-sm text-muted-foreground">{formatMonth(previousMonth)}</p>
           <p className="text-2xl font-semibold tracking-tight">
             {formatMoney(previousTotal, household.currency)}
@@ -231,7 +236,7 @@ export function InsightsPage() {
                     <div className="flex items-center gap-3 pl-8">
                       <div className="h-2.5 flex-1">
                         <div
-                          className="h-full min-w-1 rounded-r-[4px] bg-viz-bar"
+                          className="animate-grow-x h-full min-w-1 rounded-r-[4px] bg-viz-bar"
                           style={{ width: `${(t.totalMinor / largest) * 100}%` }}
                         />
                       </div>
@@ -283,7 +288,7 @@ export function InsightsPage() {
                     <div className="flex items-center gap-3">
                       <div className="h-2.5 flex-1">
                         <div
-                          className="h-full min-w-1 rounded-r-[4px] bg-viz-bar"
+                          className="animate-grow-x h-full min-w-1 rounded-r-[4px] bg-viz-bar"
                           style={{ width: `${(t.totalMinor / topProviderMax) * 100}%` }}
                         />
                       </div>

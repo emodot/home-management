@@ -8,14 +8,14 @@ import { signOut } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 
 const rowClass =
-  'flex w-full items-center gap-3 px-4 py-3.5 text-left font-medium transition-colors hover:bg-muted/50'
+  'flex w-full items-center gap-3 px-4 py-3.5 text-left font-medium transition-colors hover:bg-accent'
 
 export function MorePage() {
   const isAdmin = useIsHouseholdAdmin()
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">More</h1>
-      <ul className="rounded-xl border">
+      <ul className="list-surface">
         <li>
           <Link to="/profile" className={rowClass}>
             <UserRoundIcon className="size-5 text-muted-foreground" aria-hidden />
@@ -24,7 +24,7 @@ export function MorePage() {
           </Link>
         </li>
       </ul>
-      <ul className="divide-y rounded-xl border">
+      <ul className="list-surface">
         {SIDEBAR_ITEMS.filter(
           (item) =>
             !['/', '/tasks', '/providers'].includes(item.to) && (isAdmin || !item.adminOnly),
@@ -42,7 +42,7 @@ export function MorePage() {
         <h2 className="text-sm font-semibold">Appearance</h2>
         <ThemeSwitcher />
       </section>
-      <ul className="rounded-xl border">
+      <ul className="list-surface">
         <li>
           <button
             type="button"

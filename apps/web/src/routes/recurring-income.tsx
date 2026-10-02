@@ -180,7 +180,7 @@ export function RecurringIncomePage() {
           Set up a salary once and it&apos;ll show up for confirmation every pay day.
         </EmptyState>
       ) : (
-        <ul className="divide-y rounded-xl border">
+        <ul className="stagger list-surface">
           {items.map((item) => (
             <RecurringIncomeRow key={item.id} item={item} />
           ))}
@@ -258,7 +258,7 @@ function RecurringIncomeForm({ existing }: { existing?: RecurringIncome }) {
           <FieldLabel htmlFor="source">Where does it come from?</FieldLabel>
           <Input
             id="source"
-            placeholder="e.g. Salary – Acme Ltd"
+            placeholder="e.g. Salary from Acme Ltd"
             autoFocus={!existing}
             aria-invalid={!!errors.source}
             {...form.register('source')}

@@ -129,7 +129,7 @@ export function RecurringPage() {
           for confirmation every time they&apos;re due.
         </EmptyState>
       ) : (
-        <ul className="divide-y rounded-xl border">
+        <ul className="stagger list-surface">
           {bills.map((bill) => (
             <BillRow key={bill.id} bill={bill} />
           ))}

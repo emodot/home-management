@@ -78,7 +78,7 @@ export function CategoryIcon({
   return (
     <span
       className={cn(
-        'flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground',
+        'flex size-9 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground',
         className,
       )}
     >

@@ -245,7 +245,7 @@ export function BudgetsPage() {
           )}
         </div>
       </div>
-      <ul className="divide-y rounded-xl border">
+      <ul className="list-surface">
         {categoryTree(categories).flatMap(({ category, children }) => {
           const subs = children.filter(listed)
           const showParent = listed(category)

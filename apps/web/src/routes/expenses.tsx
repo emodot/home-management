@@ -257,13 +257,13 @@ export function ExpensesPage() {
               All months
             </Button>
           </div>
-          <div className="flex items-end justify-between gap-3 rounded-xl border p-4">
+          <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <p className="text-sm text-muted-foreground">
                 {hasFilters ? 'Matching' : 'Spent'}
                 {month === thisMonth ? ' this month' : ` in ${formatMonth(month)}`}
               </p>
-              <p className="text-2xl font-semibold tracking-tight tabular-nums">
+              <p className="text-4xl font-semibold tracking-tight tabular-nums">
                 {list.hasNextPage ? '…' : formatMoney(monthTotal, household.currency)}
               </p>
             </div>
@@ -361,7 +361,7 @@ export function ExpensesPage() {
                   )}
                 </div>
               )}
-              <ul className="divide-y overflow-hidden rounded-xl border">
+              <ul className="stagger list-surface">
                 {group.expenses.map((expense) => {
                   const category = categoryLookup.get(expense.categoryId)
                   const payer = expense.paidBy
@@ -371,14 +371,14 @@ export function ExpensesPage() {
                     <li key={expense.id}>
                       <Link
                         to={`/expenses/${expense.id}`}
-                        className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
+                        className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
                       >
                         <CategoryIcon icon={category?.icon} />
                         <div className="min-w-0 flex-1">
                           <p className="flex min-w-0 items-center gap-2">
                             <span className="truncate font-medium">{expense.description}</span>
                             {countsTowardLabel(expense) && (
-                              <Badge variant="secondary" className="shrink-0">
+                              <Badge variant="secondary" className="shrink-0 bg-background">
                                 {countsTowardLabel(expense)}
                               </Badge>
                             )}

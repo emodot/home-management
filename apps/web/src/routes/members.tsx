@@ -63,7 +63,7 @@ export function MembersPage() {
       </div>
 
       <Section title={`${members.length} ${members.length === 1 ? 'member' : 'members'}`}>
-        <ul className="divide-y rounded-xl border">
+        <ul className="list-surface">
           {members.map(({ user_id, joined_at, role, profile }) => {
             const name = profile.full_name ?? profile.email
             return (
@@ -109,7 +109,7 @@ export function MembersPage() {
 
       {isAdmin && invites.length > 0 && (
         <Section title="Pending invites">
-          <ul className="divide-y rounded-xl border">
+          <ul className="list-surface">
             {invites.map((invite) => (
               <InviteRow
                 key={invite.id}

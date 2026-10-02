@@ -127,7 +127,7 @@ export function TaskDetailPage() {
         </Button>
       )}
 
-      <dl className="grid gap-3 rounded-xl border p-4 text-sm sm:grid-cols-2">
+      <dl className="grid gap-3 rounded-xl bg-muted p-4 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-muted-foreground">Assigned to</dt>
           <dd className="font-medium">{task.assignee_id ? nameOf(task.assignee_id) : 'Anyone'}</dd>
@@ -172,7 +172,7 @@ export function TaskDetailPage() {
         ) : (
           <ol className="flex flex-col gap-3">
             {history.map((entry) => (
-              <li key={entry.id} className="rounded-xl border p-3">
+              <li key={entry.id} className="rounded-xl bg-muted p-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <p className="font-medium">
                     Done {formatDate(entry.completed_on)}

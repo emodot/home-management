@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
-/** The dashed "nothing here yet" panel: what the page is for and how to start. */
+/** "Nothing here yet": what the page is for and how to start, on a soft tinted panel. */
 export function EmptyState({
   icon: Icon,
   title,
@@ -21,17 +21,21 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center rounded-xl border border-dashed px-6 text-center',
+        'animate-rise flex flex-col items-center rounded-xl bg-muted px-6 text-center',
         size === 'sm' ? 'gap-2 py-10' : 'gap-3 py-14',
       )}
     >
       {Icon && (
-        <Icon
-          className={cn('text-muted-foreground', size === 'sm' ? 'size-8' : 'size-10')}
-          aria-hidden
-        />
+        <span
+          className={cn(
+            'mb-1 flex items-center justify-center rounded-2xl bg-primary/10 text-primary',
+            size === 'sm' ? 'size-12' : 'size-14',
+          )}
+        >
+          <Icon className={size === 'sm' ? 'size-6' : 'size-7'} aria-hidden />
+        </span>
       )}
-      <p className={cn('font-medium', size === 'default' && 'text-lg')}>{title}</p>
+      <p className={cn('font-semibold tracking-tight', size === 'default' && 'text-lg')}>{title}</p>
       {children && <p className="max-w-sm text-sm text-muted-foreground">{children}</p>}
       {action && <div className="mt-2">{action}</div>}
     </div>

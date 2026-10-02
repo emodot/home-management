@@ -90,7 +90,7 @@ export function IncomeForm({
           <FieldLabel htmlFor="source">Where did it come from?</FieldLabel>
           <Input
             id="source"
-            placeholder="e.g. Salary – Acme Ltd"
+            placeholder="e.g. Salary from Acme Ltd"
             autoComplete="off"
             aria-invalid={!!errors.source}
             {...form.register('source')}

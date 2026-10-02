@@ -97,7 +97,7 @@ function Section({
   return (
     <section className="flex flex-col gap-2">
       <h2 className={cn('text-sm font-semibold', tone === 'bad' && 'text-delta-bad')}>{title}</h2>
-      <ul className="divide-y rounded-xl border">{children}</ul>
+      <ul className="stagger list-surface">{children}</ul>
     </section>
   )
 }

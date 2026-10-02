@@ -131,8 +131,8 @@ export function ProviderDetailPage() {
         </section>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1 rounded-xl border p-4">
+      <div className="grid grid-cols-2 divide-x">
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground">Spent this year</p>
           <p className="text-2xl font-semibold tracking-tight">
             {formatMoney(yearTotal?.totalMinor ?? 0, household.currency)}
@@ -141,7 +141,7 @@ export function ProviderDetailPage() {
             {yearTotal?.expenseCount ?? 0} {yearTotal?.expenseCount === 1 ? 'expense' : 'expenses'}
           </p>
         </div>
-        <div className="flex flex-col gap-1 rounded-xl border p-4">
+        <div className="flex flex-col gap-1 pl-6">
           <p className="text-sm text-muted-foreground">All time</p>
           <p className="text-2xl font-semibold tracking-tight">
             {formatMoney(allTime?.totalMinor ?? 0, household.currency)}
@@ -169,14 +169,14 @@ export function ProviderDetailPage() {
             No expenses with {provider.name} yet. Choose them as the provider when you add one.
           </p>
         ) : (
-          <ul className="divide-y rounded-xl border">
+          <ul className="list-surface">
             {recent.slice(0, 10).map((e) => {
               const category = categories.get(e.categoryId)
               return (
                 <li key={e.id}>
                   <Link
                     to={`/expenses/${e.id}`}
-                    className="flex items-center gap-3 px-3 py-3 hover:bg-muted/50"
+                    className="flex items-center gap-3 px-3 py-3 hover:bg-accent"
                   >
                     <CategoryIcon icon={category?.icon} />
                     <div className="min-w-0 flex-1">
@@ -198,10 +198,10 @@ export function ProviderDetailPage() {
       {tasks.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="font-semibold">Tasks</h2>
-          <ul className="divide-y rounded-xl border">
+          <ul className="list-surface">
             {tasks.map((t) => (
               <li key={t.id}>
-                <Link to={`/tasks/${t.id}`} className="flex flex-col px-3 py-3 hover:bg-muted/50">
+                <Link to={`/tasks/${t.id}`} className="flex flex-col px-3 py-3 hover:bg-accent">
                   <span className="truncate font-medium">{t.title}</span>
                   <span className="truncate text-sm text-muted-foreground">
                     {describeDue({ nextDueOn: t.next_due_on, isActive: t.is_active }, today)} ·{' '}

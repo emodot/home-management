@@ -51,11 +51,11 @@ function Stat({
   className?: string
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-xl border p-3 sm:p-4">
+    <div className="flex min-w-0 flex-col gap-1 pl-3 first:pl-0 sm:pl-6">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p
         className={cn(
-          'text-base font-semibold tracking-tight break-all tabular-nums sm:text-2xl',
+          'text-lg font-semibold tracking-tight break-all tabular-nums sm:text-3xl',
           className,
         )}
       >
@@ -120,7 +120,7 @@ export function IncomePage() {
 
       <PendingIncome />
 
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      <div className="grid grid-cols-3 divide-x">
         <Stat
           label="Income"
           value={<IncomeAmount minor={income} currency={household.currency} />}
@@ -169,14 +169,14 @@ export function IncomePage() {
           Record salary, business takings or rent received to see what&apos;s left after spending.
         </EmptyState>
       ) : (
-        <ul className="divide-y overflow-hidden rounded-xl border">
+        <ul className="stagger list-surface">
           {entries.map((entry) => (
             <li key={entry.id}>
               <Link
                 to={`/income/${entry.id}/edit`}
-                className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
+                className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
               >
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-background">
                   <HandCoinsIcon className="size-4 text-muted-foreground" aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -186,7 +186,7 @@ export function IncomePage() {
                       occurredOn: entry.receivedOn,
                       budgetMonth: entry.budgetMonth,
                     }) && (
-                      <Badge variant="secondary" className="shrink-0">
+                      <Badge variant="secondary" className="shrink-0 bg-background">
                         {countsTowardLabel({
                           occurredOn: entry.receivedOn,
                           budgetMonth: entry.budgetMonth,

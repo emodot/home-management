@@ -55,6 +55,7 @@ export function AdminSignInPage() {
 
   return (
     <AuthCard
+      aside={false}
       title="Super-admin sign in"
       description={
         <span className="flex items-center gap-1.5">

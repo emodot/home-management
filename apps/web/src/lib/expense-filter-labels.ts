@@ -59,7 +59,7 @@ export function describeFilters(
   if (period === 'custom') {
     const from = filters.from ? formatDate(filters.from) : 'the start'
     const to = filters.to ? formatDate(filters.to) : 'today'
-    chips.push({ key: 'period', label: `${from} – ${to}` })
+    chips.push({ key: 'period', label: `${from} to ${to}` })
   } else if (period !== 'all') {
     chips.push({ key: 'period', label: PERIOD_LABELS[period] })
   }

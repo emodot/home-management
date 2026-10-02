@@ -44,7 +44,7 @@ export function RecentlyDeletedPage() {
           {expenses.length > 0 && (
             <section className="flex flex-col gap-3">
               <h2 className="font-semibold">Expenses</h2>
-              <ul className="divide-y rounded-xl border">
+              <ul className="list-surface">
                 {expenses.map((expense) => (
                   <li key={expense.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
@@ -70,7 +70,7 @@ export function RecentlyDeletedPage() {
           {income.length > 0 && (
             <section className="flex flex-col gap-3">
               <h2 className="font-semibold">Income</h2>
-              <ul className="divide-y rounded-xl border">
+              <ul className="list-surface">
                 {income.map((entry) => (
                   <li key={entry.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
@@ -92,7 +92,7 @@ export function RecentlyDeletedPage() {
           {tasks.length > 0 && (
             <section className="flex flex-col gap-3">
               <h2 className="font-semibold">Tasks</h2>
-              <ul className="divide-y rounded-xl border">
+              <ul className="list-surface">
                 {tasks.map((task) => (
                   <li key={task.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
@@ -113,7 +113,7 @@ export function RecentlyDeletedPage() {
           {providers.length > 0 && (
             <section className="flex flex-col gap-3">
               <h2 className="font-semibold">Providers</h2>
-              <ul className="divide-y rounded-xl border">
+              <ul className="list-surface">
                 {providers.map((provider) => (
                   <li key={provider.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
@@ -138,7 +138,7 @@ export function RecentlyDeletedPage() {
           {receipts.length > 0 && (
             <section className="flex flex-col gap-3">
               <h2 className="font-semibold">Receipts</h2>
-              <ul className="divide-y rounded-xl border">
+              <ul className="list-surface">
                 {receipts.map((receipt) => (
                   <li key={receipt.id} className="flex items-center gap-3 px-4 py-3">
                     <FileTextIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />

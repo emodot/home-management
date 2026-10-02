@@ -298,7 +298,7 @@ export function CategoriesPage() {
       </div>
 
       <section className="flex flex-col gap-3">
-        <ul className="divide-y rounded-xl border">
+        <ul className="list-surface">
           {active.map((node, i) => [
             row(node.category, topLevel, i, { isSub: false, hasSubs: node.children.length > 0 }),
             ...node.children.map((child, j) =>
@@ -332,7 +332,7 @@ export function CategoriesPage() {
       {(archivedTop.length > 0 || archivedSubs.length > 0) && (
         <section className="flex flex-col gap-3">
           <h2 className="font-semibold">Archived</h2>
-          <ul className="divide-y rounded-xl border text-muted-foreground">
+          <ul className="list-surface text-muted-foreground">
             {archivedTop.map((node) => [
               archivedRow(node.category, node.category.name, true),
               // Restored together with their parent.

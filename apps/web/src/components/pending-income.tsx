@@ -106,7 +106,7 @@ function PendingRow({ income }: { income: Income }) {
         <p className="flex min-w-0 items-center gap-2">
           <span className="truncate font-medium">{income.source}</span>
           {label && (
-            <Badge variant="secondary" className="shrink-0">
+            <Badge variant="secondary" className="shrink-0 bg-background">
               {label}
             </Badge>
           )}

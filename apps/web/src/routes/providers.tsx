@@ -111,7 +111,7 @@ export function ProvidersPage() {
       {shown.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">No providers match.</p>
       ) : (
-        <ul className="divide-y rounded-xl border">
+        <ul className="stagger list-surface">
           {shown.map((p) => (
             <li key={p.id} className="flex items-center gap-3 px-3 py-3">
               <Link to={`/providers/${p.id}`} className="min-w-0 flex-1">

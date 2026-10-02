@@ -9,7 +9,7 @@ const parsed = envSchema.safeParse(import.meta.env)
 
 if (!parsed.success) {
   throw new Error(
-    `Invalid environment variables — copy apps/web/.env.example to apps/web/.env.\n${z.prettifyError(parsed.error)}`,
+    `Invalid environment variables. Copy apps/web/.env.example to apps/web/.env.\n${z.prettifyError(parsed.error)}`,
   )
 }
 
