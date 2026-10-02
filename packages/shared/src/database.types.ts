@@ -429,7 +429,9 @@ export type Database = {
           notes: string | null
           received_by: string | null
           received_on: string
+          recurring_income_id: string | null
           source: string
+          status: string
           updated_at: string
           updated_by: string | null
         }
@@ -445,7 +447,9 @@ export type Database = {
           notes?: string | null
           received_by?: string | null
           received_on: string
+          recurring_income_id?: string | null
           source: string
+          status?: string
           updated_at?: string
           updated_by?: string | null
         }
@@ -461,7 +465,9 @@ export type Database = {
           notes?: string | null
           received_by?: string | null
           received_on?: string
+          recurring_income_id?: string | null
           source?: string
+          status?: string
           updated_at?: string
           updated_by?: string | null
         }
@@ -703,6 +709,63 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      recurring_income: {
+        Row: {
+          amount_minor: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          for_next_month: boolean
+          frequency: string
+          household_id: string
+          id: string
+          interval_count: number
+          is_active: boolean
+          next_due_on: string
+          received_by: string | null
+          source: string
+          start_on: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount_minor: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          for_next_month?: boolean
+          frequency: string
+          household_id: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          next_due_on: string
+          received_by?: string | null
+          source: string
+          start_on: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          for_next_month?: boolean
+          frequency?: string
+          household_id?: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          next_due_on?: string
+          received_by?: string | null
+          source?: string
+          start_on?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       reminder_logs: {
         Row: {
@@ -1091,6 +1154,10 @@ export type Database = {
         }[]
       }
       is_household_admin: { Args: { hid: string }; Returns: boolean }
+      generate_due_recurring_income: {
+        Args: { p_household_id: string }
+        Returns: number
+      }
       generate_due_recurring_expenses: {
         Args: { p_household_id: string }
         Returns: number

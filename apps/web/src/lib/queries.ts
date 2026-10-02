@@ -22,6 +22,8 @@ import {
   listCategories,
   listExpenses,
   listIncome,
+  listPendingIncome,
+  listRecurringIncome,
   listItemHistory,
   listMembers,
   listMyHouseholds,
@@ -137,6 +139,19 @@ export const incomeMonthQuery = (householdId: string, month: string) =>
   queryOptions({
     queryKey: [...incomeKey(householdId), 'month', month],
     queryFn: () => listIncome(supabase, householdId, month),
+  })
+
+/** Pending income from recurring income, waiting to be confirmed or skipped. */
+export const pendingIncomeQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...incomeKey(householdId), 'pending'],
+    queryFn: () => listPendingIncome(supabase, householdId),
+  })
+
+export const recurringIncomeQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...incomeKey(householdId), 'recurring'],
+    queryFn: () => listRecurringIncome(supabase, householdId),
   })
 
 export const incomeEntryQuery = (householdId: string, id: string) =>

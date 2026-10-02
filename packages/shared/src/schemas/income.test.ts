@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { incomeFormSchema } from './income.ts'
+import { incomeFormSchema, recurringIncomeFormSchema } from './income.ts'
 
 const valid = {
   amount: '500,000',
@@ -29,5 +29,29 @@ describe('incomeFormSchema', () => {
   ])('rejects %j', (override, message) => {
     const result = incomeFormSchema.safeParse({ ...valid, ...override })
     expect(result.error?.issues[0]?.message).toBe(message)
+  })
+})
+
+describe('recurringIncomeFormSchema', () => {
+  it('produces the write shape', () => {
+    expect(
+      recurringIncomeFormSchema.parse({
+        source: ' Salary ',
+        amount: '850,000',
+        receivedBy: null,
+        frequency: 'monthly',
+        intervalCount: '1',
+        nextDueOn: '2026-10-28',
+        forNextMonth: true,
+      }),
+    ).toEqual({
+      source: 'Salary',
+      amountMinor: 85_000_000,
+      receivedBy: null,
+      frequency: 'monthly',
+      intervalCount: 1,
+      nextDueOn: '2026-10-28',
+      forNextMonth: true,
+    })
   })
 })

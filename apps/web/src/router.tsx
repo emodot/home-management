@@ -24,6 +24,7 @@ import {
   incomeEntryLoader,
   incomeFormLoader,
   incomeLoader,
+  recurringIncomeLoader,
   insightsLoader,
   inviteLoader,
   membersLoader,
@@ -58,6 +59,7 @@ const routes = {
   authCallback: () => import('@/routes/auth-callback'),
   budgets: () => import('@/routes/budgets'),
   income: () => import('@/routes/income'),
+  recurringIncome: () => import('@/routes/recurring-income'),
   categories: () => import('@/routes/categories'),
   expenseDetail: () => import('@/routes/expense-detail'),
   expenseEdit: () => import('@/routes/expense-edit'),
@@ -189,6 +191,21 @@ export const router = createBrowserRouter([
                     path: 'income/new',
                     loader: incomeFormLoader,
                     lazy: page(routes.income, 'NewIncomePage'),
+                  },
+                  {
+                    path: 'income/recurring',
+                    loader: recurringIncomeLoader,
+                    lazy: page(routes.recurringIncome, 'RecurringIncomePage'),
+                  },
+                  {
+                    path: 'income/recurring/new',
+                    loader: recurringIncomeLoader,
+                    lazy: page(routes.recurringIncome, 'NewRecurringIncomePage'),
+                  },
+                  {
+                    path: 'income/recurring/:recurringId/edit',
+                    loader: recurringIncomeLoader,
+                    lazy: page(routes.recurringIncome, 'EditRecurringIncomePage'),
                   },
                   {
                     path: 'income/:incomeId/edit',

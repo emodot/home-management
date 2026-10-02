@@ -13,12 +13,14 @@ import {
   ChevronRightIcon,
   HandCoinsIcon,
   PlusIcon,
+  RepeatIcon,
   Trash2Icon,
 } from 'lucide-react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/empty-state'
 import { IncomeForm } from '@/components/income-form'
+import { PendingIncome } from '@/components/pending-income'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser, useActiveHousehold } from '@/hooks/use-household'
@@ -102,6 +104,8 @@ export function IncomePage() {
         expenses.
       </p>
 
+      <PendingIncome />
+
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <Stat label="Income" value={formatMoney(income, household.currency)} />
         <Stat label="Spent" value={formatMoney(spent, household.currency)} />
@@ -118,12 +122,20 @@ export function IncomePage() {
             ? 'Entries'
             : `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`}
         </h2>
-        <Button asChild size="sm">
-          <Link to={month === thisMonth ? '/income/new' : `/income/new?month=${month}`}>
-            <PlusIcon aria-hidden />
-            Add income
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild size="sm" variant="outline">
+            <Link to="/income/recurring">
+              <RepeatIcon aria-hidden />
+              Regular income
+            </Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link to={month === thisMonth ? '/income/new' : `/income/new?month=${month}`}>
+              <PlusIcon aria-hidden />
+              Add income
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {entries.length === 0 ? (

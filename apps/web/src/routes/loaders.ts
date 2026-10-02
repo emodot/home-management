@@ -34,6 +34,8 @@ import {
   incomeEntryQuery,
   incomeMonthQuery,
   incomeTotalsQuery,
+  pendingIncomeQuery,
+  recurringIncomeQuery,
   membersQuery,
   pendingExpensesQuery,
   pendingInvitesQuery,
@@ -249,10 +251,17 @@ export async function incomeLoader({ request }: LoaderFunctionArgs) {
     const range = monthRange(`${month}-01`)
     await Promise.all([
       queryClient.query(incomeMonthQuery(householdId, month)),
+      queryClient.query(pendingIncomeQuery(householdId)),
       queryClient.query(incomeTotalsQuery(householdId, range)),
       queryClient.query(categoryTotalsQuery(householdId, range)),
     ])
   }
+  return null
+}
+
+export async function recurringIncomeLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHouseholdAdmin(request)
+  if (householdId) await queryClient.query(recurringIncomeQuery(householdId))
   return null
 }
 
