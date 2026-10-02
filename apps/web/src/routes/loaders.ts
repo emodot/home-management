@@ -3,7 +3,6 @@ import {
   AppError,
   inviteTokenSchema,
   monthRange,
-  parseExpenseFilters,
   todayIn,
   yearRange,
   safeNextPath,
@@ -15,6 +14,7 @@ import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
 import { errorMessage } from '@/lib/errors'
+import { expenseView } from '@/lib/expense-view'
 import { budgetMonthParam, selectedMonth } from '@/lib/insights'
 import {
   activityFeedQuery,
@@ -134,9 +134,14 @@ export async function membersLoader({ request }: LoaderFunctionArgs) {
 }
 
 export async function expensesLoader({ request }: LoaderFunctionArgs) {
-  const { householdId } = await requireHousehold(request)
+  const { user, householdId } = await requireHousehold(request)
   if (householdId) {
-    const filters = parseExpenseFilters(Object.fromEntries(new URL(request.url).searchParams))
+    const households = await queryClient.query(householdsQuery(user.id))
+    const timezone = households.find((h) => h.id === householdId)?.timezone
+    const { filters } = expenseView(
+      new URL(request.url).searchParams,
+      todayIn(timezone).slice(0, 7),
+    )
     await Promise.all([
       queryClient.query(categoriesQuery(householdId)),
       queryClient.query(membersQuery(householdId)),

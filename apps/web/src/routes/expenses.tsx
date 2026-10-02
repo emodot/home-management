@@ -1,19 +1,26 @@
 import {
+  addMonths,
   categoryPath,
-  expenseFiltersToParams,
   expensesToCsv,
   formatDate,
   formatMoney,
   formatMonth,
   listAllExpenses,
   monthOf,
-  parseExpenseFilters,
   todayIn,
   type Expense,
   type ExpenseFilters,
 } from '@home/shared'
 import { useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { DownloadIcon, PaperclipIcon, PlusIcon, ReceiptTextIcon, SearchIcon } from 'lucide-react'
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DownloadIcon,
+  PaperclipIcon,
+  PlusIcon,
+  ReceiptTextIcon,
+  SearchIcon,
+} from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
@@ -31,6 +38,7 @@ import { countsTowardLabel } from '@/lib/budget-month'
 import { downloadTextFile, slugify } from '@/lib/download'
 import { errorMessage } from '@/lib/errors'
 import { describeFilters } from '@/lib/expense-filter-labels'
+import { expenseView, expenseViewParams } from '@/lib/expense-view'
 import { useCategoryLookup, useMemberNames } from '@/hooks/use-lookups'
 import {
   categoriesQuery,
@@ -106,7 +114,9 @@ function ExportButton({ filters }: { filters: ExpenseFilters }) {
 export function ExpensesPage() {
   const household = useActiveHousehold()
   const [searchParams, setSearchParams] = useSearchParams()
-  const filters = parseExpenseFilters(Object.fromEntries(searchParams))
+  const thisMonth = todayIn(household.timezone).slice(0, 7)
+  // One month at a time (what counts toward it), or every month.
+  const { filters, month } = expenseView(searchParams, thisMonth)
 
   const categories = useSuspenseQuery(categoriesQuery(household.id)).data
   const members = useSuspenseQuery(membersQuery(household.id)).data
@@ -122,25 +132,40 @@ export function ExpensesPage() {
 
   const expenses = useMemo(() => list.data.pages.flat(), [list.data])
   const groups = useMemo(
-    () => groupByMonth(expenses, list.hasNextPage),
-    [expenses, list.hasNextPage],
+    () =>
+      month
+        ? // One list for the month in view, whatever the payment dates.
+          [{ month, expenses, totalMinor: 0, complete: false }]
+        : groupByMonth(expenses, list.hasNextPage),
+    [month, expenses, list.hasNextPage],
   )
 
+  /** Filtering by dates shows every month; otherwise the month in view stays. */
   function applyFilters(next: ExpenseFilters) {
-    setSearchParams(expenseFiltersToParams(next), { replace: true })
+    const nextMonth = next.from || next.to ? null : month
+    setSearchParams(expenseViewParams(next, nextMonth, thisMonth), { replace: true })
+  }
+
+  function showMonth(target: string | null) {
+    setSearchParams(
+      expenseViewParams({ ...filters, from: undefined, to: undefined }, target, thisMonth),
+      { replace: true },
+    )
   }
 
   const [search, setSearch] = useDebouncedSearch(filters.q, (q) =>
     applyFilters({ ...filters, q: q.trim() || undefined }),
   )
 
-  const chips = describeFilters(filters, {
+  // In month view the switcher shows the month, so it isn't a chip.
+  const chips = describeFilters(month ? { ...filters, month: undefined } : filters, {
     categories: categoryLookup,
     memberNames,
     providerNames,
     today: todayIn(household.timezone),
   })
   const hasFilters = chips.length > 0 || !!filters.q
+  const monthTotal = expenses.reduce((sum, e) => sum + e.amountMinor, 0)
 
   // Load the next page when the end of the list scrolls into view.
   const sentinel = useRef<HTMLDivElement>(null)
@@ -155,7 +180,7 @@ export function ExpensesPage() {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  if (expenses.length === 0 && !hasFilters && pendingCount === 0) {
+  if (expenses.length === 0 && !hasFilters && pendingCount === 0 && month === null) {
     return (
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>
@@ -203,6 +228,62 @@ export function ExpensesPage() {
 
       <PendingExpenses />
 
+      {month ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => showMonth(addMonths(month, -1))}
+                aria-label={`Show ${formatMonth(addMonths(month, -1))}`}
+              >
+                <ChevronLeftIcon aria-hidden />
+              </Button>
+              <h2 className="min-w-36 text-center text-sm font-semibold">{formatMonth(month)}</h2>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => showMonth(addMonths(month, 1))}
+                aria-label={`Show ${formatMonth(addMonths(month, 1))}`}
+              >
+                <ChevronRightIcon aria-hidden />
+              </Button>
+            </div>
+            <Button variant="link" size="sm" className="h-auto p-0" onClick={() => showMonth(null)}>
+              All months
+            </Button>
+          </div>
+          <div className="flex items-end justify-between gap-3 rounded-xl border p-4">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-muted-foreground">
+                {hasFilters ? 'Matching' : 'Spent'}
+                {month === thisMonth ? ' this month' : ` in ${formatMonth(month)}`}
+              </p>
+              <p className="text-2xl font-semibold tracking-tight tabular-nums">
+                {list.hasNextPage ? '…' : formatMoney(monthTotal, household.currency)}
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {expenses.length}
+              {list.hasNextPage ? '+' : ''} {expenses.length === 1 ? 'expense' : 'expenses'}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">All months</h2>
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0"
+            onClick={() => showMonth(thisMonth)}
+          >
+            By month
+          </Button>
+        </div>
+      )}
+
       <div className="relative">
         <SearchIcon
           className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -233,7 +314,9 @@ export function ExpensesPage() {
 
       {expenses.length === 0 && !hasFilters ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          Confirmed expenses will show up here.
+          {month
+            ? `Nothing counted toward ${formatMonth(month)} yet.`
+            : 'Confirmed expenses will show up here.'}
         </p>
       ) : expenses.length === 0 ? (
         <EmptyState
@@ -251,16 +334,22 @@ export function ExpensesPage() {
         <div className="flex flex-col gap-6">
           {groups.map((group) => (
             <section key={group.month} aria-labelledby={`month-${group.month}`}>
-              <div className="sticky top-14 z-10 -mx-4 flex items-baseline justify-between bg-background/95 px-4 py-2 backdrop-blur md:mx-0 md:px-0">
-                <h2 id={`month-${group.month}`} className="text-sm font-semibold">
+              {month ? (
+                <h2 id={`month-${group.month}`} className="sr-only">
                   {formatMonth(group.month)}
                 </h2>
-                {group.complete && (
-                  <span className="text-sm font-medium text-muted-foreground tabular-nums">
-                    {formatMoney(group.totalMinor, household.currency)}
-                  </span>
-                )}
-              </div>
+              ) : (
+                <div className="sticky top-14 z-10 -mx-4 flex items-baseline justify-between bg-background/95 px-4 py-2 backdrop-blur md:mx-0 md:px-0">
+                  <h2 id={`month-${group.month}`} className="text-sm font-semibold">
+                    {formatMonth(group.month)}
+                  </h2>
+                  {group.complete && (
+                    <span className="text-sm font-medium text-muted-foreground tabular-nums">
+                      {formatMoney(group.totalMinor, household.currency)}
+                    </span>
+                  )}
+                </div>
+              )}
               <ul className="divide-y overflow-hidden rounded-xl border">
                 {group.expenses.map((expense) => {
                   const category = categoryLookup.get(expense.categoryId)

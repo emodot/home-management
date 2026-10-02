@@ -53,8 +53,9 @@ export function ExpenseFiltersSheet({
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const today = todayIn(timezone)
   const period = periodOf(draft, today)
+  // The month in view is shown by the page's month switcher, not counted as a filter.
   const activeCount =
-    Object.keys(expenseFiltersToParams({ ...filters, q: undefined })).length -
+    Object.keys(expenseFiltersToParams({ ...filters, q: undefined, month: undefined })).length -
     (filters.from && filters.to ? 1 : 0)
 
   function setPeriod(next: Period) {
