@@ -1,8 +1,14 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+/* Self-hosted so it works offline; its latin-ext subset carries the naira sign. */
+@import '@fontsource-variable/geist';
 
 @custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+}
 
 @theme inline {
   --radius-sm: calc(var(--radius) * 0.6);
@@ -55,36 +61,36 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.16 0.006 60);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.16 0.006 60);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.16 0.006 60);
+  --primary: oklch(0.22 0.008 60);
+  --primary-foreground: oklch(0.985 0.002 75);
+  --secondary: oklch(0.966 0.003 75);
+  --secondary-foreground: oklch(0.22 0.008 60);
+  --muted: oklch(0.966 0.003 75);
+  --muted-foreground: oklch(0.53 0.01 60);
+  --accent: oklch(0.955 0.005 75);
+  --accent-foreground: oklch(0.22 0.008 60);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.915 0.005 75);
+  --input: oklch(0.9 0.005 75);
+  --ring: oklch(0.7 0.01 60);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar: oklch(0.985 0.002 75);
+  --sidebar-foreground: oklch(0.16 0.006 60);
+  --sidebar-primary: oklch(0.22 0.008 60);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.955 0.005 75);
+  --sidebar-accent-foreground: oklch(0.22 0.008 60);
+  --sidebar-border: oklch(0.915 0.005 75);
+  --sidebar-ring: oklch(0.7 0.01 60);
   /* Data viz (see the dataviz reference palette). One sequential hue for magnitude; status colours
      are reserved for budget state and always paired with an icon and label. */
   --viz-bar: #2a78d6;
@@ -97,37 +103,37 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.155 0.004 60);
+  --foreground: oklch(0.975 0.003 75);
+  --card: oklch(0.205 0.005 60);
+  --card-foreground: oklch(0.975 0.003 75);
+  --popover: oklch(0.205 0.005 60);
+  --popover-foreground: oklch(0.975 0.003 75);
+  --primary: oklch(0.93 0.004 75);
+  --primary-foreground: oklch(0.2 0.006 60);
+  --secondary: oklch(0.27 0.006 60);
+  --secondary-foreground: oklch(0.975 0.003 75);
+  --muted: oklch(0.27 0.006 60);
+  --muted-foreground: oklch(0.72 0.008 70);
+  --accent: oklch(0.27 0.006 60);
+  --accent-foreground: oklch(0.975 0.003 75);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.56 0.01 60);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.205 0.005 60);
+  --sidebar-foreground: oklch(0.975 0.003 75);
+  --sidebar-primary: oklch(0.93 0.004 75);
+  --sidebar-primary-foreground: oklch(0.2 0.006 60);
+  --sidebar-accent: oklch(0.27 0.006 60);
+  --sidebar-accent-foreground: oklch(0.975 0.003 75);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.56 0.01 60);
   --viz-bar: #3987e5;
   --viz-track: #184f95;
   --status-good: #0ca30c;
@@ -137,11 +143,35 @@
   --delta-bad: #e66767;
 }
 
+@keyframes loading-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    /* Money everywhere: figures line up in lists and don't jiggle as totals change. */
+    font-variant-numeric: tabular-nums;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 }

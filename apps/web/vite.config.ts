@@ -103,10 +103,16 @@ export default defineConfig(({ command, mode }) => {
           skipWaiting: true,
           clientsClaim: true,
           // Precache the app shell only; household data always comes from the network.
-          globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+          globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
           // Receipt scanning (the OCR engine in public/ocr/ and pdf.js) downloads on first use
-          // instead of with every install and update, then is cached below.
-          globIgnores: ['ocr/**', 'assets/pdf-*.js'],
+          // instead of with every install and update, then is cached below. Font subsets the app
+          // never shows aren't precached either (the browser fetches them only if a page needs them).
+          globIgnores: [
+            'ocr/**',
+            'assets/pdf-*.js',
+            'assets/geist-cyrillic*',
+            'assets/geist-vietnamese*',
+          ],
           runtimeCaching: [
             {
               urlPattern: ({ url, sameOrigin }) =>

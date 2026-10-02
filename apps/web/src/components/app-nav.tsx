@@ -2,6 +2,7 @@ import { PlusIcon } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { BOTTOM_ITEMS, SIDEBAR_ITEMS, type NavItem } from '@/lib/nav'
 import { useIsHouseholdAdmin } from '@/hooks/use-household'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 function useIsActive() {
@@ -12,11 +13,25 @@ function useIsActive() {
 export function Sidebar() {
   const isActive = useIsActive()
   const isAdmin = useIsHouseholdAdmin()
+  // The expenses list has its own Add expense beside the search.
+  const onExpensesList = useLocation().pathname === '/'
   return (
     <nav
       aria-label="Main"
       className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-56 shrink-0 flex-col gap-1 border-r p-3 md:flex"
     >
+      {/* On desktop this replaces the floating button, which would sit over page content. */}
+      <Button
+        asChild
+        className={cn('mb-3 w-full justify-start', onExpensesList && 'invisible')}
+        aria-hidden={onExpensesList || undefined}
+        tabIndex={onExpensesList ? -1 : undefined}
+      >
+        <Link to="/expenses/new">
+          <PlusIcon aria-hidden />
+          Add expense
+        </Link>
+      </Button>
       {SIDEBAR_ITEMS.filter((item) => isAdmin || !item.adminOnly).map((item) => (
         <NavLink
           key={item.to}
@@ -60,16 +75,22 @@ export function BottomNav() {
   )
 }
 
-/** Floating "add expense" button, hidden on forms where it would cover fields. */
+/** Floating "add expense" button on phones, hidden where it would cover fields or repeat a button. */
 export function AddExpenseButton() {
   const { pathname } = useLocation()
-  if (pathname.endsWith('/new') || pathname.endsWith('/edit') || pathname === '/profile')
+  // The expenses list has its own Add expense beside the search.
+  if (
+    pathname === '/' ||
+    pathname.endsWith('/new') ||
+    pathname.endsWith('/edit') ||
+    pathname === '/profile'
+  )
     return null
   return (
     <Link
       to="/expenses/new"
       aria-label="Add expense"
-      className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 focus-visible:ring-4 focus-visible:ring-ring/50 focus-visible:outline-none md:right-8 md:bottom-8"
+      className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 focus-visible:ring-4 focus-visible:ring-ring/50 focus-visible:outline-none active:scale-95 md:hidden"
     >
       <PlusIcon className="size-6" aria-hidden />
     </Link>

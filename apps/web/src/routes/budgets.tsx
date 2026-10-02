@@ -214,7 +214,7 @@ export function BudgetsPage() {
             </Button>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="max-w-prose text-sm text-muted-foreground">
           {isPast
             ? `The budgets ${formatMonth(month)} had. Past months can't be changed.`
             : `A budget set for ${month === thisMonth ? 'this month' : formatMonth(month)} applies from then on, until you change it. Leave a field empty for no budget.`}{' '}
