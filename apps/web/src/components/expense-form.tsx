@@ -67,6 +67,7 @@ export function ExpenseForm({
   onSubmit,
   withReceipts = false,
   withScan = false,
+  onScanMany,
   keep = [],
   onCancel,
 }: {
@@ -78,6 +79,8 @@ export function ExpenseForm({
   withReceipts?: boolean
   /** Adds "Scan receipt", which fills in fields the user hasn't edited. Needs withReceipts. */
   withScan?: boolean
+  /** Lets "Scan receipt" take several files at once, for adding one expense per receipt. */
+  onScanMany?: (files: File[]) => void
   /** Prefilled fields a scan must not replace (e.g. a completed task's title). */
   keep?: ScanField[]
   onCancel: () => void
@@ -172,6 +175,7 @@ export function ExpenseForm({
       {withScan && withReceipts && (
         <ScanReceiptButton
           onScanned={applyScan}
+          onPickedMany={onScanMany}
           onBusyChange={setScanning}
           disabled={isSubmitting || preparing}
         />

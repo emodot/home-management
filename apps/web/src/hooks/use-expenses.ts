@@ -1,6 +1,7 @@
 import {
   confirmExpense,
   createExpense,
+  createExpenses,
   setExpenseDeleted,
   setReceiptDeleted,
   updateExpense,
@@ -61,12 +62,27 @@ export async function uploadReceiptsInBackground(
   files: PreparedReceipt[],
   openExpense: (expenseId: string) => void,
 ) {
-  if (files.length === 0) return
-  const label = files.length === 1 ? 'receipt' : `${files.length} receipts`
+  await uploadReceiptBatch(
+    queryClient,
+    householdId,
+    files.map((file) => ({ expenseId, file })),
+    openExpense,
+  )
+}
+
+/** Like uploadReceiptsInBackground, for receipts belonging to several expenses. */
+async function uploadReceiptBatch(
+  queryClient: QueryClient,
+  householdId: string,
+  uploads: { expenseId: string; file: PreparedReceipt }[],
+  openExpense: (expenseId: string) => void,
+) {
+  if (uploads.length === 0) return
+  const label = uploads.length === 1 ? 'receipt' : `${uploads.length} receipts`
   const toastId = toast.loading(`Uploading ${label}…`)
 
   const results = await Promise.allSettled(
-    files.map((file) =>
+    uploads.map(({ expenseId, file }) =>
       uploadReceipt(supabase, {
         householdId,
         expenseId,
@@ -79,19 +95,30 @@ export async function uploadReceiptsInBackground(
   )
   await queryClient.invalidateQueries({ queryKey: expensesKey(householdId) })
 
+  const failedFor = [
+    ...new Set(uploads.filter((_, i) => results[i]?.status === 'rejected').map((u) => u.expenseId)),
+  ]
   const failed = results.filter((r) => r.status === 'rejected').length
   if (failed === 0) {
-    toast.success(files.length === 1 ? 'Receipt uploaded' : `${files.length} receipts uploaded`, {
-      id: toastId,
-    })
-  } else {
-    toast.error(
-      failed === files.length
-        ? `Couldn't upload the ${label}.`
-        : `${failed} of ${files.length} receipts couldn't be uploaded.`,
+    toast.success(
+      uploads.length === 1 ? 'Receipt uploaded' : `${uploads.length} receipts uploaded`,
       {
         id: toastId,
-        action: { label: 'Open', onClick: () => openExpense(expenseId) },
+      },
+    )
+  } else {
+    const [only] = failedFor
+    toast.error(
+      failed === uploads.length
+        ? `Couldn't upload the ${label}.`
+        : `${failed} of ${uploads.length} receipts couldn't be uploaded.`,
+      {
+        id: toastId,
+        // With several expenses affected, the receipt filter on Expenses finds them.
+        ...(only &&
+          failedFor.length === 1 && {
+            action: { label: 'Open', onClick: () => openExpense(only) },
+          }),
       },
     )
   }
@@ -117,6 +144,32 @@ export function useCreateExpense(householdId: string) {
     onSuccess: async (expenseId, { files }) => {
       await queryClient.invalidateQueries({ queryKey: expensesKey(householdId) })
       void uploadReceiptsInBackground(queryClient, householdId, expenseId, files, openExpense)
+    },
+  })
+}
+
+/**
+ * Saves a batch of expenses in one go (all or none), then uploads each one's receipt in the
+ * background.
+ */
+export function useCreateExpenses(householdId: string) {
+  const queryClient = useQueryClient()
+  const openExpense = useOpenExpense()
+  return useMutation({
+    mutationFn: (batch: { input: ExpenseInput; file: PreparedReceipt }[]) =>
+      createExpenses(
+        supabase,
+        householdId,
+        batch.map((b) => b.input),
+      ),
+    onSuccess: async (ids, batch) => {
+      await queryClient.invalidateQueries({ queryKey: expensesKey(householdId) })
+      void uploadReceiptBatch(
+        queryClient,
+        householdId,
+        batch.map(({ file }, i) => ({ expenseId: ids[i] ?? '', file })).filter((u) => u.expenseId),
+        openExpense,
+      )
     },
   })
 }

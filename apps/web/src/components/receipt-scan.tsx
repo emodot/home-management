@@ -15,14 +15,17 @@ const isAbort = (error: unknown) => error instanceof DOMException && error.name 
 /**
  * "Scan receipt": pick a photo or PDF, read it on this device and hand back the file (always, so
  * it gets attached) with what was found on it (null if it couldn't be read or the scan was
- * cancelled).
+ * cancelled). With `onPickedMany`, several files can be picked at once and are handed over unread.
  */
 export function ScanReceiptButton({
   onScanned,
+  onPickedMany,
   onBusyChange,
   disabled,
 }: {
   onScanned: (file: PreparedReceipt, parsed: ParsedReceipt | null) => Promise<void> | void
+  /** Two or more files picked: one expense each (see ReceiptBatch). */
+  onPickedMany?: (files: File[]) => void
   onBusyChange?: (busy: boolean) => void
   disabled?: boolean
 }) {
@@ -121,17 +124,21 @@ export function ScanReceiptButton({
         Scan receipt
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Fills in the amount, date and shop from a photo or PDF, read on this device
+        Fills in the amount, date and shop from a photo or PDF, read on this device.
+        {onPickedMany && ' Pick several to add one expense for each.'}
       </p>
       <input
         ref={input}
         type="file"
         accept={ACCEPT}
         className="hidden"
-        aria-label="Receipt to scan"
+        aria-label={onPickedMany ? 'Receipts to scan' : 'Receipt to scan'}
+        multiple={!!onPickedMany}
         onChange={(e) => {
-          void handleFile(e.target.files?.[0])
+          const files = Array.from(e.target.files ?? [])
           e.target.value = ''
+          if (files.length > 1 && onPickedMany) onPickedMany(files)
+          else void handleFile(files[0])
         }}
       />
     </div>

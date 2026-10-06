@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once', async ({
   page,
   browser,
 }) => {
@@ -178,6 +178,39 @@ test('super-admin creates a household → its admin joins → expense with recei
     // Back on the task, the completion lists the expense logged for it.
     await expect(page.getByRole('heading', { name: 'Service generator' })).toBeVisible()
     await expect(page.getByRole('link', { name: /Service generator · ₦25,000/ })).toBeVisible()
+  })
+
+  await test.step('scanning several receipts at once adds an expense for each', async () => {
+    await page.goto('/expenses/new')
+    await page.getByLabel('Receipts to scan').setInputFiles([
+      {
+        name: 'aquafresh.pdf',
+        mimeType: 'application/pdf',
+        buffer: textPdf(['AQUAFRESH DELIVERIES', 'Date: 03/09/2026', 'TOTAL NGN 6,000.00']),
+      },
+      {
+        name: 'kobo-gas.pdf',
+        mimeType: 'application/pdf',
+        buffer: textPdf(['KOBO GAS REFILL', 'Date: 04/09/2026', 'TOTAL NGN 12,500.00']),
+      },
+    ])
+    await expect(page.getByRole('heading', { name: 'Add expenses from receipts' })).toBeVisible()
+    await expect(page.getByLabel('Amount, receipt 1')).toHaveValue('6,000')
+    await expect(page.getByLabel('Amount, receipt 2')).toHaveValue('12,500')
+
+    // Nothing is saved until every receipt has its details.
+    await page.getByRole('button', { name: 'Save 2 expenses' }).click()
+    await expect(page.getByText('2 receipts still need details.')).toBeVisible()
+    for (const [receipt, category] of [
+      [1, 'Water'],
+      [2, 'Fuel & Generator'],
+    ] as const) {
+      await page.getByLabel(`Category, receipt ${receipt}`).click()
+      await page.getByRole('option', { name: category, exact: true }).click()
+    }
+    await page.getByRole('button', { name: 'Save 2 expenses' }).click()
+    await expect(page.getByText('Added 2 expenses')).toBeVisible()
+    await expect(page.getByText('2 receipts uploaded')).toBeVisible()
   })
 
   await test.step('the activity feed shows what happened', async () => {

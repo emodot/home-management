@@ -236,6 +236,70 @@ export async function createExpense(
   return row.id
 }
 
+/**
+ * Creates several expenses in one insert, so either all are saved or none are. Returns their ids
+ * in the same order as `inputs`.
+ */
+export async function createExpenses(
+  client: HomeClient,
+  householdId: string,
+  inputs: ExpenseInput[],
+): Promise<string[]> {
+  if (inputs.length === 0) return []
+  const rows = inputs.map((input) => ({ household_id: householdId, ...toColumns(input) }))
+  const created = unwrap(
+    await client
+      .from('expenses')
+      .insert(rows)
+      .select('id, amount_minor, occurred_on, category_id, description'),
+  )
+  // RETURNING order isn't guaranteed, so pair each input with a created row that matches it.
+  const unclaimed = [...created]
+  return rows.map((row) => {
+    const index = unclaimed.findIndex(
+      (c) =>
+        c.amount_minor === row.amount_minor &&
+        c.occurred_on === row.occurred_on &&
+        c.category_id === row.category_id &&
+        c.description === row.description,
+    )
+    const [match] = index === -1 ? [] : unclaimed.splice(index, 1)
+    if (!match) throw new Error('A saved expense was missing from the response')
+    return match.id
+  })
+}
+
+/** An amount paid on a date, to look for in the household's expenses. */
+export interface ExpenseMatchCandidate {
+  amountMinor: number
+  occurredOn: string
+}
+
+/**
+ * The household's expenses (pending included, deleted not) with the same amount and date as any
+ * candidate: likely duplicates of a receipt about to be logged.
+ */
+export async function findMatchingExpenses(
+  client: HomeClient,
+  householdId: string,
+  candidates: ExpenseMatchCandidate[],
+): Promise<Expense[]> {
+  if (candidates.length === 0) return []
+  const rows = unwrap(
+    await client
+      .from('expense_list')
+      .select('*')
+      .eq('household_id', householdId)
+      .is('deleted_at', null)
+      .in('amount_minor', [...new Set(candidates.map((c) => c.amountMinor))])
+      .in('occurred_on', [...new Set(candidates.map((c) => c.occurredOn))])
+      .order('created_at')
+      .limit(200),
+  )
+  const wanted = new Set(candidates.map((c) => `${c.amountMinor}|${c.occurredOn}`))
+  return rows.map(toExpense).filter((e) => wanted.has(`${e.amountMinor}|${e.occurredOn}`))
+}
+
 export async function updateExpense(
   client: HomeClient,
   id: string,

@@ -1,9 +1,11 @@
 import { formatDate, monthOf, todayIn } from '@home/shared'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { ClipboardCheckIcon } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { ExpenseForm } from '@/components/expense-form'
+import { ReceiptBatch } from '@/components/receipt-batch'
 import { useCreateExpense } from '@/hooks/use-expenses'
 import { useActiveHousehold, useCurrentUser } from '@/hooks/use-household'
 import { errorMessage } from '@/lib/errors'
@@ -32,6 +34,22 @@ export function NewExpensePage() {
 
   const paidOn = linked?.completion.completed_on ?? todayIn(household.timezone)
 
+  // Several receipts scanned at once: review them as a batch instead of the form.
+  const [batch, setBatch] = useState<File[] | null>(null)
+  const closeBatch = useCallback(() => setBatch(null), [])
+  if (batch) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        <ReceiptBatch
+          files={batch}
+          categories={categories}
+          members={members}
+          onDiscard={closeBatch}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">Add expense</h1>
@@ -46,6 +64,8 @@ export function NewExpensePage() {
         key={linked?.completion.id ?? 'new'}
         withReceipts
         withScan
+        // A task's expense is a single one.
+        onScanMany={completionId === null ? setBatch : undefined}
         // A scan doesn't replace what came from the task.
         keep={[
           ...(task?.title ? (['description'] as const) : []),

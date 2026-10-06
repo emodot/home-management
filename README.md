@@ -98,6 +98,12 @@ shop and (from the household's past expenses) category, leaving anything already
 Nothing is sent anywhere: PDFs with a text layer are read with pdf.js, and photos and scanned PDFs
 with Tesseract.js OCR. The parser is `packages/shared/src/receipt-parser.ts`.
 
+Picking several files at once (up to 20) opens a review screen with one draft expense per receipt
+(`apps/web/src/components/receipt-batch.tsx`). They're read one after another with a single OCR
+engine, likely duplicates (same amount and date as a logged expense or another receipt) are
+flagged, and Save inserts them all in one request, so either every expense is saved or none is.
+Receipts then upload in the background. Drafts live in memory only; leaving asks first.
+
 The OCR engine and English data are copied from `node_modules` into
 `apps/web/public/ocr/<versions>/` by a plugin in `apps/web/vite.config.ts` when the dev server or
 a build starts. A browser downloads about 7 MB of it once (one 4 MB engine build for its
@@ -160,7 +166,7 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 `pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
 household and an admin invite → the household admin signs up through it → expense with receipt →
 invites by email and by link, with a member joining (and seeing no invite controls) → task →
-complete → scan a receipt PDF to log the expense → profile and password change → sign back in. It needs `pnpm db:start`, the
+complete → scan a receipt PDF to log the expense → scan two at once → profile and password change → sign back in. It needs `pnpm db:start`, the
 edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
 pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`, default
 `superadmin@example.com` / `super-admin-e2e`; CI creates it) and Chromium once:
