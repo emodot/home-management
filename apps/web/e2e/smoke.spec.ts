@@ -85,7 +85,7 @@ test('super-admin creates a household → its admin joins → expense with recei
     await page.getByLabel('What was it for?').fill('Water tanker')
     await choose(page, 'categoryId', 'Water')
     await page
-      .locator('input[type="file"][multiple]')
+      .getByLabel('Receipts to attach')
       .setInputFiles({ name: 'receipt.png', mimeType: 'image/png', buffer: RECEIPT_PNG })
     await expect(page.getByRole('button', { name: /^Remove receipt\./ })).toBeVisible()
     await page.getByRole('button', { name: 'Save expense' }).click()

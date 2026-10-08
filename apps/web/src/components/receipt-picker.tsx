@@ -79,6 +79,7 @@ export function ReceiptFileButtons({
         accept={ACCEPT}
         capture="environment"
         className="hidden"
+        aria-label="Receipt photo"
         onChange={(e) => {
           void handleFiles(e.target.files)
           e.target.value = ''
@@ -90,6 +91,7 @@ export function ReceiptFileButtons({
         accept={ACCEPT}
         multiple
         className="hidden"
+        aria-label="Receipts to attach"
         onChange={(e) => {
           void handleFiles(e.target.files)
           e.target.value = ''
