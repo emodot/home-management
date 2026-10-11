@@ -535,6 +535,45 @@ export type Database = {
           },
         ]
       }
+      kitchen_items: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          default_store_tag: string | null
+          default_unit: string
+          household_id: string
+          id: string
+          name: string
+          normalized_name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          default_store_tag?: string | null
+          default_unit?: string
+          household_id: string
+          id?: string
+          name: string
+          normalized_name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          default_store_tag?: string | null
+          default_unit?: string
+          household_id?: string
+          id?: string
+          name?: string
+          normalized_name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active_household_id: string | null
