@@ -10,6 +10,7 @@ import {
   type InviteDetails,
 } from '@home/shared'
 import { redirect, type LoaderFunctionArgs } from 'react-router'
+import { kitchenItemQuery } from '@/features/kitchen/lib/queries'
 import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
@@ -179,7 +180,7 @@ export async function expenseFormLoader({ request }: LoaderFunctionArgs) {
  */
 async function householdOfRecord(
   request: Request,
-  table: 'expenses' | 'tasks' | 'providers',
+  table: 'expenses' | 'tasks' | 'providers' | 'kitchen_items',
   id: string,
 ): Promise<string> {
   const { user, householdId: activeId } = await requireHousehold(request)
@@ -509,5 +510,25 @@ export async function adminHouseholdLoader({ params }: LoaderFunctionArgs) {
 
 export async function adminAccountsLoader() {
   await queryClient.query(adminAccountsQuery())
+  return null
+}
+
+export async function kitchenOverviewLoader({ request }: LoaderFunctionArgs) {
+  const { user, householdId } = await requireHousehold(request)
+  if (householdId) {
+    const households = await queryClient.query(householdsQuery(user.id))
+    const timezone = households.find((h) => h.id === householdId)?.timezone
+    await Promise.all([
+      queryClient.query(categoriesQuery(householdId)),
+      queryClient.query(categoryTotalsQuery(householdId, monthRange(todayIn(timezone)))),
+    ])
+  }
+  return null
+}
+
+export async function kitchenItemLoader({ request, params }: LoaderFunctionArgs) {
+  const itemId = params.itemId ?? ''
+  const householdId = await householdOfRecord(request, 'kitchen_items', itemId)
+  await queryClient.query(kitchenItemQuery(householdId, itemId))
   return null
 }

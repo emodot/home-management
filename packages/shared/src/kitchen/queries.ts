@@ -94,3 +94,9 @@ export async function createKitchenItem(
   )
   return toKitchenItem(existing)
 }
+
+/** One catalogue item, or null if it doesn't exist (or belongs to another household). */
+export async function getKitchenItem(client: HomeClient, id: string): Promise<KitchenItem | null> {
+  const row = unwrap(await client.from('kitchen_items').select('*').eq('id', id).maybeSingle())
+  return row ? toKitchenItem(row) : null
+}

@@ -75,12 +75,16 @@ export function BottomNav() {
   )
 }
 
-/** Floating "add expense" button on phones, hidden where it would cover fields or repeat a button. */
+/**
+ * Floating "add expense" button on phones, hidden where it would cover fields or repeat a button
+ * (and in the kitchen, whose pages have their own actions).
+ */
 export function AddExpenseButton() {
   const { pathname } = useLocation()
   // The expenses list has its own Add expense beside the search.
   if (
     pathname === '/' ||
+    pathname.startsWith('/kitchen') ||
     pathname.endsWith('/new') ||
     pathname.endsWith('/edit') ||
     pathname === '/profile'

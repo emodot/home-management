@@ -1,6 +1,7 @@
 import {
   ChartColumnIcon,
   ClipboardCheckIcon,
+  CookingPotIcon,
   EllipsisIcon,
   HandCoinsIcon,
   HardHatIcon,
@@ -28,6 +29,7 @@ const isExpensesPath = (pathname: string) => pathname === '/' || pathname.starts
 
 export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/', label: 'Expenses', icon: ReceiptTextIcon, matches: isExpensesPath },
+  { to: '/kitchen', label: 'Kitchen', icon: CookingPotIcon },
   { to: '/tasks', label: 'Tasks', icon: ClipboardCheckIcon },
   { to: '/providers', label: 'Providers', icon: HardHatIcon },
   { to: '/income', label: 'Income', icon: HandCoinsIcon, adminOnly: true },
@@ -42,8 +44,8 @@ export const SIDEBAR_ITEMS: NavItem[] = [
 
 export const BOTTOM_ITEMS: NavItem[] = [
   { to: '/', label: 'Expenses', icon: ReceiptTextIcon, matches: isExpensesPath },
+  { to: '/kitchen', label: 'Kitchen', icon: CookingPotIcon },
   { to: '/tasks', label: 'Tasks', icon: ClipboardCheckIcon },
-  { to: '/providers', label: 'Providers', icon: HardHatIcon },
   {
     to: '/more',
     label: 'More',
@@ -52,6 +54,7 @@ export const BOTTOM_ITEMS: NavItem[] = [
       [
         '/more',
         '/profile',
+        '/providers',
         '/income',
         '/insights',
         '/activity',

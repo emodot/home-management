@@ -26,8 +26,7 @@ export function MorePage() {
       </ul>
       <ul className="list-surface">
         {SIDEBAR_ITEMS.filter(
-          (item) =>
-            !['/', '/tasks', '/providers'].includes(item.to) && (isAdmin || !item.adminOnly),
+          (item) => !['/', '/kitchen', '/tasks'].includes(item.to) && (isAdmin || !item.adminOnly),
         ).map((item) => (
           <li key={item.to}>
             <Link to={item.to} className={rowClass}>
