@@ -1,4 +1,5 @@
 import { formatQuantity, type ShoppingListItem } from '@home/shared'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
 /** An entry on the list: a real checkbox, and the rest opens the editor. */
@@ -17,6 +18,15 @@ export function ListItemRow({
   onEdit: () => void
 }) {
   const pending = entry.id.startsWith('pending-')
+  // The box flips the moment it's tapped; the list's optimistic update lands a tick later, and a
+  // controlled checkbox would otherwise spring back in between. Later changes from the list
+  // (someone else, or a rollback) still win.
+  const [checked, setChecked] = useState(entry.isChecked)
+  const [listChecked, setListChecked] = useState(entry.isChecked)
+  if (entry.isChecked !== listChecked) {
+    setListChecked(entry.isChecked)
+    setChecked(entry.isChecked)
+  }
   const details = [
     formatQuantity(entry.quantity, entry.unit),
     entry.source === 'pantry' ? 'from pantry' : addedBy && `added by ${addedBy}`,
@@ -34,9 +44,12 @@ export function ListItemRow({
       <input
         type="checkbox"
         className="size-5 shrink-0 accent-primary"
-        checked={entry.isChecked}
+        checked={checked}
         disabled={pending}
-        onChange={(e) => onToggle(e.target.checked)}
+        onChange={(e) => {
+          setChecked(e.target.checked)
+          onToggle(e.target.checked)
+        }}
         aria-label={`Bought ${entry.name}`}
       />
       <button
@@ -46,10 +59,7 @@ export function ListItemRow({
         disabled={pending}
       >
         <span
-          className={cn(
-            'truncate font-medium',
-            entry.isChecked && 'text-muted-foreground line-through',
-          )}
+          className={cn('truncate font-medium', checked && 'text-muted-foreground line-through')}
         >
           {entry.name}
         </span>
