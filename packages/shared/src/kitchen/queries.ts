@@ -3,6 +3,7 @@ import type { Tables } from '../database.types.ts'
 import { escapeLike } from '../queries/expenses.ts'
 import { itemSearchKey, normalizeItemName } from './normalize.ts'
 import { mergeStoreTags, type ListItemSource, type ShoppingListItem } from './list.ts'
+import { isPantryLocation, type PantryItem, type PantryLocation } from './pantry.ts'
 import { kitchenItemInputSchema, type KitchenItemInput, type ListItemPatch } from './schemas.ts'
 import { isKitchenUnit, type KitchenUnit } from './units.ts'
 
@@ -156,7 +157,12 @@ export async function addToShoppingList(
   client: HomeClient,
   householdId: string,
   item: KitchenItem,
-  options: { quantity?: number; source?: Exclude<ListItemSource, 'meal_plan'> } = {},
+  options: {
+    quantity?: number
+    source?: Exclude<ListItemSource, 'meal_plan'>
+    /** Uncheck it if it's checked off (in someone's basket). Off for "running low". */
+    reopen?: boolean
+  } = {},
 ): Promise<AddToListResult> {
   const { data, error } = await client
     .from('shopping_list_items')
@@ -181,7 +187,9 @@ export async function addToShoppingList(
       .eq('item_id', item.id)
       .single(),
   )
-  if (!existing.is_checked) return { status: 'exists', entry: toShoppingListItem(existing) }
+  if (!existing.is_checked || options.reopen === false) {
+    return { status: 'exists', entry: toShoppingListItem(existing) }
+  }
   const reopened = unwrap(
     await client
       .from('shopping_list_items')
@@ -270,4 +278,164 @@ export async function recentStoreTags(client: HomeClient, householdId: string): 
       .limit(50),
   )
   return mergeStoreTags([rows.map((r) => r.default_store_tag)])
+}
+
+// ---------------------------------------------------------------- pantry
+
+const PANTRY_SELECT = '*, item:kitchen_items(*)'
+type PantryRow = Tables<'pantry_items'> & { item: Tables<'kitchen_items'> | null }
+
+export function toPantryItem(row: PantryRow): PantryItem {
+  return {
+    id: row.id,
+    householdId: row.household_id,
+    itemId: row.item_id,
+    name: row.item?.name ?? '',
+    catalogItem: row.item
+      ? toKitchenItem(row.item)
+      : {
+          id: row.item_id,
+          householdId: row.household_id,
+          name: '',
+          normalizedName: '',
+          defaultUnit: 'pcs',
+          defaultStoreTag: null,
+        },
+    quantity: typeof row.quantity === 'string' ? Number(row.quantity) : row.quantity,
+    unit: isKitchenUnit(row.unit) ? row.unit : 'pcs',
+    location: isPantryLocation(row.location) ? row.location : 'pantry',
+    expiresOn: row.expires_on,
+    lowStockThreshold:
+      typeof row.low_stock_threshold === 'string'
+        ? Number(row.low_stock_threshold)
+        : row.low_stock_threshold,
+    updatedAt: row.updated_at,
+  }
+}
+
+/** Everything in the household's kitchen. */
+export async function listPantry(client: HomeClient, householdId: string): Promise<PantryItem[]> {
+  const rows = unwrap(
+    await client.from('pantry_items').select(PANTRY_SELECT).eq('household_id', householdId),
+  )
+  return rows.map(toPantryItem).sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/**
+ * Starts tracking a catalogue item in the pantry (one of its usual unit). Returns the existing
+ * entry if it's already tracked.
+ */
+export async function addToPantry(
+  client: HomeClient,
+  householdId: string,
+  item: KitchenItem,
+  location: PantryLocation = 'pantry',
+): Promise<{ status: 'added' | 'exists'; item: PantryItem }> {
+  const { data, error } = await client
+    .from('pantry_items')
+    .insert({
+      household_id: householdId,
+      item_id: item.id,
+      quantity: 1,
+      unit: item.defaultUnit,
+      location,
+    })
+    .select(PANTRY_SELECT)
+    .single()
+  if (!error) return { status: 'added', item: toPantryItem(data) }
+  if (error.code !== '23505') throw error
+  const existing = unwrap(
+    await client
+      .from('pantry_items')
+      .select(PANTRY_SELECT)
+      .eq('household_id', householdId)
+      .eq('item_id', item.id)
+      .single(),
+  )
+  return { status: 'exists', item: toPantryItem(existing) }
+}
+
+export interface PantryPatch {
+  quantity?: number
+  unit?: KitchenUnit
+  location?: PantryLocation
+  expiresOn?: string | null
+  lowStockThreshold?: number | null
+}
+
+export async function updatePantryItem(
+  client: HomeClient,
+  id: string,
+  patch: PantryPatch,
+): Promise<void> {
+  unwrap(
+    await client
+      .from('pantry_items')
+      .update({
+        ...(patch.quantity !== undefined && { quantity: patch.quantity }),
+        ...(patch.unit !== undefined && { unit: patch.unit }),
+        ...(patch.location !== undefined && { location: patch.location }),
+        ...(patch.expiresOn !== undefined && { expires_on: patch.expiresOn }),
+        ...(patch.lowStockThreshold !== undefined && {
+          low_stock_threshold: patch.lowStockThreshold,
+        }),
+      })
+      .eq('id', id),
+  )
+}
+
+export async function removePantryItem(client: HomeClient, id: string): Promise<void> {
+  unwrap(await client.from('pantry_items').delete().eq('id', id))
+}
+
+/** Undo for removePantryItem: puts it back as it was, with the same id. */
+export async function restorePantryItem(client: HomeClient, item: PantryItem): Promise<void> {
+  unwrap(
+    await client.from('pantry_items').insert({
+      id: item.id,
+      household_id: item.householdId,
+      item_id: item.itemId,
+      quantity: item.quantity,
+      unit: item.unit,
+      location: item.location,
+      expires_on: item.expiresOn,
+      low_stock_threshold: item.lowStockThreshold,
+    }),
+  )
+}
+
+export interface ItemPrice {
+  id: string
+  boughtOn: string
+  quantity: number
+  unit: KitchenUnit
+  priceMinor: number
+  unitPriceMinor: number
+  storeTag: string | null
+}
+
+/** What an item has cost, most recent first. */
+export async function listItemPrices(
+  client: HomeClient,
+  itemId: string,
+  limit = 50,
+): Promise<ItemPrice[]> {
+  const rows = unwrap(
+    await client
+      .from('item_prices')
+      .select('*')
+      .eq('item_id', itemId)
+      .order('bought_on', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit),
+  )
+  return rows.map((r) => ({
+    id: r.id,
+    boughtOn: r.bought_on,
+    quantity: typeof r.quantity === 'string' ? Number(r.quantity) : r.quantity,
+    unit: isKitchenUnit(r.unit) ? r.unit : 'pcs',
+    priceMinor: r.price_minor,
+    unitPriceMinor: r.unit_price_minor,
+    storeTag: r.store_tag,
+  }))
 }

@@ -14,8 +14,6 @@ import {
   useSuspenseQuery,
   type QueryClient,
 } from '@tanstack/react-query'
-import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js'
-import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/use-household'
 import { errorMessage } from '@/lib/errors'
@@ -27,6 +25,7 @@ import {
   type ListEntryUpdate,
 } from '../lib/offline'
 import { kitchenItemsKey, shoppingListKey, shoppingListQuery } from '../lib/queries'
+import { useLiveTable } from './use-live-table'
 
 /**
  * The shopping list, live: changes anyone in the household makes show up here as they happen.
@@ -34,47 +33,15 @@ import { kitchenItemsKey, shoppingListKey, shoppingListQuery } from '../lib/quer
 export function useShoppingList(householdId: string) {
   const queryClient = useQueryClient()
   const list = useSuspenseQuery(shoppingListQuery(householdId))
-
-  useEffect(() => {
-    // Our own changes refresh the list when they settle; refreshing mid-change would flicker.
-    const refresh = () => {
-      const changing = queryClient.isMutating({
+  useLiveTable({
+    table: 'shopping_list_items',
+    householdId,
+    queryKey: shoppingListKey(householdId),
+    busy: () =>
+      queryClient.isMutating({
         predicate: (mutation) => isListChange(mutation.options.mutationKey, householdId),
-      })
-      if (changing > 0) return
-      void queryClient.invalidateQueries({ queryKey: shoppingListKey(householdId) })
-    }
-    const channel = supabase
-      .channel(`shopping-list:${householdId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'shopping_list_items',
-          filter: `household_id=eq.${householdId}`,
-        },
-        refresh,
-      )
-      // Realtime can't filter deletes by household, so check the removed entry is one of ours.
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'shopping_list_items' },
-        (payload) => {
-          const id = (payload.old as { id?: string }).id
-          const cached = queryClient.getQueryData(shoppingListQuery(householdId).queryKey)
-          if (id && cached?.some((entry) => entry.id === id)) refresh()
-        },
-      )
-      .subscribe((status) => {
-        // Catch up on anything missed while disconnected (e.g. the phone was asleep).
-        if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) refresh()
-      })
-    return () => {
-      void supabase.removeChannel(channel)
-    }
-  }, [householdId, queryClient])
-
+      }) > 0,
+  })
   return list.data
 }
 

@@ -1,6 +1,6 @@
 -- My Kitchen: the item catalogue is shared by the household's members and kept free of duplicates.
 begin;
-select plan(44);
+select plan(51);
 
 create function pg_temp.create_household(p_name text)
 returns public.households
@@ -307,6 +307,53 @@ select throws_ok(
              (current_setting('test.trip')::jsonb ->> 'trip_id')::uuid, 1, 'bag', 100, '2026-10-10') $$,
   '42501', null, 'prices are only written by finishing a trip'
 );
+-- ---------------------------------------------------------------- low stock goes on the list
+-- After the trip the pantry has 2.5 kg of garri (and the list only pepper); give it a threshold.
+update public.kitchen_items set default_unit = 'kg', default_store_tag = 'Oyingbo' where normalized_name = 'garri';
+update public.pantry_items set low_stock_threshold = 1 where item_id = (select id from ids where n = 'garri');
+select is_empty(
+  $$ select 1 from public.shopping_list_items where item_id = (select id from ids where n = 'garri') $$,
+  'above its threshold, an item stays off the list'
+);
+update public.pantry_items set quantity = 1 where item_id = (select id from ids where n = 'garri');
+select is(
+  (select source || ' ' || unit || ' ' || store_tag || ' ' || quantity from public.shopping_list_items
+   where item_id = (select id from ids where n = 'garri')),
+  'pantry kg Oyingbo 1.00',
+  'falling to the threshold puts it on the list, with its usual unit and store'
+);
+update public.pantry_items set quantity = 0 where item_id = (select id from ids where n = 'garri');
+select is(
+  (select count(*)::int from public.shopping_list_items where item_id = (select id from ids where n = 'garri')),
+  1,
+  'falling further doesn''t add it again'
+);
+update public.shopping_list_items set quantity = 3 where item_id = (select id from ids where n = 'garri');
+update public.pantry_items set quantity = 5 where item_id = (select id from ids where n = 'garri');
+update public.pantry_items set quantity = 0.5 where item_id = (select id from ids where n = 'garri');
+select is(
+  (select quantity from public.shopping_list_items where item_id = (select id from ids where n = 'garri')),
+  3.00,
+  'running low again while it''s still on the list leaves the entry as it is'
+);
+select is(
+  (select is_checked::text from public.shopping_list_items where item_id = (select id from ids where n = 'pepper')),
+  'false',
+  '(pepper is untouched)'
+);
+update public.pantry_items set low_stock_threshold = 2 where item_id = (select id from ids where n = 'tomato');
+select is(
+  (select source from public.shopping_list_items where item_id = (select id from ids where n = 'tomato')),
+  null,
+  'raising a threshold to just below the stock adds nothing'
+);
+update public.pantry_items set low_stock_threshold = 5 where item_id = (select id from ids where n = 'tomato');
+select is(
+  (select source from public.shopping_list_items where item_id = (select id from ids where n = 'tomato')),
+  'pantry',
+  'raising it past the stock does'
+);
+
 select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
 select throws_ok(
   $$ select public.finish_shopping_trip(current_setting('test.hid')::uuid, '[{"id": "00000000-0000-0000-0000-000000000000"}]',

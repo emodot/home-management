@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { normalizeItemName } from './normalize.ts'
+import { PANTRY_LOCATIONS } from './pantry.ts'
 import { KITCHEN_UNITS } from './units.ts'
 
 export const kitchenUnitSchema = z.enum(KITCHEN_UNITS)
@@ -58,3 +59,43 @@ export const listItemFormSchema = z.object({
 })
 export type ListItemFormInput = z.input<typeof listItemFormSchema>
 export type ListItemPatch = z.output<typeof listItemFormSchema>
+
+/** A stock level as typed: zero allowed (it's run out), at most two decimals. */
+const stockInputSchema = z
+  .string()
+  .trim()
+  .min(1, 'Enter how much there is (0 if none)')
+  .transform((value, ctx) => {
+    const n = Number(value.replace(',', '.'))
+    if (!Number.isFinite(n) || n < 0 || n > 99999 || Math.round(n * 100) !== n * 100) {
+      ctx.addIssue({ code: 'custom', message: 'Enter a number like 2 or 1.5' })
+      return z.NEVER
+    }
+    return n
+  })
+
+/** Editing a pantry item: stock, where it's kept, expiry and when it counts as running low. */
+export const pantryItemFormSchema = z.object({
+  quantity: stockInputSchema,
+  unit: kitchenUnitSchema,
+  location: z.enum(PANTRY_LOCATIONS),
+  expiresOn: z
+    .string()
+    .trim()
+    .refine((v) => v === '' || /^\d{4}-\d{2}-\d{2}$/.test(v), 'Choose a date')
+    .transform((v) => (v === '' ? null : v)),
+  lowStockThreshold: z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      if (value === '') return null
+      const n = Number(value.replace(',', '.'))
+      if (!Number.isFinite(n) || n < 0 || n > 99999) {
+        ctx.addIssue({ code: 'custom', message: 'Enter a number, or leave it empty' })
+        return z.NEVER
+      }
+      return Math.round(n * 100) / 100
+    }),
+})
+export type PantryItemFormInput = z.input<typeof pantryItemFormSchema>
+export type PantryItemFormValues = z.output<typeof pantryItemFormSchema>

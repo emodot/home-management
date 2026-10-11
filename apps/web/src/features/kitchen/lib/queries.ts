@@ -1,4 +1,11 @@
-import { getKitchenItem, listShoppingList, recentStoreTags, searchKitchenItems } from '@home/shared'
+import {
+  getKitchenItem,
+  listItemPrices,
+  listPantry,
+  listShoppingList,
+  recentStoreTags,
+  searchKitchenItems,
+} from '@home/shared'
 import { queryOptions } from '@tanstack/react-query'
 import { householdKey } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
@@ -44,4 +51,23 @@ export const storeTagsQuery = (householdId: string) =>
     queryKey: [...kitchenItemsKey(householdId), 'store-tags'],
     queryFn: () => recentStoreTags(supabase, householdId),
     staleTime: 5 * 60_000,
+  })
+
+export const pantryKey = (householdId: string) => [...kitchenKey(householdId), 'pantry'] as const
+
+/** Everything in the kitchen. Kept fresh by Realtime (see usePantry) and on refocus. */
+export const pantryQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: pantryKey(householdId),
+    queryFn: () => listPantry(supabase, householdId),
+    refetchOnWindowFocus: true,
+  })
+
+export const pricesKey = (householdId: string) => [...kitchenKey(householdId), 'prices'] as const
+
+/** What one item has cost, most recent first. */
+export const itemPricesQuery = (householdId: string, itemId: string) =>
+  queryOptions({
+    queryKey: [...pricesKey(householdId), 'item', itemId],
+    queryFn: () => listItemPrices(supabase, itemId),
   })

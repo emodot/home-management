@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock', async ({
   page,
   browser,
 }) => {
@@ -190,6 +190,29 @@ test('super-admin creates a household → its admin joins → expense with recei
     await expect(page.getByText('₦2,500 added to expenses')).toBeVisible()
     await expect(guestPage.getByText('Your list is empty')).toBeVisible()
     await guest.close()
+  })
+
+  await test.step('the pantry: running low puts an item on the list, once', async () => {
+    // The trip put 1 piece of tomatoes in the pantry.
+    await page.goto('/kitchen/pantry')
+    await page.getByRole('link', { name: /^Tomatoes/ }).click()
+    await page.getByLabel('Running low at (optional)').fill('1')
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(
+      page.getByText("Tomatoes is running low, so it's on the shopping list"),
+    ).toBeVisible()
+
+    // Using the last one doesn't add it again.
+    await page.goto('/kitchen/pantry')
+    const saved = page.waitForResponse(
+      (r) => r.url().includes('/pantry_items') && r.request().method() === 'PATCH',
+    )
+    await page.getByRole('button', { name: 'One less Tomatoes' }).click()
+    await saved
+    await expect(page.getByText('Out', { exact: true })).toBeVisible()
+    await page.goto('/kitchen/list')
+    await expect(page.getByLabel(/^Bought /)).toHaveCount(1)
+    await expect(page.getByText(/from pantry/)).toBeVisible()
   })
 
   await test.step('create a task', async () => {

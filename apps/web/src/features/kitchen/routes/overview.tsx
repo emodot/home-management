@@ -1,4 +1,14 @@
-import { foodCategoryIds, foodSpendMinor, formatMoney, monthRange, todayIn } from '@home/shared'
+import {
+  foodCategoryIds,
+  foodSpendMinor,
+  formatMoney,
+  isLowStock,
+  isOut,
+  monthRange,
+  todayIn,
+  USE_SOON_DAYS,
+  itemsToUseSoon,
+} from '@home/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import {
   ChevronRightIcon,
@@ -13,7 +23,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { categoriesQuery, categoryTotalsQuery } from '@/lib/queries'
-import { shoppingListQuery } from '../lib/queries'
+import { pantryQuery, shoppingListQuery } from '../lib/queries'
 
 function OverviewCard({
   to,
@@ -61,6 +71,9 @@ export function KitchenOverviewPage() {
   const categories = useSuspenseQuery(categoriesQuery(household.id)).data
   const totals = useSuspenseQuery(categoryTotalsQuery(household.id, month)).data
   const toBuy = useSuspenseQuery(shoppingListQuery(household.id)).data.filter((e) => !e.isChecked)
+  const pantry = useSuspenseQuery(pantryQuery(household.id)).data
+  const soon = itemsToUseSoon(pantry, todayIn(household.timezone))
+  const low = pantry.filter((i) => isOut(i) || isLowStock(i))
   const foodSpend = foodSpendMinor(totals, categories)
   const [groceries] = foodCategoryIds(categories)
   const spendLink = groceries
@@ -81,17 +94,31 @@ export function KitchenOverviewPage() {
         to="/kitchen/pantry"
         icon={ClockAlertIcon}
         title="Use soon"
-        hint="Nothing expiring in the next 3 days"
+        hint={
+          soon.length === 0
+            ? `Nothing expiring in the next ${USE_SOON_DAYS} days`
+            : listPreview(soon.map((i) => i.name))
+        }
       >
-        Nothing yet
+        {soon.length === 0 ? 'Nothing' : `${soon.length} to use`}
       </OverviewCard>
       <OverviewCard
         to="/kitchen/pantry"
         icon={PackageOpenIcon}
         title="Low stock"
-        hint="Track what's in your kitchen"
+        hint={
+          pantry.length === 0
+            ? "Track what's in your kitchen"
+            : low.length === 0
+              ? 'Nothing running low'
+              : listPreview(low.map((i) => i.name))
+        }
       >
-        Nothing yet
+        {pantry.length === 0
+          ? 'Not tracked'
+          : low.length === 0
+            ? 'All good'
+            : `${low.length} running low`}
       </OverviewCard>
       <OverviewCard
         to="/kitchen/gas"
