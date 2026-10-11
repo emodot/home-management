@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type BrowserContext, type Page } from '@playwright/test'
 
 // A 1×1 PNG, attached as a receipt.
 const RECEIPT_PNG = Buffer.from(
@@ -40,12 +40,15 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list', async ({
   page,
   browser,
 }) => {
   const email = `e2e-${Date.now()}@example.com`
   let adminInviteUrl = ''
+  // A second member, kept signed in for the shared shopping list.
+  let guest!: BrowserContext
+  let guestPage!: Page
 
   await test.step('a super-admin creates the household and a household admin invite', async () => {
     const context = await browser.newContext()
@@ -126,8 +129,8 @@ test('super-admin creates a household → its admin joins → expense with recei
     await page.keyboard.press('Escape')
 
     // Someone else opens the link in their own browser, creates an account and joins.
-    const guest = await browser.newContext()
-    const guestPage = await guest.newPage()
+    guest = await browser.newContext()
+    guestPage = await guest.newPage()
     await guestPage.goto(inviteUrl)
     await expect(guestPage.getByText('Create an account to join')).toBeVisible()
     await guestPage.getByLabel('Email').fill(`guest-${email}`)
@@ -139,10 +142,33 @@ test('super-admin creates a household → its admin joins → expense with recei
     await guestPage.goto('/members')
     await expect(guestPage.getByText('Ask a household admin to invite them')).toBeVisible()
     await expect(guestPage.getByRole('button', { name: 'Create invite link' })).toHaveCount(0)
-    await guest.close()
 
     await page.reload()
     await expect(page.getByText('2 members')).toBeVisible()
+  })
+
+  await test.step('the shopping list is shared live between members', async () => {
+    await page.goto('/kitchen/list')
+    await guestPage.goto('/kitchen/list')
+    await expect(guestPage.getByText('Your list is empty')).toBeVisible()
+
+    // A new item goes into the catalogue and onto the list…
+    const quickAdd = page.getByLabel('Add to the list')
+    await quickAdd.fill('Tomatoes')
+    await page.getByRole('option', { name: 'Add “Tomatoes”' }).click()
+    await expect(page.getByLabel('Bought Tomatoes')).toBeVisible()
+    // …and the other member sees it without reloading, then checks it off.
+    await expect(guestPage.getByLabel('Bought Tomatoes')).toBeVisible()
+    await guestPage.getByLabel('Bought Tomatoes').check()
+    await expect(page.getByLabel('Bought Tomatoes')).toBeChecked()
+
+    // Adding it again puts the same entry back rather than a second one.
+    await quickAdd.fill('tomato')
+    await page.getByRole('option', { name: /^Tomatoes/ }).click()
+    await expect(page.getByText('Tomatoes is back on the list')).toBeVisible()
+    await expect(guestPage.getByLabel('Bought Tomatoes')).not.toBeChecked()
+    await expect(page.getByLabel(/^Bought /)).toHaveCount(1)
+    await guest.close()
   })
 
   await test.step('create a task', async () => {

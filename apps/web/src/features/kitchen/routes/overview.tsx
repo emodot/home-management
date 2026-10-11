@@ -13,6 +13,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { categoriesQuery, categoryTotalsQuery } from '@/lib/queries'
+import { shoppingListQuery } from '../lib/queries'
 
 function OverviewCard({
   to,
@@ -48,11 +49,18 @@ function OverviewCard({
   )
 }
 
+/** "Rice, Tomatoes and 3 more" */
+function listPreview(names: string[]): string {
+  const shown = names.slice(0, 2).join(', ')
+  return names.length > 2 ? `${shown} and ${names.length - 2} more` : shown
+}
+
 export function KitchenOverviewPage() {
   const household = useActiveHousehold()
   const month = monthRange(todayIn(household.timezone))
   const categories = useSuspenseQuery(categoriesQuery(household.id)).data
   const totals = useSuspenseQuery(categoryTotalsQuery(household.id, month)).data
+  const toBuy = useSuspenseQuery(shoppingListQuery(household.id)).data.filter((e) => !e.isChecked)
   const foodSpend = foodSpendMinor(totals, categories)
   const [groceries] = foodCategoryIds(categories)
   const spendLink = groceries
@@ -65,9 +73,9 @@ export function KitchenOverviewPage() {
         to="/kitchen/list"
         icon={ShoppingBasketIcon}
         title="Shopping list"
-        hint="Add what you need"
+        hint={toBuy.length === 0 ? 'Add what you need' : listPreview(toBuy.map((e) => e.name))}
       >
-        Empty
+        {toBuy.length === 0 ? 'Empty' : `${toBuy.length} to buy`}
       </OverviewCard>
       <OverviewCard
         to="/kitchen/pantry"

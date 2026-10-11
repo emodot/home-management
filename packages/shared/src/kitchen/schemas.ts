@@ -26,3 +26,35 @@ export const kitchenItemInputSchema = z.object({
   defaultStoreTag: storeTagSchema.default(null),
 })
 export type KitchenItemInput = z.input<typeof kitchenItemInputSchema>
+
+/** A quantity as typed ("1.5", "2"): above zero, at most two decimals. */
+export const quantityInputSchema = z
+  .string()
+  .trim()
+  .min(1, 'Enter a quantity')
+  .transform((value, ctx) => {
+    const n = Number(value.replace(',', '.'))
+    if (!Number.isFinite(n) || n <= 0) {
+      ctx.addIssue({ code: 'custom', message: 'Enter a quantity above zero' })
+      return z.NEVER
+    }
+    if (n > 99999 || Math.round(n * 100) !== n * 100) {
+      ctx.addIssue({ code: 'custom', message: 'Use at most two decimals, like 1.5' })
+      return z.NEVER
+    }
+    return n
+  })
+
+/** Editing a list entry. */
+export const listItemFormSchema = z.object({
+  quantity: quantityInputSchema,
+  unit: kitchenUnitSchema,
+  storeTag: storeTagSchema,
+  notes: z
+    .string()
+    .trim()
+    .max(500, 'Keep notes under 500 characters')
+    .transform((value) => (value === '' ? null : value)),
+})
+export type ListItemFormInput = z.input<typeof listItemFormSchema>
+export type ListItemPatch = z.output<typeof listItemFormSchema>

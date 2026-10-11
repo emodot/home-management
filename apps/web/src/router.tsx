@@ -28,6 +28,7 @@ import {
   insightsLoader,
   inviteLoader,
   kitchenItemLoader,
+  kitchenListLoader,
   kitchenOverviewLoader,
   membersLoader,
   onboardingLoader,
@@ -205,7 +206,11 @@ export const router = createBrowserRouter([
                         loader: kitchenOverviewLoader,
                         lazy: page(routes.kitchenOverview, 'KitchenOverviewPage'),
                       },
-                      { path: 'list', lazy: page(routes.kitchenList, 'ShoppingListPage') },
+                      {
+                        path: 'list',
+                        loader: kitchenListLoader,
+                        lazy: page(routes.kitchenList, 'ShoppingListPage'),
+                      },
                       { path: 'pantry', lazy: page(routes.kitchenPantry, 'PantryPage') },
                       {
                         path: 'pantry/:itemId',

@@ -2,7 +2,8 @@ import { unwrap, type HomeClient } from '../client.ts'
 import type { Tables } from '../database.types.ts'
 import { escapeLike } from '../queries/expenses.ts'
 import { itemSearchKey, normalizeItemName } from './normalize.ts'
-import { kitchenItemInputSchema, type KitchenItemInput } from './schemas.ts'
+import { mergeStoreTags, type ListItemSource, type ShoppingListItem } from './list.ts'
+import { kitchenItemInputSchema, type KitchenItemInput, type ListItemPatch } from './schemas.ts'
 import { isKitchenUnit, type KitchenUnit } from './units.ts'
 
 export interface KitchenItem {
@@ -99,4 +100,165 @@ export async function createKitchenItem(
 export async function getKitchenItem(client: HomeClient, id: string): Promise<KitchenItem | null> {
   const row = unwrap(await client.from('kitchen_items').select('*').eq('id', id).maybeSingle())
   return row ? toKitchenItem(row) : null
+}
+
+// ---------------------------------------------------------------- shopping list
+
+const LIST_SELECT = '*, item:kitchen_items(name)'
+type ListRow = Tables<'shopping_list_items'> & { item: { name: string } | null }
+
+export function toShoppingListItem(row: ListRow): ShoppingListItem {
+  return {
+    id: row.id,
+    householdId: row.household_id,
+    itemId: row.item_id,
+    name: row.item?.name ?? '',
+    // PostgREST returns numeric as a number; be safe if it comes back as text.
+    quantity: typeof row.quantity === 'string' ? Number(row.quantity) : row.quantity,
+    unit: isKitchenUnit(row.unit) ? row.unit : 'pcs',
+    storeTag: row.store_tag,
+    notes: row.notes,
+    isChecked: row.is_checked,
+    checkedBy: row.checked_by,
+    source: row.source as ListItemSource,
+    addedBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+/** The household's shopping list, oldest entry first. */
+export async function listShoppingList(
+  client: HomeClient,
+  householdId: string,
+): Promise<ShoppingListItem[]> {
+  const rows = unwrap(
+    await client
+      .from('shopping_list_items')
+      .select(LIST_SELECT)
+      .eq('household_id', householdId)
+      .order('created_at'),
+  )
+  return rows.map(toShoppingListItem)
+}
+
+export interface AddToListResult {
+  /** `exists`: it was already on the list; `unchecked`: it was checked off and is back on. */
+  status: 'added' | 'exists' | 'unchecked'
+  entry: ShoppingListItem
+}
+
+/**
+ * Puts a catalogue item on the list with its usual unit and store. An item is on the list only
+ * once, so adding it again returns the existing entry (unchecking it if it was checked off).
+ */
+export async function addToShoppingList(
+  client: HomeClient,
+  householdId: string,
+  item: KitchenItem,
+  options: { quantity?: number; source?: Exclude<ListItemSource, 'meal_plan'> } = {},
+): Promise<AddToListResult> {
+  const { data, error } = await client
+    .from('shopping_list_items')
+    .insert({
+      household_id: householdId,
+      item_id: item.id,
+      quantity: options.quantity ?? 1,
+      unit: item.defaultUnit,
+      store_tag: item.defaultStoreTag,
+      source: options.source ?? 'manual',
+    })
+    .select(LIST_SELECT)
+    .single()
+  if (!error) return { status: 'added', entry: toShoppingListItem(data) }
+  if (error.code !== '23505') throw error
+
+  const existing = unwrap(
+    await client
+      .from('shopping_list_items')
+      .select(LIST_SELECT)
+      .eq('household_id', householdId)
+      .eq('item_id', item.id)
+      .single(),
+  )
+  if (!existing.is_checked) return { status: 'exists', entry: toShoppingListItem(existing) }
+  const reopened = unwrap(
+    await client
+      .from('shopping_list_items')
+      .update({ is_checked: false })
+      .eq('id', existing.id)
+      .select(LIST_SELECT)
+      .single(),
+  )
+  return { status: 'unchecked', entry: toShoppingListItem(reopened) }
+}
+
+export async function updateShoppingListItem(
+  client: HomeClient,
+  id: string,
+  patch: Partial<ListItemPatch> & { isChecked?: boolean },
+): Promise<void> {
+  unwrap(
+    await client
+      .from('shopping_list_items')
+      .update({
+        ...(patch.quantity !== undefined && { quantity: patch.quantity }),
+        ...(patch.unit !== undefined && { unit: patch.unit }),
+        ...(patch.storeTag !== undefined && { store_tag: patch.storeTag }),
+        ...(patch.notes !== undefined && { notes: patch.notes }),
+        ...(patch.isChecked !== undefined && { is_checked: patch.isChecked }),
+      })
+      .eq('id', id),
+  )
+}
+
+export async function removeShoppingListItem(client: HomeClient, id: string): Promise<void> {
+  unwrap(await client.from('shopping_list_items').delete().eq('id', id))
+}
+
+/** Undo for removeShoppingListItem: puts the entry back as it was, with the same id. */
+export async function restoreShoppingListItem(
+  client: HomeClient,
+  entry: ShoppingListItem,
+): Promise<void> {
+  unwrap(
+    await client.from('shopping_list_items').insert({
+      id: entry.id,
+      household_id: entry.householdId,
+      item_id: entry.itemId,
+      quantity: entry.quantity,
+      unit: entry.unit,
+      store_tag: entry.storeTag,
+      notes: entry.notes,
+      is_checked: entry.isChecked,
+      source: entry.source,
+    }),
+  )
+}
+
+/** Makes a unit and store the item's defaults for next time. */
+export async function setKitchenItemDefaults(
+  client: HomeClient,
+  itemId: string,
+  defaults: { defaultUnit: KitchenUnit; defaultStoreTag: string | null },
+): Promise<void> {
+  unwrap(
+    await client
+      .from('kitchen_items')
+      .update({ default_unit: defaults.defaultUnit, default_store_tag: defaults.defaultStoreTag })
+      .eq('id', itemId),
+  )
+}
+
+/** Stores the household buys from, most recently used first. */
+export async function recentStoreTags(client: HomeClient, householdId: string): Promise<string[]> {
+  const rows = unwrap(
+    await client
+      .from('kitchen_items')
+      .select('default_store_tag')
+      .eq('household_id', householdId)
+      .not('default_store_tag', 'is', null)
+      .order('updated_at', { ascending: false })
+      .limit(50),
+  )
+  return mergeStoreTags([rows.map((r) => r.default_store_tag)])
 }

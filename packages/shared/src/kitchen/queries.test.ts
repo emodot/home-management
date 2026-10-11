@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HomeClient } from '../client.ts'
-import { createKitchenItem, searchKitchenItems } from './queries.ts'
+import { addToShoppingList, createKitchenItem, searchKitchenItems } from './queries.ts'
 
 const row = (name: string, normalized: string) => ({
   id: `id-${normalized}`,
@@ -22,7 +22,7 @@ function fakeClient(responses: { data: unknown; error: unknown }[]) {
     then: (resolve: (value: unknown) => unknown) =>
       resolve(responses.shift() ?? { data: null, error: null }),
   }
-  for (const method of ['select', 'eq', 'or', 'order', 'limit', 'insert', 'single']) {
+  for (const method of ['select', 'eq', 'or', 'order', 'limit', 'insert', 'update', 'single']) {
     builder[method] = (...args: unknown[]) => {
       calls.push([method, ...args])
       return builder
@@ -93,5 +93,74 @@ describe('createKitchenItem', () => {
   it('rejects names with nothing to match on', async () => {
     const { client } = fakeClient([])
     await expect(createKitchenItem(client, 'h1', { name: '!!!' })).rejects.toThrow()
+  })
+})
+
+describe('addToShoppingList', () => {
+  const tomatoes = {
+    id: 'item-1',
+    householdId: 'h1',
+    name: 'Tomatoes',
+    normalizedName: 'tomato',
+    defaultUnit: 'paint_bucket' as const,
+    defaultStoreTag: 'Mile 12',
+  }
+  const entry = (isChecked: boolean) => ({
+    id: 'entry-1',
+    household_id: 'h1',
+    item_id: 'item-1',
+    quantity: '2.00', // numeric can come back as a string
+    unit: 'paint_bucket',
+    store_tag: 'Mile 12',
+    notes: null,
+    is_checked: isChecked,
+    checked_by: null,
+    checked_at: null,
+    source: 'manual',
+    source_ref: null,
+    created_by: 'u1',
+    updated_by: 'u1',
+    created_at: '2026-10-01T00:00:00Z',
+    updated_at: '2026-10-01T00:00:00Z',
+    item: { name: 'Tomatoes' },
+  })
+
+  it('adds the item with its usual unit and store', async () => {
+    const { client, calls } = fakeClient([{ data: entry(false), error: null }])
+    const result = await addToShoppingList(client, 'h1', tomatoes)
+    expect(result.status).toBe('added')
+    expect(result.entry).toMatchObject({ name: 'Tomatoes', quantity: 2, unit: 'paint_bucket' })
+    expect(calls).toContainEqual([
+      'insert',
+      {
+        household_id: 'h1',
+        item_id: 'item-1',
+        quantity: 1,
+        unit: 'paint_bucket',
+        store_tag: 'Mile 12',
+        source: 'manual',
+      },
+    ])
+  })
+
+  it('points at the existing entry when the item is already on the list', async () => {
+    const { client, calls } = fakeClient([
+      { data: null, error: { code: '23505', message: 'duplicate' } },
+      { data: entry(false), error: null },
+    ])
+    expect((await addToShoppingList(client, 'h1', tomatoes)).status).toBe('exists')
+    expect(calls.some(([method]) => method === 'update')).toBe(false)
+  })
+
+  it('puts a checked-off entry back on the list', async () => {
+    const { client, calls } = fakeClient([
+      { data: null, error: { code: '23505', message: 'duplicate' } },
+      { data: entry(true), error: null },
+      { data: entry(false), error: null },
+    ])
+    const result = await addToShoppingList(client, 'h1', tomatoes)
+    expect(result.status).toBe('unchecked')
+    expect(result.entry.isChecked).toBe(false)
+    expect(calls).toContainEqual(['update', { is_checked: false }])
   })
 })

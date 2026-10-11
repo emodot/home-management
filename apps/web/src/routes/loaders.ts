@@ -10,7 +10,7 @@ import {
   type InviteDetails,
 } from '@home/shared'
 import { redirect, type LoaderFunctionArgs } from 'react-router'
-import { kitchenItemQuery } from '@/features/kitchen/lib/queries'
+import { kitchenItemQuery, shoppingListQuery } from '@/features/kitchen/lib/queries'
 import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
@@ -521,6 +521,7 @@ export async function kitchenOverviewLoader({ request }: LoaderFunctionArgs) {
     await Promise.all([
       queryClient.query(categoriesQuery(householdId)),
       queryClient.query(categoryTotalsQuery(householdId, monthRange(todayIn(timezone)))),
+      queryClient.query(shoppingListQuery(householdId)),
     ])
   }
   return null
@@ -530,5 +531,16 @@ export async function kitchenItemLoader({ request, params }: LoaderFunctionArgs)
   const itemId = params.itemId ?? ''
   const householdId = await householdOfRecord(request, 'kitchen_items', itemId)
   await queryClient.query(kitchenItemQuery(householdId, itemId))
+  return null
+}
+
+export async function kitchenListLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(shoppingListQuery(householdId)),
+      queryClient.query(membersQuery(householdId)),
+    ])
+  }
   return null
 }

@@ -110,6 +110,15 @@ a build starts. A browser downloads about 7 MB of it once (one 4 MB engine build
 WebAssembly support, plus the 3 MB language model). These files and pdf.js aren't precached by
 the service worker, so installs stay small; they're cached the first time someone scans.
 
+### My Kitchen
+
+`/kitchen` (code in `apps/web/src/features/kitchen/` and `packages/shared/src/kitchen/`) is built in
+milestones. Everything hangs off the household's item catalogue (`kitchen_items`): one row per
+item, matched by a normalised name so "Tomatoes" and "tomato" are the same item, with the unit
+and store it's usually bought in. The shopping list (`shopping_list_items`) holds each item at
+most once and updates live for everyone through Supabase Realtime (the table is in the
+`supabase_realtime` publication). Changing an entry's unit or store makes it the item's default.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.
@@ -165,7 +174,7 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 
 `pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
 household and an admin invite → the household admin signs up through it → expense with receipt →
-invites by email and by link, with a member joining (and seeing no invite controls) → task →
+invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live → task →
 complete → scan a receipt PDF to log the expense → scan two at once → profile and password change → sign back in. It needs `pnpm db:start`, the
 edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
 pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`, default

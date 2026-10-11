@@ -836,6 +836,71 @@ export type Database = {
         }
         Relationships: []
       }
+      shopping_list_items: {
+        Row: {
+          checked_at: string | null
+          checked_by: string | null
+          created_at: string
+          created_by: string | null
+          household_id: string
+          id: string
+          is_checked: boolean
+          item_id: string
+          notes: string | null
+          quantity: number
+          source: string
+          source_ref: string | null
+          store_tag: string | null
+          unit: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          is_checked?: boolean
+          item_id: string
+          notes?: string | null
+          quantity?: number
+          source?: string
+          source_ref?: string | null
+          store_tag?: string | null
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          is_checked?: boolean
+          item_id?: string
+          notes?: string | null
+          quantity?: number
+          source?: string
+          source_ref?: string | null
+          store_tag?: string | null
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'shopping_list_items_household_id_item_id_fkey'
+            columns: ['household_id', 'item_id']
+            isOneToOne: false
+            referencedRelation: 'kitchen_items'
+            referencedColumns: ['household_id', 'id']
+          },
+        ]
+      }
       task_completions: {
         Row: {
           completed_by: string | null
@@ -1204,6 +1269,10 @@ export type Database = {
       generate_recurring_expenses: {
         Args: { p_household_id?: string; p_max_per_bill?: number; p_today?: string }
         Returns: number
+      }
+      is_kitchen_unit: {
+        Args: { unit: string }
+        Returns: boolean
       }
       is_household_admin_of: {
         Args: { hid: string; uid: string }
