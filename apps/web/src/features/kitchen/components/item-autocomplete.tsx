@@ -67,6 +67,8 @@ export function ItemAutocomplete({
 
   return (
     <CommandPrimitive
+      // cmdk names its input with this (a visually hidden label), not the input's aria-label.
+      label={label}
       shouldFilter={false}
       loop
       className={cn('relative', className)}
@@ -77,7 +79,6 @@ export function ItemAutocomplete({
       <div className="relative">
         <CommandPrimitive.Input
           id={id}
-          aria-label={label}
           value={text}
           onValueChange={(value) => {
             setText(value)
