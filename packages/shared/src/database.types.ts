@@ -535,6 +535,66 @@ export type Database = {
           },
         ]
       }
+      item_prices: {
+        Row: {
+          bought_on: string
+          created_at: string
+          created_by: string | null
+          household_id: string
+          id: string
+          item_id: string
+          price_minor: number
+          quantity: number
+          store_tag: string | null
+          trip_id: string
+          unit: string
+          unit_price_minor: number
+        }
+        Insert: {
+          bought_on: string
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          item_id: string
+          price_minor: number
+          quantity: number
+          store_tag?: string | null
+          trip_id: string
+          unit: string
+          unit_price_minor?: number
+        }
+        Update: {
+          bought_on?: string
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          item_id?: string
+          price_minor?: number
+          quantity?: number
+          store_tag?: string | null
+          trip_id?: string
+          unit?: string
+          unit_price_minor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'item_prices_household_id_item_id_fkey'
+            columns: ['household_id', 'item_id']
+            isOneToOne: false
+            referencedRelation: 'kitchen_items'
+            referencedColumns: ['household_id', 'id']
+          },
+          {
+            foreignKeyName: 'item_prices_household_id_trip_id_fkey'
+            columns: ['household_id', 'trip_id']
+            isOneToOne: false
+            referencedRelation: 'shopping_trips'
+            referencedColumns: ['household_id', 'id']
+          },
+        ]
+      }
       kitchen_items: {
         Row: {
           created_at: string
@@ -573,6 +633,59 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      pantry_items: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_on: string | null
+          household_id: string
+          id: string
+          item_id: string
+          location: string
+          low_stock_threshold: number | null
+          quantity: number
+          unit: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_on?: string | null
+          household_id: string
+          id?: string
+          item_id: string
+          location?: string
+          low_stock_threshold?: number | null
+          quantity?: number
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_on?: string | null
+          household_id?: string
+          id?: string
+          item_id?: string
+          location?: string
+          low_stock_threshold?: number | null
+          quantity?: number
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'pantry_items_household_id_item_id_fkey'
+            columns: ['household_id', 'item_id']
+            isOneToOne: false
+            referencedRelation: 'kitchen_items'
+            referencedColumns: ['household_id', 'id']
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -903,6 +1016,42 @@ export type Database = {
             referencedColumns: ['household_id', 'id']
           },
         ]
+      }
+      shopping_trips: {
+        Row: {
+          bought_on: string
+          created_at: string
+          created_by: string | null
+          expense_id: string | null
+          household_id: string
+          id: string
+          item_count: number
+          store_tag: string | null
+          total_minor: number
+        }
+        Insert: {
+          bought_on: string
+          created_at?: string
+          created_by?: string | null
+          expense_id?: string | null
+          household_id: string
+          id?: string
+          item_count: number
+          store_tag?: string | null
+          total_minor: number
+        }
+        Update: {
+          bought_on?: string
+          created_at?: string
+          created_by?: string | null
+          expense_id?: string | null
+          household_id?: string
+          id?: string
+          item_count?: number
+          store_tag?: string | null
+          total_minor?: number
+        }
+        Relationships: []
       }
       task_completions: {
         Row: {
@@ -1276,6 +1425,24 @@ export type Database = {
       is_kitchen_unit: {
         Args: { unit: string }
         Returns: boolean
+      }
+      finish_shopping_trip: {
+        Args: {
+          p_category_id: string
+          p_description: string
+          p_entries: Json
+          p_household_id: string
+          p_notes?: string
+          p_paid_by: string
+          p_paid_on: string
+          p_store?: string
+          p_total_minor: number
+        }
+        Returns: Json
+      }
+      kitchen_convert: {
+        Args: { p_from: string; p_quantity: number; p_to: string }
+        Returns: number
       }
       is_household_admin_of: {
         Args: { hid: string; uid: string }

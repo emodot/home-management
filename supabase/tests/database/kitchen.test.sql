@@ -1,6 +1,6 @@
 -- My Kitchen: the item catalogue is shared by the household's members and kept free of duplicates.
 begin;
-select plan(28);
+select plan(44);
 
 create function pg_temp.create_household(p_name text)
 returns public.households
@@ -192,6 +192,130 @@ select is(
 select ok(
   public.is_kitchen_unit('derica') and not public.is_kitchen_unit('cup'),
   'units are checked against the kitchen list'
+);
+
+-- ---------------------------------------------------------------- finishing a trip
+-- Bola's list: tomatoes (checked, priced), rice (checked, no price, not for the pantry), garri
+-- (checked, in grams into a pantry kept in kg), beans (checked, in mudu into a pantry kept in bags),
+-- pepper (not checked: stays on the list).
+select set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}', true);
+insert into public.kitchen_items (household_id, name, normalized_name) values
+  (current_setting('test.hid')::uuid, 'Rice', 'rice'),
+  (current_setting('test.hid')::uuid, 'Garri', 'garri'),
+  (current_setting('test.hid')::uuid, 'Beans', 'bean'),
+  (current_setting('test.hid')::uuid, 'Pepper', 'pepper');
+create temp table ids as
+  select normalized_name as n, id from public.kitchen_items where household_id = current_setting('test.hid')::uuid;
+grant select on ids to authenticated;
+insert into public.pantry_items (household_id, item_id, quantity, unit) values
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'tomato'), 1, 'paint_bucket'),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'garri'), 2, 'kg'),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'bean'), 2, 'bag');
+update public.shopping_list_items set is_checked = true, price_paid_minor = 500000 where item_id = (select id from ids where n = 'tomato');
+insert into public.shopping_list_items (household_id, item_id, quantity, unit, is_checked) values
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'rice'), 1, 'bag', true),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'garri'), 500, 'g', true),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'bean'), 3, 'mudu', true),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'pepper'), 1, 'pcs', false);
+create temp table entries as
+  select k.n, e.id from public.shopping_list_items e join ids k on k.id = e.item_id;
+grant select on entries to authenticated;
+select set_config('test.groceries', (select id::text from public.expense_categories
+  where household_id = current_setting('test.hid')::uuid and name = 'Groceries'), true);
+select set_config('test.payload', jsonb_build_array(
+  jsonb_build_object('id', (select id from entries where n = 'tomato'), 'price_minor', 500000, 'to_pantry', true),
+  jsonb_build_object('id', (select id from entries where n = 'rice'), 'price_minor', null, 'to_pantry', false),
+  jsonb_build_object('id', (select id from entries where n = 'garri'), 'price_minor', 150000, 'to_pantry', true),
+  jsonb_build_object('id', (select id from entries where n = 'bean'), 'price_minor', 900000, 'to_pantry', true)
+)::text, true);
+
+select throws_ok(
+  $$ select public.finish_shopping_trip(current_setting('test.hid')::uuid, current_setting('test.payload')::jsonb,
+       0, current_setting('test.groceries')::uuid, '2026-10-10', auth.uid(), 'Shopping at Mile 12') $$,
+  '23514', null, 'a trip needs a total above zero'
+);
+select throws_ok(
+  $$ select public.finish_shopping_trip(current_setting('test.hid')::uuid,
+       (current_setting('test.payload')::jsonb) || jsonb_build_array(jsonb_build_object('id', (select id from entries where n = 'pepper'))),
+       3850000, current_setting('test.groceries')::uuid, '2026-10-10', auth.uid(), 'Shopping at Mile 12') $$,
+  '40001', null, 'entries that aren''t checked off (or are gone) stop the whole trip'
+);
+select set_config('test.trip', public.finish_shopping_trip(
+  current_setting('test.hid')::uuid, current_setting('test.payload')::jsonb, 3850000,
+  current_setting('test.groceries')::uuid, '2026-10-10', auth.uid(), 'Shopping at Mile 12',
+  'Tomatoes, Rice, Garri, Beans', 'Mile 12')::text, true);
+
+select is(
+  (select amount_minor from public.expenses where id = (current_setting('test.trip')::jsonb ->> 'expense_id')::uuid),
+  3850000::bigint,
+  'finishing creates the expense for the total paid'
+);
+select is(
+  (select category_id::text || ' ' || occurred_on || ' ' || description || ' / ' || paid_by::text
+   from public.expenses where id = (current_setting('test.trip')::jsonb ->> 'expense_id')::uuid),
+  current_setting('test.groceries') || ' 2026-10-10 Shopping at Mile 12 / 22222222-2222-2222-2222-222222222222',
+  'with its category, date, description and who paid'
+);
+select is(
+  (select item_count || ' ' || total_minor || ' ' || store_tag from public.shopping_trips
+   where id = (current_setting('test.trip')::jsonb ->> 'trip_id')::uuid),
+  '4 3850000 Mile 12',
+  'and records the trip'
+);
+select is(
+  (select count(*)::int from public.item_prices where trip_id = (current_setting('test.trip')::jsonb ->> 'trip_id')::uuid),
+  3,
+  'prices are recorded for the lines that have one'
+);
+select is(
+  (select unit_price_minor from public.item_prices where item_id = (select id from ids where n = 'bean')),
+  300000::bigint,
+  'with the price per unit worked out'
+);
+select is(
+  (select quantity from public.pantry_items where item_id = (select id from ids where n = 'tomato')),
+  3.00,
+  'the pantry adds to what''s there in the same unit'
+);
+select is(
+  (select quantity || ' ' || unit from public.pantry_items where item_id = (select id from ids where n = 'garri')),
+  '2.50 kg',
+  '…converting grams into kilograms'
+);
+select is(
+  (select quantity || ' ' || unit from public.pantry_items where item_id = (select id from ids where n = 'bean')),
+  '3.00 mudu',
+  '…and switching to the new unit when they don''t combine'
+);
+select is_empty(
+  $$ select 1 from public.pantry_items where item_id = (select id from ids where n = 'rice') $$,
+  'lines kept out of the pantry stay out'
+);
+select is(
+  (select array_agg(k.n) from public.shopping_list_items e join ids k on k.id = e.item_id)::text,
+  '{pepper}',
+  'the bought entries leave the list; the rest stay'
+);
+select throws_ok(
+  $$ select public.finish_shopping_trip(current_setting('test.hid')::uuid, current_setting('test.payload')::jsonb,
+       3850000, current_setting('test.groceries')::uuid, '2026-10-10', auth.uid(), 'Again') $$,
+  '40001', null, 'the same trip can''t be finished twice'
+);
+select throws_ok(
+  $$ insert into public.item_prices (household_id, item_id, trip_id, quantity, unit, price_minor, bought_on)
+     values (current_setting('test.hid')::uuid, (select id from ids where n = 'rice'),
+             (current_setting('test.trip')::jsonb ->> 'trip_id')::uuid, 1, 'bag', 100, '2026-10-10') $$,
+  '42501', null, 'prices are only written by finishing a trip'
+);
+select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
+select throws_ok(
+  $$ select public.finish_shopping_trip(current_setting('test.hid')::uuid, '[{"id": "00000000-0000-0000-0000-000000000000"}]',
+       100, current_setting('test.groceries')::uuid, '2026-10-10', auth.uid(), 'Not mine') $$,
+  '42501', null, 'other households can''t finish this one''s trips'
+);
+select is_empty(
+  $$ select 1 from public.item_prices union all select 1 from public.shopping_trips union all select 1 from public.pantry_items $$,
+  'or see its prices, trips and pantry'
 );
 
 select * from finish();

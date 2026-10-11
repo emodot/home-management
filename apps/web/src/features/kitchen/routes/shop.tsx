@@ -1,13 +1,17 @@
-import { formatMoney, groupByStore, shoppingProgress } from '@home/shared'
+import { formatMoney, groupByStore, shoppingProgress, type ShoppingListItem } from '@home/shared'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { ArrowLeftIcon, ShoppingCartIcon, StoreIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { useActiveHousehold } from '@/hooks/use-household'
+import { categoriesQuery, membersQuery } from '@/lib/queries'
+import { FinishShoppingSheet } from '../components/finish-shopping-sheet'
 import { OfflineBanner } from '../components/offline-banner'
 import { PricePromptSheet } from '../components/price-prompt-sheet'
 import { ShoppingModeRow } from '../components/shopping-mode-row'
+import { useIsOnline } from '../hooks/use-is-online'
 import { useShoppingList, useUpdateListEntry } from '../hooks/use-shopping-list'
 
 /**
@@ -18,7 +22,12 @@ export function ShoppingModePage() {
   const household = useActiveHousehold()
   const list = useShoppingList(household.id)
   const entries = useUpdateListEntry(household.id)
+  const categories = useSuspenseQuery(categoriesQuery(household.id)).data
+  const members = useSuspenseQuery(membersQuery(household.id)).data
+  const online = useIsOnline()
   const [pricingId, setPricingId] = useState<string | null>(null)
+  // The checked entries when Finish was tapped (the sheet works on those, even if the list moves).
+  const [finishing, setFinishing] = useState<ShoppingListItem[] | null>(null)
 
   const toBuy = list.filter((e) => !e.isChecked)
   const done = list.filter((e) => e.isChecked)
@@ -115,15 +124,36 @@ export function ShoppingModePage() {
                 {formatMoney(progress.totalMinor)}
               </span>
             </div>
-            <span className="text-right text-sm text-muted-foreground">
+            <span className="text-right text-xs text-muted-foreground">
               {progress.checked} of {progress.count} bought
               {progress.unpriced > 0 && (
-                <span className="block text-xs">{progress.unpriced} without a price</span>
+                <span className="block">{progress.unpriced} without a price</span>
               )}
             </span>
+            <Button
+              size="lg"
+              disabled={progress.checked === 0 || !online}
+              onClick={() => setFinishing(done)}
+            >
+              Finish
+            </Button>
           </div>
         </div>
       )}
+
+      {!online && progress.checked > 0 && (
+        <p className="text-center text-xs text-muted-foreground">
+          Finish shopping when you're back online: it saves the expense in one go.
+        </p>
+      )}
+
+      <FinishShoppingSheet
+        open={finishing !== null}
+        entries={finishing ?? []}
+        categories={categories}
+        members={members}
+        onClose={() => setFinishing(null)}
+      />
 
       <PricePromptSheet
         entry={pricing}

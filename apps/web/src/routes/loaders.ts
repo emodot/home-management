@@ -540,6 +540,7 @@ export async function kitchenListLoader({ request }: LoaderFunctionArgs) {
     await Promise.all([
       queryClient.query(shoppingListQuery(householdId)),
       queryClient.query(membersQuery(householdId)),
+      queryClient.query(categoriesQuery(householdId)),
     ])
   }
   return null

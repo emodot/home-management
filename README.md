@@ -127,6 +127,15 @@ changes are saved on the device (IndexedDB, `apps/web/src/lib/persist.ts`), so c
 are sent even if the app is closed first; signing out clears them. Opening the app from cold with no
 signal isn't supported.
 
+**Finish shopping** (shopping mode's footer) confirms the prices, the total actually paid, who
+paid, the date, category (Groceries by default), store and an optional receipt photo, and which
+lines go into the pantry. One database function, `finish_shopping_trip`, then does it all in one
+transaction: the expense, a `shopping_trips` row, `item_prices` for priced lines, pantry stock in
+`pantry_items` (added when the units combine, g↔kg and ml↔litre included, otherwise replaced by
+what was bought), and removing the bought entries from the list. It refuses if any of them changed
+meanwhile (e.g. someone else finished first), and needs a connection. The receipt uploads to the
+new expense afterwards.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.
@@ -182,7 +191,7 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 
 `pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
 household and an admin invite → the household admin signs up through it → expense with receipt →
-invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live, including changes made in shopping mode while offline → task →
+invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live, including changes made in shopping mode while offline, and finishing the trip into an expense → task →
 complete → scan a receipt PDF to log the expense → scan two at once → profile and password change → sign back in. It needs `pnpm db:start`, the
 edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
 pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`, default

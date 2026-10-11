@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping', async ({
   page,
   browser,
 }) => {
@@ -182,6 +182,13 @@ test('super-admin creates a household → its admin joins → expense with recei
     await expect(page.getByText(/^(Offline|Syncing)/)).toHaveCount(0)
     // The other member sees it bought.
     await expect(guestPage.getByLabel('Bought Tomatoes')).toBeChecked()
+
+    // Finishing turns the trip into an expense and clears what was bought from the list.
+    await page.getByRole('button', { name: 'Finish', exact: true }).click()
+    await expect(page.getByLabel('Total paid')).toHaveValue('2,500')
+    await page.getByRole('button', { name: 'Add ₦2,500 to expenses' }).click()
+    await expect(page.getByText('₦2,500 added to expenses')).toBeVisible()
+    await expect(guestPage.getByText('Your list is empty')).toBeVisible()
     await guest.close()
   })
 
