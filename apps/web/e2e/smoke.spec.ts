@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline', async ({
   page,
   browser,
 }) => {
@@ -168,6 +168,20 @@ test('super-admin creates a household → its admin joins → expense with recei
     await expect(page.getByText('Tomatoes is back on the list')).toBeVisible()
     await expect(guestPage.getByLabel('Bought Tomatoes')).not.toBeChecked()
     await expect(page.getByLabel(/^Bought /)).toHaveCount(1)
+
+    // Shopping mode keeps working without signal and catches up when it's back.
+    await page.getByRole('link', { name: 'Start shopping' }).click()
+    await expect(page.getByRole('heading', { name: 'Shopping' })).toBeVisible()
+    await page.context().setOffline(true)
+    await page.getByLabel('Bought Tomatoes').click()
+    await page.getByLabel('Price paid').fill('2500')
+    await page.getByRole('button', { name: 'Save price' }).click()
+    await expect(page.getByText(/^Offline\. 2 changes will sync/)).toBeVisible()
+    await expect(page.getByText('₦2,500').first()).toBeVisible()
+    await page.context().setOffline(false)
+    await expect(page.getByText(/^(Offline|Syncing)/)).toHaveCount(0)
+    // The other member sees it bought.
+    await expect(guestPage.getByLabel('Bought Tomatoes')).toBeChecked()
     await guest.close()
   })
 

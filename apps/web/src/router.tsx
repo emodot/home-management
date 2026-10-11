@@ -227,7 +227,11 @@ export const router = createBrowserRouter([
                     ],
                   },
                   // Shopping mode leaves out the module's tabs.
-                  { path: 'kitchen/list/shop', lazy: page(routes.kitchenShop, 'ShoppingModePage') },
+                  {
+                    path: 'kitchen/list/shop',
+                    loader: kitchenListLoader,
+                    lazy: page(routes.kitchenShop, 'ShoppingModePage'),
+                  },
                   { path: 'income', loader: incomeLoader, lazy: page(routes.income, 'IncomePage') },
                   {
                     path: 'income/new',

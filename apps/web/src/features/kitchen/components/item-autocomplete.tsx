@@ -1,12 +1,14 @@
 import { normalizeItemName, unitLabel, type KitchenItem } from '@home/shared'
 import { Command as CommandPrimitive } from 'cmdk'
 import { LoaderCircleIcon, PlusIcon } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { errorMessage } from '@/lib/errors'
 import { cn } from '@/lib/utils'
 import { useCreateKitchenItem, useKitchenItems } from '../hooks/use-kitchen-items'
+import { kitchenItemSearchQuery } from '../lib/queries'
 
 /**
  * A text field that searches the household's item catalogue as you type. Enter picks the
@@ -33,6 +35,7 @@ export function ItemAutocomplete({
   const [text, setText] = useState('')
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
+  const queryClient = useQueryClient()
   const items = useKitchenItems(household.id, search)
   const create = useCreateKitchenItem(household.id)
 
@@ -49,17 +52,40 @@ export function ItemAutocomplete({
   const current = ready ? items.data : []
   const exact = current.some((item) => item.normalizedName === key)
 
-  function pick(item: KitchenItem) {
-    onSelect(item)
+  function clear() {
     setText('')
     setSearch('')
   }
 
-  async function add() {
+  function pick(item: KitchenItem) {
+    onSelect(item)
+    clear()
+  }
+
+  // The field clears as soon as Enter is pressed, ready for the next item; adding (and, for an
+  // early Enter, looking the name up) finishes in the background.
+  async function add(name = typed) {
+    clear()
     try {
-      pick(await create.mutateAsync({ name: typed }))
+      onSelect(await create.mutateAsync({ name }))
     } catch (error) {
-      toast.error(`Couldn't add “${typed}”. ${errorMessage(error)}`)
+      toast.error(`Couldn't add “${name}”. ${errorMessage(error)}`)
+    }
+  }
+
+  /**
+   * Enter before the suggestions for what's typed have arrived (fast typing, slow signal): look
+   * them up, then do what Enter would have done, i.e. take the top one or add the name.
+   */
+  async function enterEarly() {
+    const name = typed
+    const searched = text
+    clear()
+    try {
+      const [top] = await queryClient.query(kitchenItemSearchQuery(household.id, searched))
+      onSelect(top ?? (await create.mutateAsync({ name })))
+    } catch (error) {
+      toast.error(`Couldn't add “${name}”. ${errorMessage(error)}`)
     }
   }
 
@@ -74,6 +100,10 @@ export function ItemAutocomplete({
       className={cn('relative', className)}
       onKeyDown={(e) => {
         if (e.key === 'Escape') setOpen(false)
+        if (e.key === 'Enter' && !ready && key !== '') {
+          e.preventDefault()
+          void enterEarly()
+        }
       }}
     >
       <div className="relative">
@@ -89,7 +119,6 @@ export function ItemAutocomplete({
           placeholder={placeholder}
           autoFocus={autoFocus}
           autoComplete="off"
-          disabled={create.isPending}
           className="h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 text-base shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 md:text-sm"
         />
         {create.isPending && (

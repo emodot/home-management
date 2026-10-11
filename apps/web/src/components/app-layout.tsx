@@ -21,6 +21,19 @@ export function AppLayout() {
   // Momentarily undefined after leaving the last household, until the loader redirects.
   if (!active) return <FullPageSpinner />
 
+  // Shopping mode is full screen: no header, sidebar or bottom nav in the market.
+  if (pathname === '/kitchen/list/shop') {
+    return (
+      <ActiveHouseholdContext value={active}>
+        <main id="main" tabIndex={-1} className="min-h-dvh px-4 pt-4 outline-none">
+          <Suspense fallback={<PageSkeleton />}>
+            <Outlet />
+          </Suspense>
+        </main>
+      </ActiveHouseholdContext>
+    )
+  }
+
   return (
     <ActiveHouseholdContext value={active}>
       <a

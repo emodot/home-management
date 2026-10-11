@@ -1,6 +1,6 @@
 -- My Kitchen: the item catalogue is shared by the household's members and kept free of duplicates.
 begin;
-select plan(25);
+select plan(28);
 
 create function pg_temp.create_household(p_name text)
 returns public.households
@@ -170,6 +170,24 @@ select lives_ok(
      values (current_setting('test.entry')::uuid, current_setting('test.hid')::uuid,
              current_setting('test.tomato')::uuid, 2, 'paint_bucket', 'Mile 12') $$,
   'Undo puts it back with the same id'
+);
+-- ---------------------------------------------------------------- prices in shopping mode
+update public.shopping_list_items set is_checked = true, price_paid_minor = 500000
+where id = current_setting('test.entry')::uuid;
+select is(
+  (select price_paid_minor from public.shopping_list_items where id = current_setting('test.entry')::uuid),
+  500000::bigint,
+  'the price paid for the line is kept with the checked entry'
+);
+select throws_ok(
+  $$ update public.shopping_list_items set price_paid_minor = 0 where id = current_setting('test.entry')::uuid $$,
+  '23514', null, 'a price is above zero (skip it instead)'
+);
+update public.shopping_list_items set is_checked = false where id = current_setting('test.entry')::uuid;
+select is(
+  (select price_paid_minor from public.shopping_list_items where id = current_setting('test.entry')::uuid),
+  null::bigint,
+  'unchecking clears the price'
 );
 select ok(
   public.is_kitchen_unit('derica') and not public.is_kitchen_unit('cup'),

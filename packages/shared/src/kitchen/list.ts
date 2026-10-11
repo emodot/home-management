@@ -14,6 +14,8 @@ export interface ShoppingListItem {
   notes: string | null
   isChecked: boolean
   checkedBy: string | null
+  /** What was paid for the whole line (entered in shopping mode), or null if skipped. */
+  pricePaidMinor: number | null
   source: ListItemSource
   /** Who put it on the list. */
   addedBy: string | null
@@ -63,4 +65,36 @@ export function mergeStoreTags(lists: (string | null | undefined)[][], limit = 8
     if (out.length === limit) break
   }
   return out
+}
+
+export interface ShoppingProgress {
+  /** Entries on the list. */
+  count: number
+  /** Entries checked off. */
+  checked: number
+  /** What's been paid so far: the prices entered for checked entries. */
+  totalMinor: number
+  /** Checked entries without a price. */
+  unpriced: number
+}
+
+export function shoppingProgress(
+  items: { isChecked: boolean; pricePaidMinor: number | null }[],
+): ShoppingProgress {
+  const checked = items.filter((item) => item.isChecked)
+  return {
+    count: items.length,
+    checked: checked.length,
+    totalMinor: checked.reduce((sum, item) => sum + (item.pricePaidMinor ?? 0), 0),
+    unpriced: checked.filter((item) => item.pricePaidMinor === null).length,
+  }
+}
+
+/**
+ * The price per one of `quantity` units, for a whole-line price ("₦5,000 for 2 kg" → ₦2,500 a
+ * kg). Null when there's no price or it's a single unit anyway.
+ */
+export function unitPriceMinor(lineMinor: number | null, quantity: number): number | null {
+  if (lineMinor === null || quantity <= 0 || quantity === 1) return null
+  return Math.round(lineMinor / quantity)
 }

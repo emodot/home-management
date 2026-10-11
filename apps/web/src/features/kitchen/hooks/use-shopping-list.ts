@@ -20,10 +20,13 @@ import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/use-household'
 import { errorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
+import {
+  isListChange,
+  listChangeKey,
+  refreshListWhenSettled,
+  type ListEntryUpdate,
+} from '../lib/offline'
 import { kitchenItemsKey, shoppingListKey, shoppingListQuery } from '../lib/queries'
-
-/** Every list change shares this key, so Realtime can hold back while one is in flight. */
-const listMutationKey = (householdId: string) => ['shopping-list-change', householdId]
 
 /**
  * The shopping list, live: changes anyone in the household makes show up here as they happen.
@@ -35,7 +38,10 @@ export function useShoppingList(householdId: string) {
   useEffect(() => {
     // Our own changes refresh the list when they settle; refreshing mid-change would flicker.
     const refresh = () => {
-      if (queryClient.isMutating({ mutationKey: listMutationKey(householdId) }) > 0) return
+      const changing = queryClient.isMutating({
+        predicate: (mutation) => isListChange(mutation.options.mutationKey, householdId),
+      })
+      if (changing > 0) return
       void queryClient.invalidateQueries({ queryKey: shoppingListKey(householdId) })
     }
     const channel = supabase
@@ -90,24 +96,26 @@ async function patchList(
   return { previous }
 }
 
-function useListMutationOptions(householdId: string) {
+function useListMutationOptions(householdId: string, kind: Parameters<typeof listChangeKey>[0]) {
   const queryClient = useQueryClient()
   return {
     queryClient,
-    mutationKey: listMutationKey(householdId),
+    mutationKey: listChangeKey(kind, householdId),
     onError: (error: unknown, _vars: unknown, snapshot: Snapshot | undefined) => {
       if (snapshot?.previous)
         queryClient.setQueryData(shoppingListKey(householdId), snapshot.previous)
       toast.error(`Couldn't update the list. ${errorMessage(error)}`)
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: shoppingListKey(householdId) }),
+    onSettled: () => {
+      refreshListWhenSettled(queryClient, householdId)
+    },
   }
 }
 
 /** Quick add: puts a catalogue item on the list (or reports that it's already there). */
 export function useAddListItem(householdId: string) {
   const user = useCurrentUser()
-  const { queryClient, ...options } = useListMutationOptions(householdId)
+  const { queryClient, ...options } = useListMutationOptions(householdId, 'add')
   return useMutation({
     ...options,
     mutationFn: (item: KitchenItem) => addToShoppingList(supabase, householdId, item),
@@ -128,6 +136,7 @@ export function useAddListItem(householdId: string) {
                 notes: null,
                 isChecked: false,
                 checkedBy: null,
+                pricePaidMinor: null,
                 source: 'manual',
                 addedBy: user.id,
                 createdAt: new Date().toISOString(),
@@ -139,7 +148,7 @@ export function useAddListItem(householdId: string) {
 
 /** Edits an entry; a new unit or store also becomes the item's default for next time. */
 export function useUpdateListItem(householdId: string) {
-  const { queryClient, ...options } = useListMutationOptions(householdId)
+  const { queryClient, ...options } = useListMutationOptions(householdId, 'edit')
   return useMutation({
     ...options,
     mutationFn: async ({ entry, patch }: { entry: ShoppingListItem; patch: ListItemPatch }) => {
@@ -159,22 +168,38 @@ export function useUpdateListItem(householdId: string) {
   })
 }
 
-export function useToggleListItem(householdId: string) {
-  const { queryClient, ...options } = useListMutationOptions(householdId)
-  return useMutation({
+/**
+ * Checks an entry off (or back on) and records the price paid. Works offline: see
+ * registerOfflineListChanges, which supplies the request and the retry rules.
+ */
+export function useUpdateListEntry(householdId: string) {
+  const { queryClient, ...options } = useListMutationOptions(householdId, 'update')
+  const mutation = useMutation<unknown, Error, ListEntryUpdate, Snapshot>({
     ...options,
-    mutationFn: ({ id, isChecked }: { id: string; isChecked: boolean }) =>
-      updateShoppingListItem(supabase, id, { isChecked }),
-    onMutate: ({ id, isChecked }) =>
+    onMutate: ({ id, patch }) =>
       patchList(queryClient, householdId, (list) =>
-        list.map((e) => (e.id === id ? { ...e, isChecked } : e)),
+        list.map((e) =>
+          e.id === id
+            ? {
+                ...e,
+                ...patch,
+                // Unchecking clears the price (the server does the same).
+                ...(patch.isChecked === false && { pricePaidMinor: null }),
+              }
+            : e,
+        ),
       ),
   })
+  return {
+    ...mutation,
+    update: (id: string, patch: ListEntryUpdate['patch']) =>
+      mutation.mutate({ householdId, id, patch }),
+  }
 }
 
 /** Removes an entry, with Undo in the toast. */
 export function useRemoveListItem(householdId: string) {
-  const { queryClient, ...options } = useListMutationOptions(householdId)
+  const { queryClient, ...options } = useListMutationOptions(householdId, 'remove')
   const restore = useMutation({
     ...options,
     mutationFn: (entry: ShoppingListItem) => restoreShoppingListItem(supabase, entry),

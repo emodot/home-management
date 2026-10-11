@@ -1,19 +1,12 @@
-import { createKitchenItem, searchKitchenItems, type KitchenItemInput } from '@home/shared'
+import { createKitchenItem, type KitchenItemInput } from '@home/shared'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { householdKey } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
-
-export const kitchenKey = (householdId: string) =>
-  [...householdKey(householdId), 'kitchen'] as const
-export const kitchenItemsKey = (householdId: string) =>
-  [...kitchenKey(householdId), 'items'] as const
+import { kitchenItemsKey, kitchenItemSearchQuery } from '../lib/queries'
 
 /** Catalogue items matching `search` (recent items when empty), for autocomplete. */
 export function useKitchenItems(householdId: string, search: string) {
   return useQuery({
-    queryKey: [...kitchenItemsKey(householdId), search.trim().toLowerCase()],
-    queryFn: () => searchKitchenItems(supabase, householdId, search),
-    staleTime: 5 * 60_000,
+    ...kitchenItemSearchQuery(householdId, search),
     placeholderData: keepPreviousData,
   })
 }

@@ -847,6 +847,7 @@ export type Database = {
           is_checked: boolean
           item_id: string
           notes: string | null
+          price_paid_minor: number | null
           quantity: number
           source: string
           source_ref: string | null
@@ -865,6 +866,7 @@ export type Database = {
           is_checked?: boolean
           item_id: string
           notes?: string | null
+          price_paid_minor?: number | null
           quantity?: number
           source?: string
           source_ref?: string | null
@@ -883,6 +885,7 @@ export type Database = {
           is_checked?: boolean
           item_id?: string
           notes?: string | null
+          price_paid_minor?: number | null
           quantity?: number
           source?: string
           source_ref?: string | null

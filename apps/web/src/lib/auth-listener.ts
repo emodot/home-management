@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import type { createBrowserRouter } from 'react-router'
+import { clearOfflineData } from './persist'
 import { supabase } from './supabase'
 
 type Router = ReturnType<typeof createBrowserRouter>
@@ -21,6 +22,7 @@ export function listenForAuthChanges(router: Router, queryClient: QueryClient) {
     // supabase-js holds its auth lock while this callback runs, so defer the work.
     setTimeout(() => {
       queryClient.clear()
+      void clearOfflineData()
       if (nextUserId) {
         void router.revalidate()
         return

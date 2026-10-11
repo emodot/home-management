@@ -1,4 +1,4 @@
-import { getKitchenItem, listShoppingList, recentStoreTags } from '@home/shared'
+import { getKitchenItem, listShoppingList, recentStoreTags, searchKitchenItems } from '@home/shared'
 import { queryOptions } from '@tanstack/react-query'
 import { householdKey } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
@@ -7,6 +7,14 @@ export const kitchenKey = (householdId: string) =>
   [...householdKey(householdId), 'kitchen'] as const
 export const kitchenItemsKey = (householdId: string) =>
   [...kitchenKey(householdId), 'items'] as const
+
+/** Catalogue items matching `search`, best first (recent items when it's empty). */
+export const kitchenItemSearchQuery = (householdId: string, search: string) =>
+  queryOptions({
+    queryKey: [...kitchenItemsKey(householdId), search.trim().toLowerCase()],
+    queryFn: () => searchKitchenItems(supabase, householdId, search),
+    staleTime: 5 * 60_000,
+  })
 
 /** One catalogue item (null if it isn't this household's). */
 export const kitchenItemQuery = (householdId: string, itemId: string) =>
@@ -17,6 +25,10 @@ export const kitchenItemQuery = (householdId: string, itemId: string) =>
 
 export const shoppingListKey = (householdId: string) =>
   [...kitchenKey(householdId), 'list'] as const
+
+/** ['household', id, 'kitchen', 'list'] */
+export const isShoppingListKey = (key: readonly unknown[]) =>
+  key[0] === 'household' && key[2] === 'kitchen' && key[3] === 'list' && key.length === 4
 
 /** The shared shopping list. Kept fresh by Realtime (see useShoppingList) and on refocus. */
 export const shoppingListQuery = (householdId: string) =>

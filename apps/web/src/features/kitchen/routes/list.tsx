@@ -1,21 +1,23 @@
 import { groupByStore, type ShoppingListItem } from '@home/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ShoppingBasketIcon, StoreIcon } from 'lucide-react'
+import { ShoppingBasketIcon, ShoppingCartIcon, StoreIcon } from 'lucide-react'
+import { Link } from 'react-router'
 import { useEffect, useState } from 'react'
 import { EmptyState } from '@/components/empty-state'
+import { Button } from '@/components/ui/button'
 import { useActiveHousehold, useCurrentUser } from '@/hooks/use-household'
 import { membersQuery } from '@/lib/queries'
 import { EditListItemSheet } from '../components/edit-list-item-sheet'
 import { ListItemRow } from '../components/list-item-row'
 import { QuickAddBar } from '../components/quick-add-bar'
-import { useShoppingList, useToggleListItem } from '../hooks/use-shopping-list'
+import { useShoppingList, useUpdateListEntry } from '../hooks/use-shopping-list'
 
 export function ShoppingListPage() {
   const household = useActiveHousehold()
   const user = useCurrentUser()
   const list = useShoppingList(household.id)
   const members = useSuspenseQuery(membersQuery(household.id)).data
-  const toggle = useToggleListItem(household.id)
+  const entries = useUpdateListEntry(household.id)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [highlighted, setHighlighted] = useState<string | null>(null)
 
@@ -49,11 +51,19 @@ export function ShoppingListPage() {
         </EmptyState>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground" aria-live="polite">
-            {toBuy === 0
-              ? 'Everything is checked off.'
-              : `${toBuy} ${toBuy === 1 ? 'thing' : 'things'} to buy`}
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground" aria-live="polite">
+              {toBuy === 0
+                ? 'Everything is checked off.'
+                : `${toBuy} ${toBuy === 1 ? 'thing' : 'things'} to buy`}
+            </p>
+            <Button asChild size="sm">
+              <Link to="/kitchen/list/shop">
+                <ShoppingCartIcon aria-hidden />
+                Start shopping
+              </Link>
+            </Button>
+          </div>
           {groups.map((group) => (
             <section key={group.store ?? ''} className="flex flex-col gap-2">
               <h2 className="flex items-center gap-1.5 text-sm font-semibold">
@@ -67,7 +77,7 @@ export function ShoppingListPage() {
                     entry={entry}
                     addedBy={firstName(entry.addedBy)}
                     highlighted={entry.id === highlighted}
-                    onToggle={(isChecked) => toggle.mutate({ id: entry.id, isChecked })}
+                    onToggle={(isChecked) => entries.update(entry.id, { isChecked })}
                     onEdit={() => setEditingId(entry.id)}
                   />
                 ))}

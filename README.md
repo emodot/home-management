@@ -119,6 +119,14 @@ and store it's usually bought in. The shopping list (`shopping_list_items`) hold
 most once and updates live for everyone through Supabase Realtime (the table is in the
 `supabase_realtime` publication). Changing an entry's unit or store makes it the item's default.
 
+Shopping mode (`/kitchen/list/shop`, full screen) asks for the price of each line as it's checked
+off; that whole-line price is what's stored (`price_paid_minor`), and a per-unit price is shown
+where the quantity allows. It works without signal once open: checking off and pricing are applied
+on screen at once and queued, one at a time, until the connection is back. The list and any queued
+changes are saved on the device (IndexedDB, `apps/web/src/lib/persist.ts`), so changes made offline
+are sent even if the app is closed first; signing out clears them. Opening the app from cold with no
+signal isn't supported.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.
@@ -174,7 +182,7 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 
 `pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
 household and an admin invite → the household admin signs up through it → expense with receipt →
-invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live → task →
+invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live, including changes made in shopping mode while offline → task →
 complete → scan a receipt PDF to log the expense → scan two at once → profile and password change → sign back in. It needs `pnpm db:start`, the
 edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
 pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`, default

@@ -40,3 +40,19 @@ export class AppError extends Error {
 export interface ErrorBody {
   error: { code: AppErrorCode; message: string }
 }
+
+/**
+ * True when a request never reached the server (no signal, DNS, connection dropped), as opposed
+ * to the server refusing it. supabase-js reports these as errors whose message comes from fetch:
+ * "Failed to fetch" (Chrome), "NetworkError when attempting to fetch resource." (Firefox), "Load
+ * failed" (Safari).
+ */
+export function isNetworkError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'object' && error !== null && 'message' in error
+        ? String(error.message)
+        : ''
+  return /failed to fetch|networkerror|load failed|network request failed/i.test(message)
+}

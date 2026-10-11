@@ -120,6 +120,7 @@ export function toShoppingListItem(row: ListRow): ShoppingListItem {
     notes: row.notes,
     isChecked: row.is_checked,
     checkedBy: row.checked_by,
+    pricePaidMinor: row.price_paid_minor,
     source: row.source as ListItemSource,
     addedBy: row.created_by,
     createdAt: row.created_at,
@@ -192,10 +193,16 @@ export async function addToShoppingList(
   return { status: 'unchecked', entry: toShoppingListItem(reopened) }
 }
 
+/** Any change to an entry: its details, checking it off, or the price paid. */
+export type ListEntryPatch = Partial<ListItemPatch> & {
+  isChecked?: boolean
+  pricePaidMinor?: number | null
+}
+
 export async function updateShoppingListItem(
   client: HomeClient,
   id: string,
-  patch: Partial<ListItemPatch> & { isChecked?: boolean },
+  patch: ListEntryPatch,
 ): Promise<void> {
   unwrap(
     await client
@@ -206,6 +213,7 @@ export async function updateShoppingListItem(
         ...(patch.storeTag !== undefined && { store_tag: patch.storeTag }),
         ...(patch.notes !== undefined && { notes: patch.notes }),
         ...(patch.isChecked !== undefined && { is_checked: patch.isChecked }),
+        ...(patch.pricePaidMinor !== undefined && { price_paid_minor: patch.pricePaidMinor }),
       })
       .eq('id', id),
   )
@@ -230,6 +238,7 @@ export async function restoreShoppingListItem(
       store_tag: entry.storeTag,
       notes: entry.notes,
       is_checked: entry.isChecked,
+      price_paid_minor: entry.pricePaidMinor,
       source: entry.source,
     }),
   )
