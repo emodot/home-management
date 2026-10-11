@@ -11,6 +11,7 @@ import {
 } from '@home/shared'
 import { redirect, type LoaderFunctionArgs } from 'react-router'
 import {
+  gasRefillsQuery,
   householdPricesQuery,
   itemPricesQuery,
   kitchenItemQuery,
@@ -529,6 +530,7 @@ export async function kitchenOverviewLoader({ request }: LoaderFunctionArgs) {
       queryClient.query(categoryTotalsQuery(householdId, monthRange(todayIn(timezone)))),
       queryClient.query(shoppingListQuery(householdId)),
       queryClient.query(pantryQuery(householdId)),
+      queryClient.query(gasRefillsQuery(householdId)),
     ])
   }
   return null
@@ -583,5 +585,16 @@ export async function kitchenPriceItemLoader({ request, params }: LoaderFunction
     queryClient.query(kitchenItemQuery(householdId, itemId)),
     queryClient.query(householdPricesQuery(householdId)),
   ])
+  return null
+}
+
+export async function kitchenGasLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(gasRefillsQuery(householdId)),
+      queryClient.query(membersQuery(householdId)),
+    ])
+  }
   return null
 }

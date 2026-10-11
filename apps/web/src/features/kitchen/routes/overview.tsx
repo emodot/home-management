@@ -1,10 +1,13 @@
 import {
   foodCategoryIds,
   foodSpendMinor,
+  formatDate,
   formatMoney,
+  gasStatus,
   isLowStock,
   isOut,
   monthRange,
+  predictNextRefill,
   todayIn,
   USE_SOON_DAYS,
   itemsToUseSoon,
@@ -23,7 +26,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { categoriesQuery, categoryTotalsQuery } from '@/lib/queries'
-import { pantryQuery, shoppingListQuery } from '../lib/queries'
+import { gasRefillsQuery, pantryQuery, shoppingListQuery } from '../lib/queries'
 
 function OverviewCard({
   to,
@@ -74,6 +77,9 @@ export function KitchenOverviewPage() {
   const pantry = useSuspenseQuery(pantryQuery(household.id)).data
   const soon = itemsToUseSoon(pantry, todayIn(household.timezone))
   const low = pantry.filter((i) => isOut(i) || isLowStock(i))
+  const refills = useSuspenseQuery(gasRefillsQuery(household.id)).data
+  const gas = predictNextRefill(refills)
+  const gasLeft = gas ? gasStatus(gas, todayIn(household.timezone)).daysLeft : null
   const foodSpend = foodSpendMinor(totals, categories)
   const [groceries] = foodCategoryIds(categories)
   const spendLink = groceries
@@ -124,9 +130,21 @@ export function KitchenOverviewPage() {
         to="/kitchen/gas"
         icon={FlameIcon}
         title="Cooking gas"
-        hint="Log your last refill to start tracking"
+        hint={
+          refills.length === 0
+            ? 'Log your last refill to start tracking'
+            : gas
+              ? `Next refill around ${formatDate(gas.nextOn)}`
+              : 'Log the next refill to see a prediction'
+        }
       >
-        Not tracked
+        {gasLeft === null
+          ? refills.length === 0
+            ? 'Not tracked'
+            : 'Tracking'
+          : gasLeft < 0
+            ? `${-gasLeft} ${gasLeft === -1 ? 'day' : 'days'} overdue`
+            : `${gasLeft} ${gasLeft === 1 ? 'day' : 'days'} left`}
       </OverviewCard>
       <OverviewCard
         to={spendLink}

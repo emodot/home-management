@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -232,6 +232,25 @@ test('super-admin creates a household → its admin joins → expense with recei
     await tomatoes.click()
     await expect(page.getByRole('group', { name: 'Price per piece' })).toBeVisible()
     await expect(page.getByRole('table')).toContainText('₦2,500')
+  })
+
+  await test.step('cooking gas: two refills predict the next one, with a reminder task', async () => {
+    const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10)
+    await page.goto('/kitchen/gas')
+    await expect(page.getByText('Log your last refill to start tracking')).toBeVisible()
+    await page.getByLabel('Refilled on').fill(daysAgo(40))
+    await page.getByLabel('Amount paid').fill('18000')
+    await page.getByRole('button', { name: 'Log refill' }).click()
+    await expect(page.getByText(/^Last refilled/)).toBeVisible()
+
+    // A second refill today: 12.5 kg lasted about 40 days, so about 40 days left.
+    await page.getByRole('button', { name: 'Log a refill' }).click()
+    await page.getByLabel('Amount paid').fill('19000')
+    await page.getByRole('button', { name: 'Log refill' }).click()
+    await expect(page.getByText(/Reminder set for/)).toBeVisible()
+    await expect(page.getByText(/^4\d days left$/)).toBeVisible()
+    await page.goto('/tasks')
+    await expect(page.getByText('Refill cooking gas')).toBeVisible()
   })
 
   await test.step('create a task', async () => {

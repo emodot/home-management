@@ -356,6 +356,65 @@ export type Database = {
           },
         ]
       }
+      gas_refills: {
+        Row: {
+          amount_minor: number
+          created_at: string
+          created_by: string | null
+          cylinder_kg: number
+          expense_id: string | null
+          household_id: string
+          id: string
+          provider_id: string | null
+          refilled_on: string
+        }
+        Insert: {
+          amount_minor: number
+          created_at?: string
+          created_by?: string | null
+          cylinder_kg: number
+          expense_id?: string | null
+          household_id: string
+          id?: string
+          provider_id?: string | null
+          refilled_on: string
+        }
+        Update: {
+          amount_minor?: number
+          created_at?: string
+          created_by?: string | null
+          cylinder_kg?: number
+          expense_id?: string | null
+          household_id?: string
+          id?: string
+          provider_id?: string | null
+          refilled_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'gas_refills_household_id_provider_id_fkey'
+            columns: ['household_id', 'provider_id']
+            isOneToOne: false
+            referencedRelation: 'providers'
+            referencedColumns: ['household_id', 'id']
+          },
+        ]
+      }
+      gas_reminders: {
+        Row: {
+          household_id: string
+          task_id: string
+        }
+        Insert: {
+          household_id: string
+          task_id: string
+        }
+        Update: {
+          household_id?: string
+          task_id?: string
+        }
+        Relationships: []
+      }
       household_members: {
         Row: {
           household_id: string
@@ -1443,6 +1502,22 @@ export type Database = {
       kitchen_convert: {
         Args: { p_from: string; p_quantity: number; p_to: string }
         Returns: number
+      }
+      log_gas_refill: {
+        Args: {
+          p_amount_minor: number
+          p_cylinder_kg: number
+          p_household_id: string
+          p_paid_by: string
+          p_provider_id?: string
+          p_refilled_on: string
+          p_reminder_on?: string
+        }
+        Returns: Json
+      }
+      remove_gas_refill: {
+        Args: { p_refill_id: string }
+        Returns: undefined
       }
       is_household_admin_of: {
         Args: { hid: string; uid: string }

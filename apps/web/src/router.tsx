@@ -27,6 +27,7 @@ import {
   recurringIncomeLoader,
   insightsLoader,
   inviteLoader,
+  kitchenGasLoader,
   kitchenListLoader,
   kitchenPantryItemLoader,
   kitchenPantryLoader,
@@ -235,7 +236,11 @@ export const router = createBrowserRouter([
                         loader: kitchenPriceItemLoader,
                         lazy: page(routes.kitchenItem, 'PriceHistoryPage'),
                       },
-                      { path: 'gas', lazy: page(routes.kitchenGas, 'GasPage') },
+                      {
+                        path: 'gas',
+                        loader: kitchenGasLoader,
+                        lazy: page(routes.kitchenGas, 'GasPage'),
+                      },
                     ],
                   },
                   // Shopping mode leaves out the module's tabs.

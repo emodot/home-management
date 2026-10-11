@@ -43,12 +43,12 @@ select is(
    where household_id = current_setting('test.hid')::uuid),
   array['Utilities', 'Electricity', 'Fuel & Generator', 'Water', 'Internet & TV',
         'Repairs & Maintenance', 'Cleaning', 'Security', 'Estate Dues & Service Charge', 'Rent',
-        'Groceries', 'Furniture & Appliances', 'Other'],
+        'Groceries', 'Cooking Gas', 'Furniture & Appliances', 'Other'],
   'new households get the default categories in order'
 );
 select is(
   (select count(*)::int from public.expense_categories),
-  13,
+  14,
   'members only see their own household''s categories'
 );
 select set_config('test.cat', (
@@ -58,12 +58,12 @@ select set_config('test.cat', (
 
 select lives_ok(
   $$ insert into public.expense_categories (household_id, name, icon, sort_order)
-     values (current_setting('test.hid')::uuid, 'School fees', 'graduation-cap', 14) $$,
+     values (current_setting('test.hid')::uuid, 'School fees', 'graduation-cap', 15) $$,
   'members can add categories'
 );
 select throws_ok(
   $$ insert into public.expense_categories (household_id, name, sort_order)
-     values (current_setting('test.hid')::uuid, 'school FEES', 15) $$,
+     values (current_setting('test.hid')::uuid, 'school FEES', 16) $$,
   '23505', null, 'category names are unique per household, ignoring case'
 );
 select throws_ok(

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { amountInputSchema } from '../schemas/expenses.ts'
 import { normalizeItemName } from './normalize.ts'
 import { PANTRY_LOCATIONS } from './pantry.ts'
 import { KITCHEN_UNITS } from './units.ts'
@@ -99,3 +100,26 @@ export const pantryItemFormSchema = z.object({
 })
 export type PantryItemFormInput = z.input<typeof pantryItemFormSchema>
 export type PantryItemFormValues = z.output<typeof pantryItemFormSchema>
+
+/** Logging a cooking gas refill. */
+export const gasRefillFormSchema = z.object({
+  refilledOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose a date'),
+  cylinderKg: z
+    .string()
+    .trim()
+    .min(1, 'Enter the cylinder size')
+    .transform((value, ctx) => {
+      const kg = Number(value.replace(',', '.'))
+      if (!Number.isFinite(kg) || kg <= 0 || kg > 100) {
+        ctx.addIssue({ code: 'custom', message: 'Enter the size in kg, like 12.5' })
+        return z.NEVER
+      }
+      return Math.round(kg * 100) / 100
+    }),
+  amount: amountInputSchema,
+  paidBy: z.uuid(),
+  providerId: z.uuid().nullable(),
+  addReminder: z.boolean(),
+})
+export type GasRefillFormInput = z.input<typeof gasRefillFormSchema>
+export type GasRefillFormValues = z.output<typeof gasRefillFormSchema>

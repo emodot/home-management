@@ -1,5 +1,6 @@
 import {
   getKitchenItem,
+  listGasRefills,
   listHouseholdPrices,
   listItemPrices,
   listPantry,
@@ -78,4 +79,13 @@ export const householdPricesQuery = (householdId: string) =>
   queryOptions({
     queryKey: [...pricesKey(householdId), 'all'],
     queryFn: () => listHouseholdPrices(supabase, householdId),
+  })
+
+export const gasKey = (householdId: string) => [...kitchenKey(householdId), 'gas'] as const
+
+/** Cooking gas refills, most recent first. */
+export const gasRefillsQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: gasKey(householdId),
+    queryFn: () => listGasRefills(supabase, householdId),
   })

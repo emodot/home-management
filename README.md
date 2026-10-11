@@ -149,6 +149,13 @@ of the per-unit price by store (`price-chart.tsx`, hand-drawn SVG: up to four st
 the `--series-*` tokens, a crosshair that also works with the arrow keys) above the full purchases
 table, which is the chart's text alternative.
 
+**Cooking gas** logs refills (date, cylinder kg, amount, vendor) through `log_gas_refill`, which
+also records a "Cooking Gas" expense — a default category since this milestone, added to existing
+households after Groceries — and, if asked, keeps one "Refill cooking gas" task (remembered in
+`gas_reminders`) due 3 days before the predicted refill. The prediction (`kitchen/gas.ts`) is the
+mean, over the last 3 intervals, of days between refills per kg of the earlier cylinder, times the
+last cylinder's kg. Removing a refill (`remove_gas_refill`) sends its expense to Recently deleted.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.
@@ -204,7 +211,7 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 
 `pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
 household and an admin invite → the household admin signs up through it → expense with receipt →
-invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live, including changes made in shopping mode while offline, and finishing the trip into an expense → running low in the pantry adds to the list once → a second trip shows the price change → task →
+invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live, including changes made in shopping mode while offline, and finishing the trip into an expense → running low in the pantry adds to the list once → a second trip shows the price change → two gas refills predict the next with a reminder task → task →
 complete → scan a receipt PDF to log the expense → scan two at once → profile and password change → sign back in. It needs `pnpm db:start`, the
 edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
 pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`, default

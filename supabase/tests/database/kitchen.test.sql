@@ -1,6 +1,6 @@
 -- My Kitchen: the item catalogue is shared by the household's members and kept free of duplicates.
 begin;
-select plan(51);
+select plan(64);
 
 create function pg_temp.create_household(p_name text)
 returns public.households
@@ -354,6 +354,84 @@ select is(
   'raising it past the stock does'
 );
 
+-- ---------------------------------------------------------------- cooking gas
+select is(
+  (select count(*)::int from public.expense_categories
+   where household_id = current_setting('test.hid')::uuid and name = 'Cooking Gas' and parent_id is null),
+  1,
+  'households have a Cooking Gas category'
+);
+select ok(
+  (select g.sort_order = c.sort_order + 1 from public.expense_categories g, public.expense_categories c
+   where g.household_id = current_setting('test.hid')::uuid and g.name = 'Cooking Gas'
+     and c.household_id = g.household_id and c.name = 'Groceries'),
+  'right after Groceries'
+);
+select set_config('test.gas1', public.log_gas_refill(
+  current_setting('test.hid')::uuid, '2026-08-01', 12.5, 1800000, auth.uid())::text, true);
+select is(
+  (select e.amount_minor || ' ' || c.name || ' ' || e.description from public.expenses e
+   join public.expense_categories c on c.id = e.category_id
+   where e.id = (current_setting('test.gas1')::jsonb ->> 'expense_id')::uuid),
+  '1800000 Cooking Gas Cooking gas refill (12.5 kg)',
+  'a refill records a Cooking Gas expense'
+);
+select is(
+  (select cylinder_kg::text || ' ' || refilled_on from public.gas_refills
+   where id = (current_setting('test.gas1')::jsonb ->> 'refill_id')::uuid),
+  '12.50 2026-08-01',
+  'and the refill itself'
+);
+select is(current_setting('test.gas1')::jsonb ->> 'task_id', null, 'no reminder unless asked');
+select set_config('test.gas2', public.log_gas_refill(
+  current_setting('test.hid')::uuid, '2026-09-15', 6, 1000000, auth.uid(), null, '2099-10-20')::text, true);
+select is(
+  (select title || ' ' || schedule_type || ' ' || next_due_on || ' ' || is_active from public.tasks
+   where id = (current_setting('test.gas2')::jsonb ->> 'task_id')::uuid),
+  'Refill cooking gas once 2099-10-20 true',
+  'asking for a reminder creates a one-off task due then'
+);
+update public.tasks set is_active = false where id = (current_setting('test.gas2')::jsonb ->> 'task_id')::uuid;
+select set_config('test.gas3', public.log_gas_refill(
+  current_setting('test.hid')::uuid, '2026-10-20', 12.5, 1900000, auth.uid(), null, '2099-12-01')::text, true);
+select is(
+  current_setting('test.gas3')::jsonb ->> 'task_id',
+  current_setting('test.gas2')::jsonb ->> 'task_id',
+  'the next refill moves the same task'
+);
+select is(
+  (select next_due_on || ' ' || is_active from public.tasks
+   where id = (current_setting('test.gas3')::jsonb ->> 'task_id')::uuid),
+  '2099-12-01 true',
+  'to the new date, active again'
+);
+select set_config('test.gas4', public.log_gas_refill(
+  current_setting('test.hid')::uuid, '2026-10-21', 3, 400000, auth.uid(), null, '2000-01-01')::text, true);
+select is(
+  (select next_due_on from public.tasks where id = (current_setting('test.gas4')::jsonb ->> 'task_id')::uuid),
+  (select (now() at time zone 'Africa/Lagos')::date),
+  'a reminder date already past becomes today'
+);
+select is(
+  (select (cylinder_kg::float8)::text from public.gas_refills where id = (current_setting('test.gas4')::jsonb ->> 'refill_id')::uuid),
+  '3',
+  '(whole sizes stay whole)'
+);
+select lives_ok(
+  $$ select public.remove_gas_refill((current_setting('test.gas4')::jsonb ->> 'refill_id')::uuid) $$,
+  'a refill logged by mistake can be removed'
+);
+select ok(
+  (select deleted_at is not null from public.expenses where id = (current_setting('test.gas4')::jsonb ->> 'expense_id')::uuid)
+  and not exists (select 1 from public.gas_refills where id = (current_setting('test.gas4')::jsonb ->> 'refill_id')::uuid),
+  'with its expense moved to Recently deleted'
+);
+select throws_ok(
+  $$ insert into public.gas_refills (household_id, refilled_on, cylinder_kg, amount_minor)
+     values (current_setting('test.hid')::uuid, '2026-10-01', 12.5, 100) $$,
+  '42501', null, 'refills are only written by logging them'
+);
+
 select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
 select throws_ok(
   $$ select public.finish_shopping_trip(current_setting('test.hid')::uuid, '[{"id": "00000000-0000-0000-0000-000000000000"}]',
@@ -361,7 +439,8 @@ select throws_ok(
   '42501', null, 'other households can''t finish this one''s trips'
 );
 select is_empty(
-  $$ select 1 from public.item_prices union all select 1 from public.shopping_trips union all select 1 from public.pantry_items $$,
+  $$ select 1 from public.item_prices union all select 1 from public.shopping_trips union all select 1 from public.pantry_items
+     union all select 1 from public.gas_refills $$,
   'or see its prices, trips and pantry'
 );
 
