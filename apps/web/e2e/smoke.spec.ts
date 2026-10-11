@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history', async ({
   page,
   browser,
 }) => {
@@ -213,6 +213,25 @@ test('super-admin creates a household → its admin joins → expense with recei
     await page.goto('/kitchen/list')
     await expect(page.getByLabel(/^Bought /)).toHaveCount(1)
     await expect(page.getByText(/from pantry/)).toBeVisible()
+  })
+
+  await test.step('prices: a second trip shows how the price moved', async () => {
+    // Running low put tomatoes back on the list; buy them again, dearer.
+    await page.goto('/kitchen/list/shop')
+    await page.getByLabel('Bought Tomatoes').click()
+    await page.getByLabel('Price paid').fill('3000')
+    await page.getByRole('button', { name: 'Save price' }).click()
+    await page.getByRole('button', { name: 'Finish', exact: true }).click()
+    await page.getByRole('button', { name: 'Add ₦3,000 to expenses' }).click()
+    await expect(page.getByText('₦3,000 added to expenses')).toBeVisible()
+
+    await page.goto('/kitchen/prices')
+    const tomatoes = page.getByRole('link', { name: /^Tomatoes/ })
+    await expect(tomatoes).toContainText('₦3,000')
+    await expect(tomatoes).toContainText('20%')
+    await tomatoes.click()
+    await expect(page.getByRole('group', { name: 'Price per piece' })).toBeVisible()
+    await expect(page.getByRole('table')).toContainText('₦2,500')
   })
 
   await test.step('create a task', async () => {

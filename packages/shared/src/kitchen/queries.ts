@@ -4,6 +4,7 @@ import { escapeLike } from '../queries/expenses.ts'
 import { itemSearchKey, normalizeItemName } from './normalize.ts'
 import { mergeStoreTags, type ListItemSource, type ShoppingListItem } from './list.ts'
 import { isPantryLocation, type PantryItem, type PantryLocation } from './pantry.ts'
+import type { PricePoint } from './prices.ts'
 import { kitchenItemInputSchema, type KitchenItemInput, type ListItemPatch } from './schemas.ts'
 import { isKitchenUnit, type KitchenUnit } from './units.ts'
 
@@ -437,5 +438,34 @@ export async function listItemPrices(
     priceMinor: r.price_minor,
     unitPriceMinor: r.unit_price_minor,
     storeTag: r.store_tag,
+  }))
+}
+
+/** Every purchase with a price, for the price tracker (most recent first). */
+export async function listHouseholdPrices(
+  client: HomeClient,
+  householdId: string,
+  limit = 2000,
+): Promise<PricePoint[]> {
+  const rows = unwrap(
+    await client
+      .from('item_prices')
+      .select('*, item:kitchen_items(name)')
+      .eq('household_id', householdId)
+      .order('bought_on', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit),
+  )
+  return rows.map((r) => ({
+    id: r.id,
+    itemId: r.item_id,
+    name: r.item.name,
+    boughtOn: r.bought_on,
+    quantity: typeof r.quantity === 'string' ? Number(r.quantity) : r.quantity,
+    unit: isKitchenUnit(r.unit) ? r.unit : 'pcs',
+    priceMinor: r.price_minor,
+    unitPriceMinor: r.unit_price_minor,
+    storeTag: r.store_tag,
+    createdAt: r.created_at,
   }))
 }

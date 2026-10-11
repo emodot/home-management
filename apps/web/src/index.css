@@ -45,6 +45,10 @@
   --color-status-critical: var(--status-critical);
   --color-delta-good: var(--delta-good);
   --color-delta-bad: var(--delta-bad);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-4: var(--series-4);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -108,6 +112,12 @@
   --status-critical: #d03b3b;
   --delta-good: #006300;
   --delta-bad: #b42323;
+  /* Categorical chart colours (one per store), validated for colour-blind separation on this
+     surface; slots 3 and 4 are below 3:1, so charts using them also carry a legend and a table. */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
 }
 
 .dark {
@@ -151,6 +161,10 @@
   --status-critical: #d03b3b;
   --delta-good: #0ca30c;
   --delta-bad: #e66767;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
 }
 
 /* A list on a soft tinted surface with hairlines between rows, instead of an outlined box. */

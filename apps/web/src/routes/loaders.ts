@@ -11,6 +11,7 @@ import {
 } from '@home/shared'
 import { redirect, type LoaderFunctionArgs } from 'react-router'
 import {
+  householdPricesQuery,
   itemPricesQuery,
   kitchenItemQuery,
   pantryQuery,
@@ -533,13 +534,6 @@ export async function kitchenOverviewLoader({ request }: LoaderFunctionArgs) {
   return null
 }
 
-export async function kitchenItemLoader({ request, params }: LoaderFunctionArgs) {
-  const itemId = params.itemId ?? ''
-  const householdId = await householdOfRecord(request, 'kitchen_items', itemId)
-  await queryClient.query(kitchenItemQuery(householdId, itemId))
-  return null
-}
-
 export async function kitchenListLoader({ request }: LoaderFunctionArgs) {
   const { householdId } = await requireHousehold(request)
   if (householdId) {
@@ -573,5 +567,21 @@ export async function kitchenPantryItemLoader({ request, params }: LoaderFunctio
   ])
   // Prices are below the fold: start loading them without holding up the page.
   queryClient.query(itemPricesQuery(householdId, itemId)).catch(() => undefined)
+  return null
+}
+
+export async function kitchenPricesLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) await queryClient.query(householdPricesQuery(householdId))
+  return null
+}
+
+export async function kitchenPriceItemLoader({ request, params }: LoaderFunctionArgs) {
+  const itemId = params.itemId ?? ''
+  const householdId = await householdOfRecord(request, 'kitchen_items', itemId)
+  await Promise.all([
+    queryClient.query(kitchenItemQuery(householdId, itemId)),
+    queryClient.query(householdPricesQuery(householdId)),
+  ])
   return null
 }

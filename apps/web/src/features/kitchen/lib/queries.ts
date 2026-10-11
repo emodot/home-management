@@ -1,5 +1,6 @@
 import {
   getKitchenItem,
+  listHouseholdPrices,
   listItemPrices,
   listPantry,
   listShoppingList,
@@ -70,4 +71,11 @@ export const itemPricesQuery = (householdId: string, itemId: string) =>
   queryOptions({
     queryKey: [...pricesKey(householdId), 'item', itemId],
     queryFn: () => listItemPrices(supabase, itemId),
+  })
+
+/** Every priced purchase in the household, for the price tracker. */
+export const householdPricesQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...pricesKey(householdId), 'all'],
+    queryFn: () => listHouseholdPrices(supabase, householdId),
   })

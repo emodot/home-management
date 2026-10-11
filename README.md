@@ -142,6 +142,13 @@ item can have a low-stock threshold: when its stock falls to or below it, a data
 (`pantry_low_stock_to_list`) puts it on the shopping list with its usual unit and store, once — if
 it's already there, nothing changes.
 
+**Prices** lists every item bought with a price: its latest per-unit price, the store, and the change
+since the previous purchase in the same unit (prices in different units aren't compared), sortable
+by biggest increase. An item's page shows the cheapest store over the last 90 days and a line chart
+of the per-unit price by store (`price-chart.tsx`, hand-drawn SVG: up to four stores, colours from
+the `--series-*` tokens, a crosshair that also works with the arrow keys) above the full purchases
+table, which is the chart's text alternative.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.
@@ -197,7 +204,7 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 
 `pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
 household and an admin invite → the household admin signs up through it → expense with receipt →
-invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live, including changes made in shopping mode while offline, and finishing the trip into an expense → running low in the pantry adds to the list once → task →
+invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live, including changes made in shopping mode while offline, and finishing the trip into an expense → running low in the pantry adds to the list once → a second trip shows the price change → task →
 complete → scan a receipt PDF to log the expense → scan two at once → profile and password change → sign back in. It needs `pnpm db:start`, the
 edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`
 pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`, default
