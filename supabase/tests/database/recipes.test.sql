@@ -1,7 +1,7 @@
 -- My Kitchen recipes: shared by the household's members, saved with their ingredients and steps in
 -- one go, with a private photo.
 begin;
-select plan(25);
+select plan(34);
 
 create function pg_temp.create_household(p_name text)
 returns public.households
@@ -172,6 +172,68 @@ select is(
   'merging catalogue items moves recipe ingredients to the item kept'
 );
 
+-- ---------------------------------------------------------------- missing ingredients onto the list
+-- Already on the list: tomatoes (1 kg) and salt (by the piece).
+insert into public.shopping_list_items (household_id, item_id, quantity, unit) values
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'tomato'), 1, 'kg'),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'salt'), 1, 'pcs');
+select is(
+  public.add_recipe_to_list(current_setting('test.hid')::uuid, current_setting('test.r2')::uuid,
+    jsonb_build_array(
+      jsonb_build_object('item_id', (select id from ids where n = 'rice'), 'quantity', 2, 'unit', 'kg'),
+      jsonb_build_object('item_id', (select id from ids where n = 'tomato'), 'quantity', 500, 'unit', 'g'),
+      jsonb_build_object('item_id', (select id from ids where n = 'salt'), 'quantity', 100, 'unit', 'g')
+    )) -> 0 ->> 'status',
+  'added',
+  'what isn''t on the list is added'
+);
+select is(
+  (select quantity || ' ' || unit || ' ' || source || ' ' || (source_ref = current_setting('test.r2')::uuid)
+   from public.shopping_list_items where item_id = (select id from ids where n = 'rice')),
+  '2.00 kg recipe true',
+  'remembering the recipe it''s for'
+);
+select is(
+  (select string_agg(x ->> 'status', ' ') from jsonb_array_elements(public.add_recipe_to_list(
+    current_setting('test.hid')::uuid, current_setting('test.r2')::uuid,
+    jsonb_build_array(
+      jsonb_build_object('item_id', (select id from ids where n = 'rice'), 'quantity', 1500, 'unit', 'g'),
+      jsonb_build_object('item_id', (select id from ids where n = 'tomato'), 'quantity', 2.5, 'unit', 'kg'),
+      jsonb_build_object('item_id', (select id from ids where n = 'salt'), 'quantity', 100, 'unit', 'g')
+    ))) x),
+  'covered topped_up kept',
+  'entries already on the list are covered, topped up where the units convert, or kept'
+);
+select is(
+  (select quantity || ' ' || unit || ' ' || source from public.shopping_list_items
+   where item_id = (select id from ids where n = 'tomato')),
+  '2.50 kg manual',
+  'a topped-up entry keeps its unit and source'
+);
+update public.shopping_list_items set is_checked = true where item_id = (select id from ids where n = 'tomato');
+select is(
+  (select string_agg(x ->> 'status', ' ') from jsonb_array_elements(public.add_recipe_to_list(
+    current_setting('test.hid')::uuid, current_setting('test.r2')::uuid,
+    jsonb_build_array(jsonb_build_object('item_id', (select id from ids where n = 'tomato'), 'quantity', 3, 'unit', 'kg'))
+    )) x),
+  'topped_up',
+  'a checked-off entry that''s short is topped up'
+);
+select is(
+  (select quantity || ' ' || is_checked from public.shopping_list_items where item_id = (select id from ids where n = 'tomato')),
+  '3.00 false',
+  'and goes back on the list'
+);
+select is(
+  (select count(*)::int from public.shopping_list_items where household_id = current_setting('test.hid')::uuid),
+  3,
+  'and no item is ever on the list twice'
+);
+select throws_ok(
+  $$ select public.add_recipe_to_list(current_setting('test.hid')::uuid, gen_random_uuid(), '[]') $$,
+  'P0002', null, 'the recipe must be this household''s'
+);
+
 -- ---------------------------------------------------------------- other households
 select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
 select is_empty(
@@ -191,6 +253,10 @@ select throws_ok(
   $$ insert into storage.objects (bucket_id, name)
      values ('recipe-photos', current_setting('test.hid') || '/' || current_setting('test.rid') || '/c.jpg') $$,
   '42501', null, 'or upload photos to them'
+);
+select throws_ok(
+  $$ select public.add_recipe_to_list(current_setting('test.hid')::uuid, current_setting('test.r2')::uuid, '[]') $$,
+  '42501', null, 'or add their recipes to the list'
 );
 delete from public.recipes where id = current_setting('test.rid')::uuid;
 

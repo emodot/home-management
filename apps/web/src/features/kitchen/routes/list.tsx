@@ -1,5 +1,5 @@
 import { groupByStore, type ShoppingListItem } from '@home/shared'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { ShoppingBasketIcon, ShoppingCartIcon, StoreIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { useEffect, useState } from 'react'
@@ -11,12 +11,15 @@ import { EditListItemSheet } from '../components/edit-list-item-sheet'
 import { ListItemRow } from '../components/list-item-row'
 import { QuickAddBar } from '../components/quick-add-bar'
 import { useShoppingList, useUpdateListEntry } from '../hooks/use-shopping-list'
+import { recipesQuery } from '../lib/queries'
 
 export function ShoppingListPage() {
   const household = useActiveHousehold()
   const user = useCurrentUser()
   const list = useShoppingList(household.id)
   const members = useSuspenseQuery(membersQuery(household.id)).data
+  // For "for Jollof rice" on entries added from a recipe; the list doesn't wait for it.
+  const recipes = useQuery(recipesQuery(household.id)).data ?? []
   const entries = useUpdateListEntry(household.id)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [highlighted, setHighlighted] = useState<string | null>(null)
@@ -76,6 +79,11 @@ export function ShoppingListPage() {
                     key={entry.id}
                     entry={entry}
                     addedBy={firstName(entry.addedBy)}
+                    forRecipe={
+                      entry.source === 'recipe'
+                        ? recipes.find((r) => r.id === entry.sourceRef)?.title
+                        : null
+                    }
                     highlighted={entry.id === highlighted}
                     onToggle={(isChecked) => entries.update(entry.id, { isChecked })}
                     onEdit={() => setEditingId(entry.id)}

@@ -637,6 +637,11 @@ export async function kitchenRecipeLoader({ request, params }: LoaderFunctionArg
   await Promise.all([
     queryClient.query(recipeQuery(householdId, recipeId)),
     queryClient.query(recipesQuery(householdId)),
+    // For "Can I cook this?" and the cost per pot.
+    queryClient.query(pantryQuery(householdId)),
+    queryClient.query(shoppingListQuery(householdId)),
+    queryClient.query(householdPricesQuery(householdId)),
+    queryClient.query(conversionsQuery(householdId)),
   ])
   return null
 }

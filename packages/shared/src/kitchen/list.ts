@@ -1,6 +1,6 @@
 import type { KitchenUnit } from './units.ts'
 
-export type ListItemSource = 'manual' | 'pantry' | 'meal_plan'
+export type ListItemSource = 'manual' | 'pantry' | 'meal_plan' | 'recipe'
 
 /** An entry on the household's shopping list, with its catalogue item's name. */
 export interface ShoppingListItem {
@@ -17,6 +17,8 @@ export interface ShoppingListItem {
   /** What was paid for the whole line (entered in shopping mode), or null if skipped. */
   pricePaidMinor: number | null
   source: ListItemSource
+  /** The recipe (source 'recipe') or meal plan it was added for. */
+  sourceRef: string | null
   /** Who put it on the list. */
   addedBy: string | null
   createdAt: string

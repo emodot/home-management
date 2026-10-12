@@ -1,13 +1,25 @@
 import {
+  checkPantry,
   formatMinutes,
   formatQuantity,
+  isBlocking,
+  linesToBuy,
   scaleAmount,
+  todayIn,
+  type IngredientCheck,
   type Recipe,
   type RecipeIngredient,
 } from '@home/shared'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { MinusIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import {
+  CheckIcon,
+  MinusIcon,
+  PencilIcon,
+  PlusIcon,
+  ShoppingBasketIcon,
+  Trash2Icon,
+} from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import {
   AlertDialog,
@@ -20,21 +32,38 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useActiveHousehold } from '@/hooks/use-household'
+import { AddMissingSheet } from '../components/add-missing-sheet'
 import { ItemHeading } from '../components/item-heading'
+import { RecipeCost } from '../components/recipe-cost'
 import { RecipePhoto } from '../components/recipe-photo'
+import { usePantry } from '../hooks/use-pantry'
 import { useDeleteRecipe } from '../hooks/use-recipes'
-import { recipePhotosQuery, recipeQuery } from '../lib/queries'
+import {
+  conversionsQuery,
+  householdPricesQuery,
+  recipePhotosQuery,
+  recipeQuery,
+  shoppingListQuery,
+} from '../lib/queries'
 
 const MAX_SERVINGS = 100
 
-/** One recipe: photo, times, tags, ingredients scaled to the servings chosen, steps and notes. */
+/**
+ * One recipe: photo, times, tags, ingredients scaled to the servings chosen (with what the pantry
+ * has of each, and adding what's missing to the list), the cost of a pot, steps and notes.
+ */
 export function RecipePage() {
   const household = useActiveHousehold()
   const recipeId = useParams().recipeId ?? ''
   const recipe = useSuspenseQuery(recipeQuery(household.id, recipeId)).data
   const paths = recipe?.photoPath ? [recipe.photoPath] : []
   const photo = useQuery(recipePhotosQuery(household.id, paths)).data ?? {}
+  const pantry = usePantry(household.id)
+  const list = useSuspenseQuery(shoppingListQuery(household.id)).data
+  const prices = useSuspenseQuery(householdPricesQuery(household.id)).data
+  const conversions = useSuspenseQuery(conversionsQuery(household.id)).data
   const [params, setParams] = useSearchParams()
+  const [adding, setAdding] = useState(false)
 
   if (!recipe) return null
   const asked = Number(params.get('servings'))
@@ -46,6 +75,9 @@ export function RecipePage() {
     else next.set('servings', String(n))
     setParams(next, { replace: true })
   }
+
+  const checks = checkPantry(recipe.ingredients, recipe.servings, servings, pantry, conversions)
+  const toBuy = linesToBuy(checks, conversions)
 
   const times = [
     recipe.prepMinutes !== null && `Prep ${formatMinutes(recipe.prepMinutes)}`,
@@ -135,11 +167,20 @@ export function RecipePage() {
         {recipe.ingredients.length === 0 ? (
           <p className="text-sm text-muted-foreground">No ingredients yet.</p>
         ) : (
-          <ul className="list-surface">
-            {recipe.ingredients.map((i) => (
-              <IngredientRow key={i.id} ingredient={i} from={recipe.servings} to={servings} />
-            ))}
-          </ul>
+          <>
+            <CanICook checks={checks} canAdd={toBuy.length > 0} onAdd={() => setAdding(true)} />
+            <ul className="list-surface">
+              {checks.map((check) => (
+                <IngredientRow
+                  key={check.ingredient.id}
+                  check={check}
+                  from={recipe.servings}
+                  to={servings}
+                  onList={list.some((e) => e.itemId === check.ingredient.itemId && !e.isChecked)}
+                />
+              ))}
+            </ul>
+          </>
         )}
         {servings !== recipe.servings && recipe.ingredients.length > 0 && (
           <p className="text-xs text-muted-foreground">
@@ -148,6 +189,14 @@ export function RecipePage() {
           </p>
         )}
       </section>
+
+      <RecipeCost
+        recipe={recipe}
+        servings={servings}
+        prices={prices}
+        conversions={conversions}
+        today={todayIn(household.timezone)}
+      />
 
       {recipe.steps.length > 0 && (
         <section className="flex flex-col gap-3">
@@ -173,19 +222,107 @@ export function RecipePage() {
           </p>
         </section>
       )}
+      <AddMissingSheet
+        open={adding}
+        recipeId={recipe.id}
+        recipeTitle={recipe.title}
+        lines={toBuy}
+        list={list}
+        onClose={() => setAdding(false)}
+      />
     </article>
   )
 }
 
+/** "Can I cook this?": a line on what the pantry is short of, and the way to the list. */
+function CanICook({
+  checks,
+  canAdd,
+  onAdd,
+}: {
+  checks: IngredientCheck[]
+  canAdd: boolean
+  onAdd: () => void
+}) {
+  const blocking = checks.filter(isBlocking)
+  const missing = blocking.filter((c) => c.status.kind === 'missing').length
+  const short = blocking.length - missing
+  const toCheck = checks.filter((c) => c.status.kind === 'check').length
+  const parts = [
+    missing > 0 && `${missing} not in the pantry`,
+    short > 0 && `${short} short`,
+    toCheck > 0 && `${toCheck} to check`,
+  ].filter(Boolean)
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2.5">
+      <p className="flex items-center gap-2 text-sm" role="status">
+        {blocking.length === 0 ? (
+          <CheckIcon className="size-4 shrink-0 text-primary" aria-hidden />
+        ) : (
+          <ShoppingBasketIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        )}
+        <span>
+          <span className="font-medium">
+            {blocking.length === 0 ? 'You can cook this' : "You can't cook this yet"}
+          </span>
+          {parts.length > 0 && <span className="text-muted-foreground">: {parts.join(', ')}</span>}
+        </span>
+      </p>
+      {canAdd && (
+        <Button size="sm" variant={blocking.length > 0 ? 'default' : 'outline'} onClick={onAdd}>
+          <ShoppingBasketIcon aria-hidden />
+          Add missing to list
+        </Button>
+      )}
+    </div>
+  )
+}
+
+/** What the pantry has of one ingredient, under its name. */
+function stockNote(check: IngredientCheck, onList: boolean): ReactNode {
+  const { status, toBuy, ingredient } = check
+  const listed = onList ? ' · on the list' : ''
+  switch (status.kind) {
+    case 'have':
+      return (
+        <span className="flex items-center gap-1 text-primary">
+          <CheckIcon className="size-3" aria-hidden />
+          In the pantry
+        </span>
+      )
+    case 'short':
+      return `Short: need ${toBuy ? formatQuantity(toBuy.quantity, toBuy.unit) : 'more'} more${listed}`
+    case 'missing':
+      return `Not in the pantry${listed}`
+    case 'check':
+      return (
+        <>
+          You have {formatQuantity(status.have.quantity, status.have.unit)}: check it&apos;s enough,
+          or{' '}
+          <Link
+            to={`/kitchen/items/${ingredient.itemId}`}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            say how its units relate
+          </Link>
+        </>
+      )
+  }
+}
+
 function IngredientRow({
-  ingredient: i,
+  check,
   from,
   to,
+  onList,
 }: {
-  ingredient: RecipeIngredient
+  check: IngredientCheck
   from: number
   to: number
+  onList: boolean
 }) {
+  const i: RecipeIngredient = check.ingredient
   const [showExact, setShowExact] = useState(false)
   const scaled = i.quantity === null ? null : scaleAmount(i.quantity, i.unit, from, to)
   const exact = scaled && `${formatQuantity(scaled.exact, i.unit)} exactly`
@@ -219,6 +356,9 @@ function IngredientRow({
             optional
           </span>
         )}
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {stockNote(check, onList)}
+        </span>
       </span>
     </li>
   )

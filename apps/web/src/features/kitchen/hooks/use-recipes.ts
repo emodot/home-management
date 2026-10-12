@@ -1,8 +1,10 @@
 import {
+  addRecipeToList,
   deleteRecipe,
   removeRecipePhoto,
   saveRecipe,
   setRecipePhoto,
+  type KitchenUnit,
   type Recipe,
   type RecipeFormValues,
 } from '@home/shared'
@@ -10,7 +12,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { errorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
-import { recipeQuery, recipesKey } from '../lib/queries'
+import { recipeQuery, recipesKey, shoppingListKey } from '../lib/queries'
 
 /** What to do with the photo when saving: leave it, take it off, or use a new (prepared) one. */
 export type PhotoChange =
@@ -51,5 +53,16 @@ export function useDeleteRecipe(householdId: string) {
     },
     onError: (error) => toast.error(`Couldn't delete it. ${errorMessage(error)}`),
     onSettled: () => queryClient.invalidateQueries({ queryKey: recipesKey(householdId) }),
+  })
+}
+
+/** "Add missing to list": what the recipe is short of, onto the list for it. */
+export function useAddRecipeToList(householdId: string, recipeId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (lines: { itemId: string; quantity: number; unit: KitchenUnit }[]) =>
+      addRecipeToList(supabase, householdId, recipeId, lines),
+    onError: (error) => toast.error(`Couldn't add them. ${errorMessage(error)}`),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: shoppingListKey(householdId) }),
   })
 }

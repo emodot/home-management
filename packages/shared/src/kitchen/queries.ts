@@ -256,6 +256,7 @@ export function toShoppingListItem(row: ListRow): ShoppingListItem {
     checkedBy: row.checked_by,
     pricePaidMinor: row.price_paid_minor,
     source: row.source as ListItemSource,
+    sourceRef: row.source_ref,
     addedBy: row.created_by,
     createdAt: row.created_at,
   }
@@ -292,7 +293,7 @@ export async function addToShoppingList(
   item: KitchenItem,
   options: {
     quantity?: number
-    source?: Exclude<ListItemSource, 'meal_plan'>
+    source?: Exclude<ListItemSource, 'meal_plan' | 'recipe'>
     /** Uncheck it if it's checked off (in someone's basket). Off for "running low". */
     reopen?: boolean
   } = {},

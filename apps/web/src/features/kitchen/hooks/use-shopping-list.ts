@@ -105,6 +105,7 @@ export function useAddListItem(householdId: string) {
                 checkedBy: null,
                 pricePaidMinor: null,
                 source: 'manual',
+                sourceRef: null,
                 addedBy: user.id,
                 createdAt: new Date().toISOString(),
               },

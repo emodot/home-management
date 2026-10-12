@@ -33,6 +33,7 @@ const entry = (
   checkedBy: 'u1',
   pricePaidMinor,
   source: 'manual',
+  sourceRef: null,
   addedBy: 'u1',
   createdAt: '2026-10-01T10:00:00Z',
 })

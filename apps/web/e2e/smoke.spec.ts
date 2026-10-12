@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → cooking gas', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -297,6 +297,26 @@ test('super-admin creates a household → its admin joins → expense with recei
 
     await page.getByRole('link', { name: 'Back to recipes' }).click()
     await expect(page.getByRole('link', { name: /^Pepper soup/ })).toContainText('2 ingredients')
+  })
+
+  await test.step('can I cook it? what the pantry is short of goes on the list, once', async () => {
+    // For 10: 7.5 tomatoes against the 2 in the pantry, and no uziza at all.
+    await page.getByRole('link', { name: /^Pepper soup/ }).click()
+    for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'More servings' }).click()
+    await expect(page.getByText("You can't cook this yet")).toBeVisible()
+    await expect(page.getByText('Short: need 5.5 pieces more')).toBeVisible()
+    await page.getByRole('button', { name: 'Add missing to list' }).click()
+    await page.getByRole('button', { name: 'Add 2 items to the list' }).click()
+    await expect(page.getByText('Added 2 items to the list.')).toBeVisible()
+
+    // Again: it's all on the list already, so there's nothing to add.
+    await page.getByRole('button', { name: 'Add missing to list' }).click()
+    await expect(page.getByRole('button', { name: 'Choose what to add' })).toBeDisabled()
+    await page.keyboard.press('Escape')
+
+    await page.goto('/kitchen/list')
+    await expect(page.getByLabel(/^Bought /)).toHaveCount(2)
+    await expect(page.getByText(/for Pepper soup$/)).toHaveCount(2)
   })
 
   await test.step('cooking gas: two refills predict the next one, with a reminder task', async () => {

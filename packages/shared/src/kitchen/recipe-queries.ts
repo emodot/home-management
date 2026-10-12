@@ -2,7 +2,7 @@ import { unwrap, type HomeClient } from '../client.ts'
 import type { Json, Tables } from '../database.types.ts'
 import type { Recipe, RecipeSummary } from './recipes.ts'
 import type { RecipeFormValues } from './schemas.ts'
-import { isKitchenUnit } from './units.ts'
+import { isKitchenUnit, type KitchenUnit } from './units.ts'
 
 export const RECIPE_PHOTOS_BUCKET = 'recipe-photos'
 /** Signed URLs are short-lived; refetch rather than store them. */
@@ -174,4 +174,28 @@ export async function recipePhotoUrls(
   return Object.fromEntries(
     signed.flatMap((s) => (s.path && s.signedUrl ? [[s.path, s.signedUrl]] : [])),
   )
+}
+
+/** What happened to each line of "Add missing to list" (see add_recipe_to_list). */
+export type RecipeListStatus = 'added' | 'topped_up' | 'covered' | 'kept'
+
+/**
+ * Puts what a recipe is short of on the shopping list, for that recipe: new entries are added,
+ * entries already there are topped up to what's needed when the units convert (never a second
+ * entry). Returns what happened to each item.
+ */
+export async function addRecipeToList(
+  client: HomeClient,
+  householdId: string,
+  recipeId: string,
+  lines: { itemId: string; quantity: number; unit: KitchenUnit }[],
+): Promise<{ itemId: string; status: RecipeListStatus }[]> {
+  const result = unwrap(
+    await client.rpc('add_recipe_to_list', {
+      p_household_id: householdId,
+      p_recipe_id: recipeId,
+      p_lines: lines.map((l) => ({ item_id: l.itemId, quantity: l.quantity, unit: l.unit })),
+    }),
+  ) as { item_id: string; status: RecipeListStatus }[]
+  return result.map((r) => ({ itemId: r.item_id, status: r.status }))
 }

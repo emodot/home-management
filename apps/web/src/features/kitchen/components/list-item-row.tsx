@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 export function ListItemRow({
   entry,
   addedBy,
+  forRecipe,
   highlighted,
   onToggle,
   onEdit,
@@ -13,6 +14,8 @@ export function ListItemRow({
   entry: ShoppingListItem
   /** "you", "Chi"… or null when unknown. */
   addedBy: string | null
+  /** The recipe's title, for entries added from one (when it's still there). */
+  forRecipe?: string | null
   highlighted: boolean
   onToggle: (checked: boolean) => void
   onEdit: () => void
@@ -29,7 +32,11 @@ export function ListItemRow({
   }
   const details = [
     formatQuantity(entry.quantity, entry.unit),
-    entry.source === 'pantry' ? 'from pantry' : addedBy && `added by ${addedBy}`,
+    entry.source === 'pantry'
+      ? 'from pantry'
+      : forRecipe
+        ? `for ${forRecipe}`
+        : addedBy && `added by ${addedBy}`,
     entry.notes,
   ].filter(Boolean)
 

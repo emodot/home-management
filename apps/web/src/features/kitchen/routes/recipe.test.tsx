@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Suspense } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -46,12 +46,57 @@ const recipe = {
   steps: [{ id: 's1', household_id: 'h1', recipe_id: 'r1', position: 1, body: 'Cook it.' }],
 }
 
+// The pantry has plenty of rice and some tomatoes; rice and tomatoes have prices.
+const pantry = [
+  { item_id: 'item-0', quantity: 10, unit: 'derica' },
+  { item_id: 'item-1', quantity: 200, unit: 'g' },
+].map((p, i) => ({
+  ...p,
+  id: `p${i}`,
+  household_id: 'h1',
+  location: 'pantry',
+  expires_on: null,
+  low_stock_threshold: null,
+  updated_at: '',
+  item: null,
+}))
+const prices = [
+  { item_id: 'item-0', quantity: 1, unit: 'derica', price_minor: 200000, bought_on: '2026-10-01' },
+  { item_id: 'item-1', quantity: 1, unit: 'kg', price_minor: 150000, bought_on: '2026-10-01' },
+].map((p, i) => ({
+  ...p,
+  id: `price${i}`,
+  household_id: 'h1',
+  trip_id: 't1',
+  unit_price_minor: p.price_minor / p.quantity,
+  store_tag: null,
+  created_at: '',
+  item: { name: '' },
+}))
+
+const rpc = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/supabase', () => {
-  const query: Record<string, unknown> = {
-    then: (resolve: (value: unknown) => unknown) => resolve({ data: recipe, error: null }),
+  // Looked up when a query runs: the mock is set up before the fixtures above.
+  const rows = (table: string): unknown =>
+    ({ recipes: recipe, pantry_items: pantry, item_prices: prices })[table] ?? []
+  const channel = { on: () => channel, subscribe: () => channel }
+  return {
+    supabase: {
+      rpc,
+      channel: () => channel,
+      removeChannel: () => Promise.resolve('ok'),
+      from: (table: string) => {
+        const query: Record<string, unknown> = {
+          then: (resolve: (value: unknown) => unknown) =>
+            resolve({ data: rows(table), error: null }),
+        }
+        for (const method of ['select', 'eq', 'maybeSingle', 'order', 'limit']) {
+          query[method] = () => query
+        }
+        return query
+      },
+    },
   }
-  for (const method of ['select', 'eq', 'maybeSingle']) query[method] = () => query
-  return { supabase: { from: () => query } }
 })
 
 async function setup(url = '/kitchen/recipes/r1') {
@@ -61,7 +106,7 @@ async function setup(url = '/kitchen/recipes/r1') {
     </Suspense>,
     { path: '/kitchen/recipes/:recipeId', url },
   )
-  await screen.findByRole('heading', { name: 'Jollof rice' })
+  await screen.findByRole('heading', { name: 'Jollof rice', level: 2 })
   return { ...app, user: userEvent.setup() }
 }
 
@@ -71,7 +116,11 @@ const amounts = () =>
     .filter(
       (li) => li.closest('section')?.getAttribute('aria-labelledby') === 'ingredients-heading',
     )
-    .map((li) => li.textContent)
+    // The amount and the name, without the pantry note under it.
+    .map(
+      (li) =>
+        `${li.firstElementChild?.textContent ?? ''}${li.lastElementChild?.firstChild?.textContent ?? ''}`,
+    )
 
 describe('RecipePage', () => {
   it('scales its 8 ingredients from 4 to 10 servings', async () => {
@@ -97,5 +146,42 @@ describe('RecipePage', () => {
     await waitFor(() => expect(amounts()[0]).toBe('≈ 4 dericasRice'))
     await user.click(await screen.findByRole('button', { name: 'Back to 4' }))
     await waitFor(() => expect(amounts()[0]).toBe('3 dericasRice'))
+  })
+
+  it('says what the pantry is short of and adds it to the list', async () => {
+    const { user } = await setup()
+    expect(screen.getByText("You can't cook this yet").closest('p')).toHaveTextContent(
+      "You can't cook this yet: 6 not in the pantry, 1 short",
+    )
+    expect(screen.getByText('Short: need 300 g more')).toBeVisible()
+    rpc.mockResolvedValue({
+      data: [{ item_id: 'item-1', status: 'added' }],
+      error: null,
+    })
+    await user.click(screen.getByRole('button', { name: 'Add missing to list' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Add missing to the list' })
+    // Salt (to taste) is one to buy; nothing optional here, so all 7 are ticked.
+    await user.click(within(sheet).getByRole('button', { name: 'Add 7 items to the list' }))
+    await waitFor(() => expect(rpc).toHaveBeenCalledTimes(1))
+    const [, args] = rpc.mock.calls[0] as [string, { p_lines: { item_id: string }[] }]
+    expect(args.p_lines.map((l) => l.item_id)).toEqual([
+      'item-1',
+      'item-2',
+      'item-3',
+      'item-4',
+      'item-5',
+      'item-6',
+      'item-7',
+    ])
+  })
+
+  it('works out the cost of a pot from the latest prices', async () => {
+    await setup()
+    const cost = screen.getByRole('region', { name: 'Cost per pot' })
+    // 3 derica × ₦2,000 + 0.5 kg × ₦1,500; the rest have no price.
+    expect(cost).toHaveTextContent('₦6,750')
+    expect(cost).toHaveTextContent(
+      'Not counted, no price yet: Chicken, Stock, Tomato paste, Onions, Curry powder.',
+    )
   })
 })

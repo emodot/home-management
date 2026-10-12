@@ -180,6 +180,18 @@ and steps in one transaction. A recipe's page scales the ingredients to any numb
 g or kg (ml or litres), whichever reads better; counted things to the nearest half, marked ≈ with
 the exact amount a tap away.
 
+Each recipe's page also says whether you can cook it (`checkPantry` in
+`packages/shared/src/kitchen/cook.ts`): every ingredient, for the servings shown, against the
+pantry — in it, short (and by how much), not in it, or "check it" when the pantry holds it in a unit
+that doesn't convert (not counted missing; the item's page can say how its units relate). "Add
+missing to list" reviews what's short (optional ingredients unticked, anything the list already
+covers unticked) and `add_recipe_to_list` puts it on the list for that recipe (source `recipe`,
+shown as "for Jollof rice"): an item already on the list is topped up to what's needed when the
+units convert, never added twice. The **cost per pot** comes from each ingredient's latest price in
+a unit that converts, for the servings shown, with the change since 3 months ago (over the
+ingredients priced both times) and a chart of the estimate at the end of each of the last six
+months; ingredients without a price are listed rather than guessed.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.

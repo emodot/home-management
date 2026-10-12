@@ -39,9 +39,12 @@ export function PriceChart({
   series,
   unit,
   tableId,
+  caption,
 }: {
   series: PriceSeries[]
   unit: KitchenUnit
+  /** In place of "Price per kg…", for a single line that isn't a store's prices. */
+  caption?: string
   /** The table with the same data, for screen readers. */
   tableId: string
 }) {
@@ -97,7 +100,13 @@ export function PriceChart({
     ? series.flatMap((s, i) => {
         const point = s.points.findLast((p) => p.date === activeDate)
         return point
-          ? [{ store: storeName(s.store), color: COLORS[i], value: point.unitPriceMinor }]
+          ? [
+              {
+                store: caption && !s.store ? '' : storeName(s.store),
+                color: COLORS[i],
+                value: point.unitPriceMinor,
+              },
+            ]
           : []
       })
     : []
@@ -107,8 +116,12 @@ export function PriceChart({
   return (
     <figure className="flex flex-col gap-3">
       <figcaption id={titleId} className="text-sm text-muted-foreground">
-        Price per {per}
-        {series.length > 1 ? ', by store' : series[0]?.store ? ` at ${series[0].store}` : ''}
+        {caption ?? (
+          <>
+            Price per {per}
+            {series.length > 1 ? ', by store' : series[0]?.store ? ` at ${series[0].store}` : ''}
+          </>
+        )}
       </figcaption>
 
       {series.length > 1 && (

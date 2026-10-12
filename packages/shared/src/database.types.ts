@@ -1680,6 +1680,10 @@ export type Database = {
             Args: { p_from: string; p_item_id: string; p_quantity: number; p_to: string }
             Returns: number
           }
+      add_recipe_to_list: {
+        Args: { p_household_id: string; p_lines: Json; p_recipe_id: string }
+        Returns: Json
+      }
       save_recipe: {
         Args: {
           p_cook_minutes: number | null
