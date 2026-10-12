@@ -249,7 +249,8 @@ test('super-admin creates a household → its admin joins → expense with recei
     await page.getByRole('button', { name: 'Log refill' }).click()
     await expect(page.getByText(/Reminder set for/)).toBeVisible()
     await expect(page.getByText(/^4\d days left$/)).toBeVisible()
-    await page.goto('/tasks')
+    // Due in about 37 days, past the Upcoming view's 30, so it's under All tasks.
+    await page.goto('/tasks?view=all')
     await expect(page.getByText('Refill cooking gas')).toBeVisible()
   })
 
