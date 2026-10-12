@@ -190,6 +190,12 @@ test('super-admin creates a household → its admin joins → expense with recei
     await expect(page.getByText('₦2,500 added to expenses')).toBeVisible()
     await expect(guestPage.getByText('Your list is empty')).toBeVisible()
     await guest.close()
+
+    // The trip is in Expenses, and what was bought is in the pantry.
+    await page.goto('/')
+    await expect(page.getByRole('link', { name: /^Shopping/ })).toContainText('₦2,500')
+    await page.goto('/kitchen/pantry')
+    await expect(page.getByRole('group', { name: 'How much Tomatoes' })).toContainText('1 piece')
   })
 
   await test.step('the pantry: running low puts an item on the list, once', async () => {

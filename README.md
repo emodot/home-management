@@ -192,20 +192,20 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 
 ## Scripts
 
-| Command          | What it does                              |
-| ---------------- | ----------------------------------------- |
-| `pnpm dev`       | Run the web app                           |
-| `pnpm build`     | Production build of all packages          |
-| `pnpm lint`      | ESLint (type-aware) across the repo       |
-| `pnpm format`    | Prettier write (`format:check` to verify) |
-| `pnpm typecheck` | `tsc` in every package                    |
-| `pnpm test`      | Vitest (`packages/shared`)                |
-| `pnpm check`     | format:check + lint + typecheck + test    |
-| `pnpm db:start`  | Start local Supabase (`db:stop` to stop)  |
-| `pnpm db:reset`  | Re-apply migrations + `supabase/seed.sql` |
-| `pnpm db:lint`   | Lint the database schema                  |
-| `pnpm db:types`  | Generate DB types into `packages/shared`  |
-| `pnpm e2e`       | Playwright smoke tests (see below)        |
+| Command          | What it does                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| `pnpm dev`       | Run the web app                                                                       |
+| `pnpm build`     | Production build of all packages                                                      |
+| `pnpm lint`      | ESLint (type-aware) across the repo                                                   |
+| `pnpm format`    | Prettier write (`format:check` to verify)                                             |
+| `pnpm typecheck` | `tsc` in every package                                                                |
+| `pnpm test`      | Vitest: `packages/shared`, and component tests in `apps/web` (jsdom, Testing Library) |
+| `pnpm check`     | format:check + lint + typecheck + test                                                |
+| `pnpm db:start`  | Start local Supabase (`db:stop` to stop)                                              |
+| `pnpm db:reset`  | Re-apply migrations + `supabase/seed.sql`                                             |
+| `pnpm db:lint`   | Lint the database schema                                                              |
+| `pnpm db:types`  | Generate DB types into `packages/shared`                                              |
+| `pnpm e2e`       | Playwright smoke tests (see below)                                                    |
 
 ### Smoke tests
 

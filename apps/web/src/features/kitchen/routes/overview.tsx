@@ -19,13 +19,16 @@ import {
   FlameIcon,
   PackageOpenIcon,
   ShoppingBasketIcon,
+  ShoppingCartIcon,
   WalletIcon,
   type LucideIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useActiveHousehold } from '@/hooks/use-household'
+import { Button } from '@/components/ui/button'
 import { categoriesQuery, categoryTotalsQuery } from '@/lib/queries'
+import { cn } from '@/lib/utils'
 import { gasRefillsQuery, pantryQuery, shoppingListQuery } from '../lib/queries'
 
 function OverviewCard({
@@ -34,17 +37,23 @@ function OverviewCard({
   title,
   children,
   hint,
+  action,
 }: {
   to: string
   icon: LucideIcon
   title: string
   children: ReactNode
   hint: string
+  /** A button under the card (kept outside its link). */
+  action?: ReactNode
 }) {
-  return (
+  const card = (
     <Link
       to={to}
-      className="group flex items-start gap-3 rounded-xl bg-muted p-4 transition-colors hover:bg-accent"
+      className={cn(
+        'group flex items-start gap-3 bg-muted p-4 transition-colors hover:bg-accent',
+        action ? 'rounded-t-xl' : 'rounded-xl',
+      )}
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background text-primary">
         <Icon className="size-5" aria-hidden />
@@ -59,6 +68,13 @@ function OverviewCard({
         aria-hidden
       />
     </Link>
+  )
+  if (!action) return card
+  return (
+    <div className="flex flex-col">
+      {card}
+      <div className="rounded-b-xl bg-muted px-4 pb-4">{action}</div>
+    </div>
   )
 }
 
@@ -93,6 +109,16 @@ export function KitchenOverviewPage() {
         icon={ShoppingBasketIcon}
         title="Shopping list"
         hint={toBuy.length === 0 ? 'Add what you need' : listPreview(toBuy.map((e) => e.name))}
+        action={
+          toBuy.length > 0 && (
+            <Button asChild size="sm" className="w-full">
+              <Link to="/kitchen/list/shop">
+                <ShoppingCartIcon aria-hidden />
+                Start shopping
+              </Link>
+            </Button>
+          )
+        }
       >
         {toBuy.length === 0 ? 'Empty' : `${toBuy.length} to buy`}
       </OverviewCard>
