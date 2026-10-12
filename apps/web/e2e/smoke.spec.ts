@@ -283,7 +283,7 @@ test('super-admin creates a household → its admin joins → expense with recei
     await page.getByRole('option', { name: 'Add “Uziza seeds”' }).click()
     await page.getByLabel('Quantity').nth(0).fill('3')
     await page.getByLabel('Quantity').nth(1).fill('2')
-    await page.getByLabel('Step 1').fill('Boil everything together.')
+    await page.getByLabel('Step 1', { exact: true }).fill('Boil everything together.')
     await page.getByRole('button', { name: 'Add recipe' }).click()
 
     await expect(page.getByRole('heading', { name: 'Pepper soup' })).toBeVisible()

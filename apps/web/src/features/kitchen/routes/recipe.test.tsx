@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Suspense } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -94,8 +94,8 @@ describe('RecipePage', () => {
     expect(amounts()[0]).toBe('3 dericasRice')
     await user.click(screen.getByRole('button', { name: 'More servings' }))
     expect(router.state.location.search).toBe('?servings=5')
-    expect(amounts()[0]).toBe('≈ 4 dericasRice')
-    await user.click(screen.getByRole('button', { name: 'Back to 4' }))
-    expect(amounts()[0]).toBe('3 dericasRice')
+    await waitFor(() => expect(amounts()[0]).toBe('≈ 4 dericasRice'))
+    await user.click(await screen.findByRole('button', { name: 'Back to 4' }))
+    await waitFor(() => expect(amounts()[0]).toBe('3 dericasRice'))
   })
 })
