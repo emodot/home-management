@@ -1,12 +1,15 @@
 import {
   acceptInvite,
+  addDays,
   AppError,
   inviteTokenSchema,
+  isWeekStart,
   monthRange,
   todayIn,
   yearRange,
   safeNextPath,
   setActiveHousehold,
+  weekStartOf,
   type InviteDetails,
 } from '@home/shared'
 import { redirect, type LoaderFunctionArgs } from 'react-router'
@@ -22,6 +25,7 @@ import {
   recipesQuery,
   shoppingListQuery,
   storeTagsQuery,
+  weekMealsQuery,
 } from '@/features/kitchen/lib/queries'
 import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
@@ -643,6 +647,35 @@ export async function kitchenRecipeLoader({ request, params }: LoaderFunctionArg
     queryClient.query(householdPricesQuery(householdId)),
     queryClient.query(conversionsQuery(householdId)),
   ])
+  return null
+}
+
+/** /kitchen/plan opens this week's plan. */
+export async function kitchenPlanLoader({ request }: LoaderFunctionArgs) {
+  const { user, householdId } = await requireHousehold(request)
+  const households = await queryClient.query(householdsQuery(user.id))
+  const timezone = households.find((h) => h.id === householdId)?.timezone
+  return redirect(`/kitchen/plan/${weekStartOf(todayIn(timezone))}`)
+}
+
+export async function kitchenPlanWeekLoader({ request, params }: LoaderFunctionArgs) {
+  const weekStart = params.weekStart ?? ''
+  if (!isWeekStart(weekStart)) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+      return redirect(`/kitchen/plan/${weekStartOf(weekStart)}?day=${weekStart}`)
+    }
+    throw notFound()
+  }
+  const { householdId } = await requireHousehold(request)
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(weekMealsQuery(householdId, weekStart)),
+      queryClient.query(recipesQuery(householdId)),
+      queryClient.query(membersQuery(householdId)),
+    ])
+    // For "Copy last week"; the page doesn't wait for it.
+    queryClient.query(weekMealsQuery(householdId, addDays(weekStart, -7))).catch(() => undefined)
+  }
   return null
 }
 

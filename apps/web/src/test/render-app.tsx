@@ -12,6 +12,7 @@ export const TEST_HOUSEHOLD: Household = {
   name: 'Ade home',
   currency: 'NGN',
   timezone: 'Africa/Lagos',
+  meal_slots: ['breakfast', 'lunch', 'dinner'],
   created_at: '2026-01-01T00:00:00Z',
 }
 

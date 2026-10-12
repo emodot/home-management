@@ -14,7 +14,7 @@ export function useLiveTable({
   queryKey,
   busy,
 }: {
-  table: 'shopping_list_items' | 'pantry_items'
+  table: 'shopping_list_items' | 'pantry_items' | 'meal_plan_entries'
   householdId: string
   queryKey: QueryKey
   busy: () => boolean

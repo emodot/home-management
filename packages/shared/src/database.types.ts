@@ -456,6 +456,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          meal_slots: string[]
           name: string
           timezone: string
         }
@@ -463,6 +464,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          meal_slots?: string[]
           name: string
           timezone?: string
         }
@@ -470,6 +472,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          meal_slots?: string[]
           name?: string
           timezone?: string
         }
@@ -733,6 +736,87 @@ export type Database = {
             referencedColumns: ['household_id', 'id']
           },
         ]
+      }
+      meal_plan_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          household_id: string
+          id: string
+          leftover_of: string | null
+          plan_id: string
+          recipe_id: string | null
+          servings: number | null
+          slot: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date: string
+          household_id: string
+          id?: string
+          leftover_of?: string | null
+          plan_id: string
+          recipe_id?: string | null
+          servings?: number | null
+          slot: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          household_id?: string
+          id?: string
+          leftover_of?: string | null
+          plan_id?: string
+          recipe_id?: string | null
+          servings?: number | null
+          slot?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'meal_plan_entries_household_id_plan_id_fkey'
+            columns: ['household_id', 'plan_id']
+            isOneToOne: false
+            referencedRelation: 'meal_plans'
+            referencedColumns: ['household_id', 'id']
+          },
+          {
+            foreignKeyName: 'meal_plan_entries_household_id_recipe_id_fkey'
+            columns: ['household_id', 'recipe_id']
+            isOneToOne: false
+            referencedRelation: 'recipes'
+            referencedColumns: ['household_id', 'id']
+          },
+        ]
+      }
+      meal_plans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          household_id: string
+          id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          week_start?: string
+        }
+        Relationships: []
       }
       pantry_items: {
         Row: {
@@ -1680,6 +1764,30 @@ export type Database = {
             Args: { p_from: string; p_item_id: string; p_quantity: number; p_to: string }
             Returns: number
           }
+      add_meal: {
+        Args: {
+          p_date: string
+          p_household_id: string
+          p_leftovers?: Json
+          p_recipe_id: string | null
+          p_servings: number | null
+          p_slot: string
+          p_title: string | null
+        }
+        Returns: string
+      }
+      copy_meal_week: {
+        Args: { p_from: string; p_household_id: string; p_to: string }
+        Returns: number
+      }
+      set_meal_leftovers: {
+        Args: { p_entry_id: string; p_leftovers: Json }
+        Returns: undefined
+      }
+      set_meal_slots: {
+        Args: { p_household_id: string; p_slots: string[] }
+        Returns: undefined
+      }
       add_recipe_to_list: {
         Args: { p_household_id: string; p_lines: Json; p_recipe_id: string }
         Returns: Json

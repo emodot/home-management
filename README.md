@@ -192,6 +192,17 @@ a unit that converts, for the servings shown, with the change since 3 months ago
 ingredients priced both times) and a chart of the estimate at the end of each of the last six
 months; ingredients without a price are listed rather than guessed.
 
+The **meal plan** (`/kitchen/plan`, the seventh tab; `/kitchen/plan/:weekStart` for a week) runs
+Sunday to Saturday (`meal_plans`, one per household and week). Each meal (`meal_plan_entries`) is a
+recipe or something written in ("Eat out"), in one of the household's slots — breakfast, lunch and
+dinner by default; household admins can turn snack on or any slot off (`households.meal_slots`,
+`set_meal_slots`). Wide screens get the week as a grid; phones get a day at a time, swiped through.
+**Batch cooking**: a recipe meal can also cover later meals that week, as leftovers (`leftover_of`
+points at the meal whose pot feeds them), so its ingredients count once and its pot is for everyone
+it feeds. Meals are added, given leftovers and copied from last week (into an empty week, batches
+and all) through `add_meal`, `set_meal_leftovers` and `copy_meal_week`, which keep each meal in its
+week and leftovers after their pot; the plan updates live for everyone through Realtime.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.

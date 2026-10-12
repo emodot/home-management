@@ -8,6 +8,7 @@ import {
   listItemPrices,
   listPantry,
   listRecipes,
+  listWeekMeals,
   listShoppingList,
   recentStoreTags,
   recipePhotoUrls,
@@ -132,4 +133,14 @@ export const recipePhotosQuery = (householdId: string, paths: string[]) =>
     queryFn: () => recipePhotoUrls(supabase, paths),
     staleTime: 30 * 60_000,
     enabled: paths.length > 0,
+  })
+
+export const mealsKey = (householdId: string) => [...kitchenKey(householdId), 'meals'] as const
+
+/** The meals planned for the week starting `weekStart` (a Sunday). Kept fresh by Realtime. */
+export const weekMealsQuery = (householdId: string, weekStart: string) =>
+  queryOptions({
+    queryKey: [...mealsKey(householdId), weekStart],
+    queryFn: () => listWeekMeals(supabase, householdId, weekStart),
+    refetchOnWindowFocus: true,
   })

@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → cooking gas', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -317,6 +317,24 @@ test('super-admin creates a household → its admin joins → expense with recei
     await page.goto('/kitchen/list')
     await expect(page.getByLabel(/^Bought /)).toHaveCount(2)
     await expect(page.getByText(/for Pepper soup$/)).toHaveCount(2)
+  })
+
+  await test.step('meal plan: a Sunday pot covers Monday lunch, on desktop and on a phone', async () => {
+    await page.goto('/kitchen/plan')
+    await page.getByRole('button', { name: /^Add to Dinner on Sunday/ }).click()
+    await page.getByRole('button', { name: 'Pepper soup', exact: true }).click()
+    await page.getByLabel(/^Mon \d+ · Lunch$/).check()
+    await page.getByRole('button', { name: 'Add to the plan' }).click()
+    await expect(page.getByText(/^Pepper soup planned for/)).toBeVisible()
+    await expect(page.getByText('Pot for 8, 1 more meal')).toBeVisible()
+    await expect(page.getByText('Leftovers from Sun')).toBeVisible()
+
+    // On a phone: a day at a time.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.getByRole('group', { name: 'Day' }).getByRole('button').nth(1).click()
+    await expect(page.getByRole('heading', { name: /^Monday/ })).toBeVisible()
+    await expect(page.getByText('Leftovers from Sun')).toBeVisible()
+    await page.setViewportSize({ width: 1280, height: 720 })
   })
 
   await test.step('cooking gas: two refills predict the next one, with a reminder task', async () => {
