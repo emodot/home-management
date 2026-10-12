@@ -30,9 +30,12 @@ function mimeTypeOf(file: File): string {
   return EXTENSION_TYPES[extension] ?? ''
 }
 
-async function downscaleToJpeg(file: Blob): Promise<{ blob: Blob; resized: boolean } | null> {
+async function downscaleToJpeg(
+  file: Blob,
+  maxEdge = MAX_EDGE,
+): Promise<{ blob: Blob; resized: boolean } | null> {
   const bitmap = await createImageBitmap(file) // applies EXIF orientation
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height))
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(bitmap.width * scale)
   canvas.height = Math.round(bitmap.height * scale)
@@ -121,4 +124,19 @@ export async function prepareAvatar(file: File): Promise<Blob> {
   })
   if (!blob) throw new Error("Couldn't read that photo")
   return blob
+}
+
+const RECIPE_PHOTO_EDGE = 1600
+
+/**
+ * A recipe photo as a JPEG at most 1600px on the long edge. Throws an Error with a user-facing
+ * message for files that aren't JPEG, PNG or WebP photos, or can't be read.
+ */
+export async function prepareRecipePhoto(file: File): Promise<Blob> {
+  if (!DOWNSCALABLE.has(mimeTypeOf(file))) {
+    throw new Error('Choose a JPEG, PNG or WebP photo')
+  }
+  const result = await downscaleToJpeg(file, RECIPE_PHOTO_EDGE).catch(() => null)
+  if (!result) throw new Error("That photo couldn't be read. Try another.")
+  return result.blob
 }

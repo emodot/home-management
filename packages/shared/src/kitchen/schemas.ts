@@ -156,3 +156,79 @@ export const itemConversionFormSchema = z
   })
 export type ItemConversionFormInput = z.input<typeof itemConversionFormSchema>
 export type ItemConversionFormValues = z.output<typeof itemConversionFormSchema>
+
+/** Whole minutes as typed; empty means not known. */
+const minutesInputSchema = z
+  .string()
+  .trim()
+  .transform((value, ctx) => {
+    if (value === '') return null
+    const n = Number(value)
+    if (!Number.isInteger(n) || n < 0 || n > 1440) {
+      ctx.addIssue({ code: 'custom', message: 'Enter whole minutes, up to 1440' })
+      return z.NEVER
+    }
+    return n
+  })
+
+/** One ingredient row on the recipe form. */
+export const recipeIngredientFormSchema = z.object({
+  itemId: z.string().min(1),
+  name: z.string(),
+  /** Empty for "to taste". */
+  quantity: z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      if (value === '') return null
+      const parsed = quantityInputSchema.safeParse(value)
+      if (!parsed.success) {
+        ctx.addIssue({ code: 'custom', message: parsed.error.issues[0]?.message ?? 'Check it' })
+        return z.NEVER
+      }
+      return parsed.data
+    }),
+  unit: kitchenUnitSchema,
+  isOptional: z.boolean(),
+  note: z
+    .string()
+    .trim()
+    .max(200, 'Keep it under 200 characters')
+    .transform((value) => (value === '' ? null : value)),
+})
+
+export const recipeFormSchema = z.object({
+  title: z.string().trim().min(1, 'Give it a name').max(120, 'Keep it under 120 characters'),
+  servings: z
+    .string()
+    .trim()
+    .min(1, 'Enter how many it serves')
+    .transform((value, ctx) => {
+      const n = Number(value)
+      if (!Number.isInteger(n) || n < 1 || n > 100) {
+        ctx.addIssue({ code: 'custom', message: 'Enter a whole number from 1 to 100' })
+        return z.NEVER
+      }
+      return n
+    }),
+  prepMinutes: minutesInputSchema,
+  cookMinutes: minutesInputSchema,
+  tags: z
+    .array(z.string().trim().min(1).max(30, 'Keep tags under 30 characters'))
+    .max(12, 'Up to 12 tags')
+    .transform((tags) =>
+      tags.filter((t, i) => tags.findIndex((o) => o.toLowerCase() === t.toLowerCase()) === i),
+    ),
+  notes: z
+    .string()
+    .trim()
+    .max(4000, 'Keep notes under 4,000 characters')
+    .transform((value) => (value === '' ? null : value)),
+  ingredients: z.array(recipeIngredientFormSchema).max(60, 'Up to 60 ingredients'),
+  steps: z
+    .array(z.object({ body: z.string().trim().max(2000, 'Keep each step under 2,000 characters') }))
+    .max(40, 'Up to 40 steps')
+    .transform((steps) => steps.map((s) => s.body).filter((body) => body !== '')),
+})
+export type RecipeFormInput = z.input<typeof recipeFormSchema>
+export type RecipeFormValues = z.output<typeof recipeFormSchema>

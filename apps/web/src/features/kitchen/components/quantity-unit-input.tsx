@@ -16,6 +16,7 @@ export function QuantityUnitInput({
   onQuantityChange,
   onUnitChange,
   invalid,
+  placeholder,
 }: {
   id?: string
   quantity: string
@@ -23,6 +24,7 @@ export function QuantityUnitInput({
   onQuantityChange: (value: string) => void
   onUnitChange: (unit: KitchenUnit) => void
   invalid?: boolean
+  placeholder?: string
 }) {
   const count = Number(quantity.replace(',', '.'))
   return (
@@ -34,6 +36,7 @@ export function QuantityUnitInput({
         aria-label="Quantity"
         aria-invalid={invalid}
         className="tabular-nums"
+        placeholder={placeholder}
         value={quantity}
         onChange={(e) => onQuantityChange(e.target.value)}
       />

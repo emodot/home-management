@@ -1049,6 +1049,137 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_ingredients: {
+        Row: {
+          household_id: string
+          id: string
+          is_optional: boolean
+          item_id: string
+          note: string | null
+          position: number
+          quantity: number | null
+          recipe_id: string
+          unit: string
+        }
+        Insert: {
+          household_id: string
+          id?: string
+          is_optional?: boolean
+          item_id: string
+          note?: string | null
+          position: number
+          quantity?: number | null
+          recipe_id: string
+          unit?: string
+        }
+        Update: {
+          household_id?: string
+          id?: string
+          is_optional?: boolean
+          item_id?: string
+          note?: string | null
+          position?: number
+          quantity?: number | null
+          recipe_id?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'recipe_ingredients_household_id_item_id_fkey'
+            columns: ['household_id', 'item_id']
+            isOneToOne: false
+            referencedRelation: 'kitchen_items'
+            referencedColumns: ['household_id', 'id']
+          },
+          {
+            foreignKeyName: 'recipe_ingredients_household_id_recipe_id_fkey'
+            columns: ['household_id', 'recipe_id']
+            isOneToOne: false
+            referencedRelation: 'recipes'
+            referencedColumns: ['household_id', 'id']
+          },
+        ]
+      }
+      recipe_steps: {
+        Row: {
+          body: string
+          household_id: string
+          id: string
+          position: number
+          recipe_id: string
+        }
+        Insert: {
+          body: string
+          household_id: string
+          id?: string
+          position: number
+          recipe_id: string
+        }
+        Update: {
+          body?: string
+          household_id?: string
+          id?: string
+          position?: number
+          recipe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'recipe_steps_household_id_recipe_id_fkey'
+            columns: ['household_id', 'recipe_id']
+            isOneToOne: false
+            referencedRelation: 'recipes'
+            referencedColumns: ['household_id', 'id']
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          cook_minutes: number | null
+          created_at: string
+          created_by: string | null
+          household_id: string
+          id: string
+          notes: string | null
+          photo_path: string | null
+          prep_minutes: number | null
+          servings: number
+          tags: string[]
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cook_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          notes?: string | null
+          photo_path?: string | null
+          prep_minutes?: number | null
+          servings?: number
+          tags?: string[]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cook_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          notes?: string | null
+          photo_path?: string | null
+          prep_minutes?: number | null
+          servings?: number
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       shopping_list_items: {
         Row: {
           checked_at: string | null
@@ -1549,6 +1680,21 @@ export type Database = {
             Args: { p_from: string; p_item_id: string; p_quantity: number; p_to: string }
             Returns: number
           }
+      save_recipe: {
+        Args: {
+          p_cook_minutes: number | null
+          p_household_id: string
+          p_ingredients: Json
+          p_notes: string | null
+          p_prep_minutes: number | null
+          p_recipe_id: string | null
+          p_servings: number
+          p_steps: Json
+          p_tags: string[]
+          p_title: string
+        }
+        Returns: string
+      }
       merge_kitchen_items: {
         Args: { p_keep: string; p_merge: string }
         Returns: undefined

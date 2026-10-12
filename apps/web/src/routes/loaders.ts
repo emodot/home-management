@@ -18,6 +18,8 @@ import {
   itemPricesQuery,
   kitchenItemQuery,
   pantryQuery,
+  recipeQuery,
+  recipesQuery,
   shoppingListQuery,
   storeTagsQuery,
 } from '@/features/kitchen/lib/queries'
@@ -190,7 +192,7 @@ export async function expenseFormLoader({ request }: LoaderFunctionArgs) {
  */
 async function householdOfRecord(
   request: Request,
-  table: 'expenses' | 'tasks' | 'providers' | 'kitchen_items',
+  table: 'expenses' | 'tasks' | 'providers' | 'kitchen_items' | 'recipes',
   id: string,
 ): Promise<string> {
   const { user, householdId: activeId } = await requireHousehold(request)
@@ -619,6 +621,22 @@ export async function kitchenCatalogItemLoader({ request, params }: LoaderFuncti
     queryClient.query(shoppingListQuery(householdId)),
     queryClient.query(pantryQuery(householdId)),
     queryClient.query(storeTagsQuery(householdId)),
+  ])
+  return null
+}
+
+export async function kitchenRecipesLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) await queryClient.query(recipesQuery(householdId))
+  return null
+}
+
+export async function kitchenRecipeLoader({ request, params }: LoaderFunctionArgs) {
+  const recipeId = params.recipeId ?? ''
+  const householdId = await householdOfRecord(request, 'recipes', recipeId)
+  await Promise.all([
+    queryClient.query(recipeQuery(householdId, recipeId)),
+    queryClient.query(recipesQuery(householdId)),
   ])
   return null
 }

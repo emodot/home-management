@@ -4,6 +4,7 @@ import {
   listItemFormSchema,
   pantryItemFormSchema,
   quantityInputSchema,
+  recipeFormSchema,
 } from './schemas.ts'
 
 describe('quantityInputSchema', () => {
@@ -88,6 +89,64 @@ describe('itemConversionFormSchema', () => {
       expect(
         itemConversionFormSchema.safeParse({ unit: 'bag', factor, toUnit: 'kg' }).success,
       ).toBe(false)
+    }
+  })
+})
+
+describe('recipeFormSchema', () => {
+  const base = {
+    title: ' Egusi soup ',
+    servings: '6',
+    prepMinutes: '',
+    cookMinutes: '45',
+    tags: ['Soup', 'soup', 'Sunday'],
+    notes: '  ',
+    ingredients: [
+      {
+        itemId: 'i1',
+        name: 'Egusi',
+        quantity: '2',
+        unit: 'derica',
+        isOptional: false,
+        note: ' ground ',
+      },
+      { itemId: 'i2', name: 'Salt', quantity: '', unit: 'pcs', isOptional: false, note: '' },
+    ],
+    steps: [{ body: ' Fry the egusi. ' }, { body: '   ' }, { body: 'Add the leaves.' }],
+  } as const
+
+  it('reads the form', () => {
+    expect(recipeFormSchema.parse(base)).toEqual({
+      title: 'Egusi soup',
+      servings: 6,
+      prepMinutes: null,
+      cookMinutes: 45,
+      tags: ['Soup', 'Sunday'],
+      notes: null,
+      ingredients: [
+        {
+          itemId: 'i1',
+          name: 'Egusi',
+          quantity: 2,
+          unit: 'derica',
+          isOptional: false,
+          note: 'ground',
+        },
+        { itemId: 'i2', name: 'Salt', quantity: null, unit: 'pcs', isOptional: false, note: null },
+      ],
+      steps: ['Fry the egusi.', 'Add the leaves.'],
+    })
+  })
+
+  it('checks servings, times and quantities', () => {
+    for (const change of [
+      { servings: '0' },
+      { servings: '2.5' },
+      { cookMinutes: 'an hour' },
+      { title: '  ' },
+      { ingredients: [{ ...base.ingredients[0], quantity: '-1' }] },
+    ]) {
+      expect(recipeFormSchema.safeParse({ ...base, ...change }).success).toBe(false)
     }
   })
 })

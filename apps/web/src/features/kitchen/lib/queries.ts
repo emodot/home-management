@@ -1,13 +1,16 @@
 import {
   getKitchenItem,
+  getRecipe,
   listCatalogItems,
   listGasRefills,
   listHouseholdPrices,
   listKitchenConversions,
   listItemPrices,
   listPantry,
+  listRecipes,
   listShoppingList,
   recentStoreTags,
+  recipePhotoUrls,
   searchKitchenItems,
 } from '@home/shared'
 import { queryOptions } from '@tanstack/react-query'
@@ -104,4 +107,29 @@ export const gasRefillsQuery = (householdId: string) =>
   queryOptions({
     queryKey: gasKey(householdId),
     queryFn: () => listGasRefills(supabase, householdId),
+  })
+
+export const recipesKey = (householdId: string) => [...kitchenKey(householdId), 'recipes'] as const
+
+/** The household's recipes, A–Z. */
+export const recipesQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...recipesKey(householdId), 'all'],
+    queryFn: () => listRecipes(supabase, householdId),
+  })
+
+/** One recipe with its ingredients and steps (null if it isn't this household's). */
+export const recipeQuery = (householdId: string, recipeId: string) =>
+  queryOptions({
+    queryKey: [...recipesKey(householdId), 'recipe', recipeId],
+    queryFn: () => getRecipe(supabase, recipeId),
+  })
+
+/** Signed URLs for recipe photos, by path. They last an hour; refreshed well before. */
+export const recipePhotosQuery = (householdId: string, paths: string[]) =>
+  queryOptions({
+    queryKey: [...recipesKey(householdId), 'photos', [...paths].sort()],
+    queryFn: () => recipePhotoUrls(supabase, paths),
+    staleTime: 30 * 60_000,
+    enabled: paths.length > 0,
   })

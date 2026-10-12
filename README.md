@@ -169,6 +169,17 @@ clash with, list entry and pantry stock to the item kept: quantities add up wher
 convert, otherwise the kept one's stays, notes are joined and the sooner use-by date wins. The
 other item is then deleted, which can't be undone.
 
+**Recipes** (`/kitchen/recipes`, the sixth tab) is the household's recipe box: title, one photo
+(a private `recipe-photos` bucket, `{household_id}/{recipe_id}/{file}.jpg`, shrunk to 1600px on
+the device), servings, prep and cook time, tags (a starter set — Soup, Stew, Swallow, Rice,
+Breakfast, Snack, Party — plus the household's own), notes, steps and ingredients. Ingredients are
+catalogue items with a quantity and unit (empty for "to taste"), an optional note and an "optional"
+flag; merging catalogue items moves them too. `save_recipe` writes a recipe with its ingredients
+and steps in one transaction. A recipe's page scales the ingredients to any number of servings
+(`scaleAmount` in `packages/shared/src/kitchen/recipes.ts`): weights and volumes to two decimals in
+g or kg (ml or litres), whichever reads better; counted things to the nearest half, marked ≈ with
+the exact amount a tap away.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.

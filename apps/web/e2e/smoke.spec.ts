@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → cooking gas', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -268,6 +268,33 @@ test('super-admin creates a household → its admin joins → expense with recei
     await page.goto('/kitchen/pantry')
     await expect(page.getByRole('group', { name: 'How much Tomatoes' })).toContainText('2 pieces')
     await expect(page.getByRole('group', { name: 'How much Fresh tomatoes' })).toHaveCount(0)
+  })
+
+  await test.step('recipes: add one with ingredients and scale it from 4 to 10 servings', async () => {
+    await page.goto('/kitchen/recipes')
+    await page.getByRole('link', { name: 'Add a recipe' }).click()
+    await page.getByLabel('Name', { exact: true }).fill('Pepper soup')
+    await page.getByRole('button', { name: 'Soup', exact: true }).click()
+
+    const ingredient = page.getByLabel('Add an ingredient')
+    await ingredient.fill('Tomatoes')
+    await page.getByRole('option', { name: /^Tomatoes/ }).click()
+    await ingredient.fill('Uziza seeds')
+    await page.getByRole('option', { name: 'Add “Uziza seeds”' }).click()
+    await page.getByLabel('Quantity').nth(0).fill('3')
+    await page.getByLabel('Quantity').nth(1).fill('2')
+    await page.getByLabel('Step 1').fill('Boil everything together.')
+    await page.getByRole('button', { name: 'Add recipe' }).click()
+
+    await expect(page.getByRole('heading', { name: 'Pepper soup' })).toBeVisible()
+    await expect(page.getByText('3 pieces', { exact: true })).toBeVisible()
+    for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'More servings' }).click()
+    await expect(page.getByRole('group', { name: 'Servings' })).toContainText('10')
+    await expect(page.getByText('7.5 pieces', { exact: true })).toBeVisible()
+    await expect(page.getByText('5 pieces', { exact: true })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Back to recipes' }).click()
+    await expect(page.getByRole('link', { name: /^Pepper soup/ })).toContainText('2 ingredients')
   })
 
   await test.step('cooking gas: two refills predict the next one, with a reminder task', async () => {
