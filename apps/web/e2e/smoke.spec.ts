@@ -44,6 +44,8 @@ test('super-admin creates a household → its admin joins → expense with recei
   page,
   browser,
 }) => {
+  // One long walk through the app, a step per feature; well past the default minute now.
+  test.setTimeout(240_000)
   const email = `e2e-${Date.now()}@example.com`
   let adminInviteUrl = ''
   // A second member, kept signed in for the shared shopping list.
