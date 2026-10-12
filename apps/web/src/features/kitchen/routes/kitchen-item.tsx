@@ -3,6 +3,7 @@ import {
   formatDate,
   formatMoney,
   formatQuantity,
+  inMainUnits,
   mainUnit,
   priceSeries,
   summarizePrices,
@@ -18,22 +19,32 @@ import { ItemHeading } from '../components/item-heading'
 import { PriceChange } from '../components/price-change'
 import { PriceChart } from '../components/price-chart'
 import { useCatalogItem } from '../hooks/use-catalog-item'
-import { householdPricesQuery } from '../lib/queries'
+import { conversionsQuery, householdPricesQuery } from '../lib/queries'
 
 /** One item's prices: the latest, the change, the cheapest store lately, a chart and the table. */
 export function PriceHistoryPage() {
   const household = useActiveHousehold()
   const { itemId, item } = useCatalogItem()
   const all = useSuspenseQuery(householdPricesQuery(household.id)).data
-  const points = all.filter((p) => p.itemId === itemId)
+  const conversions = useSuspenseQuery(conversionsQuery(household.id)).data
+  const bought = all.filter((p) => p.itemId === itemId)
   const tableId = useId()
   const name = item?.name ?? 'Item'
+  // Charted and compared in the unit it's usually bought in; other units join in where the
+  // item's conversions allow (1 bag = 50 kg).
+  const unit = mainUnit(bought)
+  const points = inMainUnits(bought, conversions)
   const [summary] = summarizePrices(points)
 
-  if (!summary) {
+  if (!summary || !unit) {
     return (
       <div className="flex flex-col gap-4">
-        <ItemHeading name={name} back="/kitchen/prices" backLabel="Back to prices" />
+        <ItemHeading
+          name={name}
+          back="/kitchen/prices"
+          backLabel="Back to prices"
+          itemId={itemId}
+        />
         <EmptyState icon={ChartLineIcon} title="No prices yet" size="sm">
           Prices appear after you buy it on a shopping trip.
         </EmptyState>
@@ -42,15 +53,13 @@ export function PriceHistoryPage() {
   }
 
   const { latest } = summary
-  // Charted and compared in the unit it's usually bought in.
-  const unit = mainUnit(points) ?? latest.unit
   const per = unitLabel(unit)
   const cheapest = cheapestRecentStore(points, unit, todayIn(household.timezone))
   const { series, otherStores, otherUnits } = priceSeries(points, unit)
 
   return (
     <div className="flex flex-col gap-6">
-      <ItemHeading name={name} back="/kitchen/prices" backLabel="Back to prices" />
+      <ItemHeading name={name} back="/kitchen/prices" backLabel="Back to prices" itemId={itemId} />
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
         <div className="flex flex-col gap-0.5">
@@ -118,7 +127,7 @@ export function PriceHistoryPage() {
               </tr>
             </thead>
             <tbody className="[&>tr]:border-t [&>tr]:border-background">
-              {points.map((p) => (
+              {points.map((p, i) => (
                 <tr key={p.id}>
                   <td className="px-3 py-2">
                     <span className="block whitespace-nowrap">{formatDate(p.boughtOn)}</span>
@@ -129,7 +138,7 @@ export function PriceHistoryPage() {
                   <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">
                     {formatMoney(p.priceMinor)}
                     <span className="block text-xs text-muted-foreground">
-                      {formatQuantity(p.quantity, p.unit)}
+                      {formatQuantity(bought[i]?.quantity ?? p.quantity, bought[i]?.unit ?? p.unit)}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">

@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/empty-state'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { cn } from '@/lib/utils'
 import { ItemAutocomplete } from '../components/item-autocomplete'
+import { ManageItemsLink } from '../components/manage-items-link'
 import { PantryRow } from '../components/pantry-row'
 import {
   useAddToPantry,
@@ -143,6 +144,7 @@ export function PantryPage() {
           )}
         </>
       )}
+      <ManageItemsLink />
     </div>
   )
 }

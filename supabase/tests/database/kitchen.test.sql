@@ -1,6 +1,6 @@
 -- My Kitchen: the item catalogue is shared by the household's members and kept free of duplicates.
 begin;
-select plan(64);
+select plan(87);
 
 create function pg_temp.create_household(p_name text)
 returns public.households
@@ -432,6 +432,155 @@ select throws_ok(
   '42501', null, 'refills are only written by logging them'
 );
 
+-- ---------------------------------------------------------------- per-item conversions
+select set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}', true);
+select lives_ok(
+  $$ insert into public.kitchen_item_units (household_id, item_id, unit, factor, to_unit)
+     values (current_setting('test.hid')::uuid, (select id from ids where n = 'rice'), 'bag', 50, 'kg') $$,
+  'a member can say how an item''s units relate (1 bag of rice = 50 kg)'
+);
+select is(
+  (select created_by from public.kitchen_item_units where item_id = (select id from ids where n = 'rice')),
+  '22222222-2222-2222-2222-222222222222'::uuid,
+  'who added it is recorded'
+);
+select throws_ok(
+  $$ insert into public.kitchen_item_units (household_id, item_id, unit, factor, to_unit)
+     values (current_setting('test.hid')::uuid, (select id from ids where n = 'rice'), 'bag', 40, 'kg') $$,
+  '23505', null, 'one definition per unit of an item'
+);
+select throws_ok(
+  $$ insert into public.kitchen_item_units (household_id, item_id, unit, factor, to_unit)
+     values (current_setting('test.hid')::uuid, (select id from ids where n = 'rice'), 'kg', 1, 'kg') $$,
+  '23514', null, 'a unit doesn''t convert to itself'
+);
+select throws_ok(
+  $$ insert into public.kitchen_item_units (household_id, item_id, unit, factor, to_unit)
+     values (current_setting('test.hid')::uuid, (select id from ids where n = 'rice'), 'tin', 0, 'kg') $$,
+  '23514', null, 'factors are above zero'
+);
+select is(
+  public.kitchen_convert((select id from ids where n = 'rice'), 2, 'bag', 'g'),
+  100000::numeric,
+  'conversion follows the item''s units and then metric (2 bags = 100,000 g)'
+);
+select is(
+  public.kitchen_convert((select id from ids where n = 'rice'), 25, 'kg', 'bag'),
+  0.5::numeric,
+  'and works backwards (25 kg = half a bag)'
+);
+select is(
+  public.kitchen_convert((select id from ids where n = 'garri'), 1, 'bag', 'kg'),
+  null,
+  'other items don''t share it'
+);
+select is(
+  public.kitchen_convert((select id from ids where n = 'rice'), 1, 'tin', 'kg'),
+  null,
+  'units with no link don''t convert'
+);
+select is(
+  public.kitchen_convert((select id from ids where n = 'rice'), 1500, 'g', 'kg'),
+  1.5::numeric,
+  'metric still converts with an item'
+);
+
+-- Finishing a trip adds a bag of rice to a pantry kept in kg.
+insert into public.pantry_items (household_id, item_id, quantity, unit)
+values (current_setting('test.hid')::uuid, (select id from ids where n = 'rice'), 10, 'kg');
+insert into public.shopping_list_items (household_id, item_id, quantity, unit, is_checked)
+values (current_setting('test.hid')::uuid, (select id from ids where n = 'rice'), 1, 'bag', true);
+select public.finish_shopping_trip(
+  current_setting('test.hid')::uuid,
+  jsonb_build_array(jsonb_build_object('id',
+    (select id from public.shopping_list_items where item_id = (select id from ids where n = 'rice')),
+    'price_minor', 7000000, 'to_pantry', true)),
+  7000000, current_setting('test.groceries')::uuid, '2026-10-11', auth.uid(), 'Rice');
+select is(
+  (select quantity || ' ' || unit from public.pantry_items where item_id = (select id from ids where n = 'rice')),
+  '60.00 kg',
+  'finishing a trip uses the item''s conversions for the pantry'
+);
+
+-- ---------------------------------------------------------------- merging items
+-- "Ofada rice" (kept: 10 kg in the pantry, 1 bag on the list, 1 bag = 50 kg) takes in
+-- "Rice (ofada)" (1 bag in the pantry using sooner, 5 kg on the list, two prices, its own bag and
+-- derica conversions) and "Ofada" (3 tins in the pantry: they don't convert).
+insert into public.kitchen_items (household_id, name, normalized_name) values
+  (current_setting('test.hid')::uuid, 'Ofada rice', 'ofada rice'),
+  (current_setting('test.hid')::uuid, 'Rice (ofada)', 'rice ofada'),
+  (current_setting('test.hid')::uuid, 'Ofada', 'ofada');
+insert into ids select normalized_name, id from public.kitchen_items
+  where normalized_name in ('ofada rice', 'rice ofada', 'ofada');
+insert into public.kitchen_item_units (household_id, item_id, unit, factor, to_unit) values
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'ofada rice'), 'bag', 50, 'kg'),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'rice ofada'), 'bag', 40, 'kg'),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'rice ofada'), 'derica', 0.8, 'kg');
+insert into public.pantry_items (household_id, item_id, quantity, unit, expires_on) values
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'ofada rice'), 10, 'kg', null),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'rice ofada'), 1, 'bag', '2026-12-01'),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'ofada'), 3, 'tin', null);
+insert into public.shopping_list_items (household_id, item_id, quantity, unit, notes) values
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'ofada rice'), 1, 'bag', 'Big bag'),
+  (current_setting('test.hid')::uuid, (select id from ids where n = 'rice ofada'), 5, 'kg', 'Stone-free');
+reset role;
+insert into public.item_prices (household_id, item_id, trip_id, quantity, unit, price_minor, bought_on)
+select current_setting('test.hid')::uuid, (select id from ids where n = 'rice ofada'),
+       (current_setting('test.trip')::jsonb ->> 'trip_id')::uuid, 1, 'bag', p, '2026-10-10'
+from (values (8000000), (8500000)) v (p);
+set local role authenticated;
+
+select throws_ok(
+  $$ select public.merge_kitchen_items((select id from ids where n = 'ofada rice'), (select id from ids where n = 'ofada rice')) $$,
+  '22023', null, 'an item can''t be merged into itself'
+);
+select lives_ok(
+  $$ select public.merge_kitchen_items((select id from ids where n = 'ofada rice'), (select id from ids where n = 'rice ofada')) $$,
+  'a member can merge a duplicate item into another'
+);
+select is_empty(
+  $$ select 1 from public.kitchen_items where id = (select id from ids where n = 'rice ofada') $$,
+  'the duplicate is gone'
+);
+select is(
+  (select count(*)::int from public.item_prices where item_id = (select id from ids where n = 'ofada rice')),
+  2,
+  'all its prices move to the item kept'
+);
+select is(
+  (select quantity || ' ' || unit || ' ' || expires_on from public.pantry_items
+   where item_id = (select id from ids where n = 'ofada rice')),
+  '60.00 kg 2026-12-01',
+  'its pantry stock is added (1 bag = 50 kg, by the kept item''s conversion), with the sooner use-by date'
+);
+select is(
+  (select quantity || ' ' || unit || ' ' || notes from public.shopping_list_items
+   where item_id = (select id from ids where n = 'ofada rice')),
+  '1.10 bag Big bag · Stone-free',
+  'its list entry is added to the kept one, notes joined'
+);
+select is(
+  (select string_agg(unit || '=' || (factor::float8)::text || to_unit, ' ' order by unit) from public.kitchen_item_units
+   where item_id = (select id from ids where n = 'ofada rice')),
+  'bag=50kg derica=0.8kg',
+  'conversions the kept item lacks move across; its own win'
+);
+select lives_ok(
+  $$ select public.merge_kitchen_items((select id from ids where n = 'ofada rice'), (select id from ids where n = 'ofada')) $$,
+  'merging stock that doesn''t convert'
+);
+select is(
+  (select quantity || ' ' || unit from public.pantry_items where item_id = (select id from ids where n = 'ofada rice')),
+  '60.00 kg',
+  'keeps the kept item''s quantity'
+);
+select is(
+  (select count(*)::int from public.pantry_items where household_id = current_setting('test.hid')::uuid
+   and item_id in (select id from ids where n in ('rice ofada', 'ofada'))),
+  0,
+  'and leaves no pantry rows behind'
+);
+
 select set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}', true);
 select throws_ok(
   $$ select public.finish_shopping_trip(current_setting('test.hid')::uuid, '[{"id": "00000000-0000-0000-0000-000000000000"}]',
@@ -440,8 +589,17 @@ select throws_ok(
 );
 select is_empty(
   $$ select 1 from public.item_prices union all select 1 from public.shopping_trips union all select 1 from public.pantry_items
-     union all select 1 from public.gas_refills $$,
-  'or see its prices, trips and pantry'
+     union all select 1 from public.gas_refills union all select 1 from public.kitchen_item_units $$,
+  'or see its prices, trips, pantry and conversions'
+);
+select throws_ok(
+  $$ select public.merge_kitchen_items((select id from ids where n = 'ofada rice'), (select id from ids where n = 'rice')) $$,
+  'P0002', null, 'or merge its items'
+);
+select is(
+  public.kitchen_convert((select id from ids where n = 'rice'), 2, 'bag', 'kg'),
+  null,
+  'or use its conversions'
 );
 
 select * from finish();

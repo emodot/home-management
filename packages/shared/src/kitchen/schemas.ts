@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { amountInputSchema } from '../schemas/expenses.ts'
 import { normalizeItemName } from './normalize.ts'
 import { PANTRY_LOCATIONS } from './pantry.ts'
-import { KITCHEN_UNITS } from './units.ts'
+import { convert, KITCHEN_UNITS } from './units.ts'
 
 export const kitchenUnitSchema = z.enum(KITCHEN_UNITS)
 
@@ -28,6 +28,7 @@ export const kitchenItemInputSchema = z.object({
   defaultStoreTag: storeTagSchema.default(null),
 })
 export type KitchenItemInput = z.input<typeof kitchenItemInputSchema>
+export type KitchenItemValues = z.output<typeof kitchenItemInputSchema>
 
 /** A quantity as typed ("1.5", "2"): above zero, at most two decimals. */
 export const quantityInputSchema = z
@@ -123,3 +124,35 @@ export const gasRefillFormSchema = z.object({
 })
 export type GasRefillFormInput = z.input<typeof gasRefillFormSchema>
 export type GasRefillFormValues = z.output<typeof gasRefillFormSchema>
+
+/** "1 bag = 50 kg" on an item's page. */
+export const itemConversionFormSchema = z
+  .object({
+    unit: kitchenUnitSchema,
+    factor: z
+      .string()
+      .trim()
+      .min(1, 'Enter how many')
+      .transform((value, ctx) => {
+        const n = Number(value.replace(',', '.'))
+        if (!Number.isFinite(n) || n <= 0) {
+          ctx.addIssue({ code: 'custom', message: 'Enter a number above zero' })
+          return z.NEVER
+        }
+        if (n > 1000000 || Math.round(n * 10000) !== n * 10000) {
+          ctx.addIssue({ code: 'custom', message: 'Use at most four decimals, like 0.25' })
+          return z.NEVER
+        }
+        return n
+      }),
+    toUnit: kitchenUnitSchema,
+  })
+  .superRefine((value, ctx) => {
+    if (value.unit === value.toUnit) {
+      ctx.addIssue({ code: 'custom', path: ['toUnit'], message: 'Pick a different unit' })
+    } else if (convert(1, value.unit, value.toUnit) !== null) {
+      ctx.addIssue({ code: 'custom', path: ['toUnit'], message: 'These already convert' })
+    }
+  })
+export type ItemConversionFormInput = z.input<typeof itemConversionFormSchema>
+export type ItemConversionFormValues = z.output<typeof itemConversionFormSchema>

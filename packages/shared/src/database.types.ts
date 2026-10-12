@@ -693,6 +693,47 @@ export type Database = {
         }
         Relationships: []
       }
+      kitchen_item_units: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          factor: number
+          household_id: string
+          id: string
+          item_id: string
+          to_unit: string
+          unit: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          factor: number
+          household_id: string
+          id?: string
+          item_id: string
+          to_unit: string
+          unit: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          factor?: number
+          household_id?: string
+          id?: string
+          item_id?: string
+          to_unit?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'kitchen_item_units_household_id_item_id_fkey'
+            columns: ['household_id', 'item_id']
+            isOneToOne: false
+            referencedRelation: 'kitchen_items'
+            referencedColumns: ['household_id', 'id']
+          },
+        ]
+      }
       pantry_items: {
         Row: {
           created_at: string
@@ -1499,9 +1540,18 @@ export type Database = {
         }
         Returns: Json
       }
-      kitchen_convert: {
-        Args: { p_from: string; p_quantity: number; p_to: string }
-        Returns: number
+      kitchen_convert:
+        | {
+            Args: { p_from: string; p_quantity: number; p_to: string }
+            Returns: number
+          }
+        | {
+            Args: { p_from: string; p_item_id: string; p_quantity: number; p_to: string }
+            Returns: number
+          }
+      merge_kitchen_items: {
+        Args: { p_keep: string; p_merge: string }
+        Returns: undefined
       }
       log_gas_refill: {
         Args: {

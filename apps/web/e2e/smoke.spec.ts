@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → cooking gas', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -238,6 +238,36 @@ test('super-admin creates a household → its admin joins → expense with recei
     await tomatoes.click()
     await expect(page.getByRole('group', { name: 'Price per piece' })).toBeVisible()
     await expect(page.getByRole('table')).toContainText('₦2,500')
+  })
+
+  await test.step('items: give one its units and merge a duplicate into it', async () => {
+    // A second name for the same thing, added from the pantry: 1 piece.
+    await page.goto('/kitchen/pantry')
+    await page.getByLabel('Add to the pantry').fill('Fresh tomatoes')
+    await page.getByRole('option', { name: 'Add “Fresh tomatoes”' }).click()
+    await expect(page.getByRole('group', { name: 'How much Fresh tomatoes' })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Manage items' }).click()
+    await page.getByRole('link', { name: /^Tomatoes/ }).click()
+    await expect(page.getByRole('heading', { name: 'Tomatoes' })).toBeVisible()
+
+    // 1 piece = 0.2 kg.
+    await page.getByLabel('How many in 1 piece').fill('0.2')
+    await page.getByRole('button', { name: 'Add', exact: true }).click()
+    await expect(page.getByText('1 piece = 0.2 kg')).toBeVisible()
+
+    // Merging moves its pantry stock (and anything else) here.
+    await page.getByLabel('Item to merge in').click()
+    await page.getByRole('option', { name: 'Fresh tomatoes' }).click()
+    await page.getByRole('button', { name: 'Merge…' }).click()
+    const dialog = page.getByRole('alertdialog', { name: 'Merge Fresh tomatoes into Tomatoes?' })
+    await dialog.getByRole('button', { name: 'Merge' }).click()
+    await expect(page.getByText('Merged Fresh tomatoes into Tomatoes')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'In the pantry: 2 pieces' })).toBeVisible()
+
+    await page.goto('/kitchen/pantry')
+    await expect(page.getByRole('group', { name: 'How much Tomatoes' })).toContainText('2 pieces')
+    await expect(page.getByRole('group', { name: 'How much Fresh tomatoes' })).toHaveCount(0)
   })
 
   await test.step('cooking gas: two refills predict the next one, with a reminder task', async () => {

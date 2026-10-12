@@ -19,8 +19,9 @@ export const TEST_HOUSEHOLD: Household = {
  * Renders `ui` as if inside the signed-in app: a router (with the user the 'authed' route
  * provides), a fresh query client and the active household. Other paths render nothing, so
  * navigating away is harmless. Await something on screen before interacting: the route loads.
+ * `path` (with params such as :itemId) and `url` render it as a page of the app.
  */
-export function renderInApp(ui: ReactNode) {
+export function renderInApp(ui: ReactNode, { path = '/', url = '/' } = {}) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
@@ -31,14 +32,14 @@ export function renderInApp(ui: ReactNode) {
         loader: () => ({ user: TEST_USER }),
         children: [
           {
-            path: '/',
+            path,
             element: <ActiveHouseholdContext value={TEST_HOUSEHOLD}>{ui}</ActiveHouseholdContext>,
           },
           { path: '*', element: null },
         ],
       },
     ],
-    { initialEntries: ['/'] },
+    { initialEntries: [url] },
   )
   render(
     <QueryClientProvider client={queryClient}>

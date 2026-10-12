@@ -1,5 +1,5 @@
 import { addDays, type IsoDate } from '../dates.ts'
-import type { KitchenUnit } from './units.ts'
+import { convert, type KitchenUnit, type UnitConversion } from './units.ts'
 
 /** One purchase of an item, from a finished shopping trip. */
 export interface PricePoint {
@@ -150,4 +150,42 @@ export function mainUnit(points: PricePoint[]): KitchenUnit | null {
   return (counts.get(latest.unit) ?? 0) === best
     ? latest.unit
     : ([...counts.entries()].find(([, n]) => n === best)?.[0] ?? latest.unit)
+}
+
+/**
+ * The purchases with those in other units restated in `unit` where the item's conversions allow
+ * (a bag at ₦70,000 is ₦1,400/kg when 1 bag = 50 kg), so they chart and compare together. Ones
+ * that don't convert stay as they were.
+ */
+export function inUnit(
+  points: PricePoint[],
+  unit: KitchenUnit,
+  conversions: readonly UnitConversion[],
+): PricePoint[] {
+  return points.map((p) => {
+    if (p.unit === unit) return p
+    const quantity = convert(p.quantity, p.unit, unit, conversions)
+    if (quantity === null || quantity <= 0) return p
+    return { ...p, quantity, unit, unitPriceMinor: Math.round(p.priceMinor / quantity) }
+  })
+}
+
+/**
+ * Every item's purchases with other units restated in the unit it's usually bought in (see
+ * mainUnit), through that item's `conversions`. Same order as `points`.
+ */
+export function inMainUnits(
+  points: PricePoint[],
+  conversions: readonly (UnitConversion & { itemId: string })[],
+): PricePoint[] {
+  const byItem = new Map<string, PricePoint[]>()
+  for (const p of points) byItem.set(p.itemId, [...(byItem.get(p.itemId) ?? []), p])
+  const restated = new Map<string, PricePoint>()
+  for (const [itemId, bought] of byItem) {
+    const unit = mainUnit(bought)
+    if (!unit) continue
+    const own = conversions.filter((c) => c.itemId === itemId)
+    for (const p of inUnit(bought, unit, own)) restated.set(p.id, p)
+  }
+  return points.map((p) => restated.get(p.id) ?? p)
 }

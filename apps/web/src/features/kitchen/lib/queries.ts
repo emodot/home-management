@@ -1,7 +1,9 @@
 import {
   getKitchenItem,
+  listCatalogItems,
   listGasRefills,
   listHouseholdPrices,
+  listKitchenConversions,
   listItemPrices,
   listPantry,
   listShoppingList,
@@ -20,7 +22,7 @@ export const kitchenItemsKey = (householdId: string) =>
 /** Catalogue items matching `search`, best first (recent items when it's empty). */
 export const kitchenItemSearchQuery = (householdId: string, search: string) =>
   queryOptions({
-    queryKey: [...kitchenItemsKey(householdId), search.trim().toLowerCase()],
+    queryKey: [...kitchenItemsKey(householdId), 'search', search.trim().toLowerCase()],
     queryFn: () => searchKitchenItems(supabase, householdId, search),
     staleTime: 5 * 60_000,
   })
@@ -30,6 +32,20 @@ export const kitchenItemQuery = (householdId: string, itemId: string) =>
   queryOptions({
     queryKey: [...kitchenItemsKey(householdId), 'item', itemId],
     queryFn: () => getKitchenItem(supabase, itemId),
+  })
+
+/** The whole catalogue, A–Z, for managing it. */
+export const catalogQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...kitchenItemsKey(householdId), 'all'],
+    queryFn: () => listCatalogItems(supabase, householdId),
+  })
+
+/** How the household's items' units relate ("1 bag = 50 kg"). */
+export const conversionsQuery = (householdId: string) =>
+  queryOptions({
+    queryKey: [...kitchenItemsKey(householdId), 'conversions'],
+    queryFn: () => listKitchenConversions(supabase, householdId),
   })
 
 export const shoppingListKey = (householdId: string) =>

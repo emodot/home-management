@@ -1,4 +1,5 @@
 import {
+  inMainUnits,
   formatDate,
   formatMoney,
   itemSearchKey,
@@ -20,8 +21,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useActiveHousehold } from '@/hooks/use-household'
+import { ManageItemsLink } from '../components/manage-items-link'
 import { PriceChange } from '../components/price-change'
-import { householdPricesQuery } from '../lib/queries'
+import { conversionsQuery, householdPricesQuery } from '../lib/queries'
 
 const SORTS: { value: PriceSort; label: string }[] = [
   { value: 'recent', label: 'Recently bought' },
@@ -31,7 +33,10 @@ const SORTS: { value: PriceSort; label: string }[] = [
 
 export function PricesPage() {
   const household = useActiveHousehold()
-  const points = useSuspenseQuery(householdPricesQuery(household.id)).data
+  const bought = useSuspenseQuery(householdPricesQuery(household.id)).data
+  const conversions = useSuspenseQuery(conversionsQuery(household.id)).data
+  // Compared in each item's usual unit, other units joining in where they convert.
+  const points = inMainUnits(bought, conversions)
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const sort: PriceSort = SORTS.find((s) => s.value === params.get('sort'))?.value ?? 'recent'
@@ -124,6 +129,7 @@ export function PricesPage() {
           ))}
         </ul>
       )}
+      <ManageItemsLink />
     </div>
   )
 }

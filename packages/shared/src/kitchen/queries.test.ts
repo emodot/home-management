@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import type { HomeClient } from '../client.ts'
-import { addToShoppingList, createKitchenItem, searchKitchenItems } from './queries.ts'
+import {
+  addToShoppingList,
+  createKitchenItem,
+  DuplicateKitchenItemError,
+  listCatalogItems,
+  listKitchenConversions,
+  searchKitchenItems,
+  updateKitchenItem,
+} from './queries.ts'
 
 const row = (name: string, normalized: string) => ({
   id: `id-${normalized}`,
@@ -162,5 +170,75 @@ describe('addToShoppingList', () => {
     expect(result.status).toBe('unchecked')
     expect(result.entry.isChecked).toBe(false)
     expect(calls).toContainEqual(['update', { is_checked: false }])
+  })
+})
+
+describe('listCatalogItems', () => {
+  it("counts each item's prices", async () => {
+    const { client } = fakeClient([
+      {
+        data: [
+          { ...row('Rice', 'rice'), prices: [{ count: 3 }] },
+          { ...row('Salt', 'salt'), prices: [] },
+        ],
+        error: null,
+      },
+    ])
+    const items = await listCatalogItems(client, 'h1')
+    expect(items.map((i) => [i.name, i.priceCount])).toEqual([
+      ['Rice', 3],
+      ['Salt', 0],
+    ])
+  })
+})
+
+describe('updateKitchenItem', () => {
+  it('renames with a new matching key', async () => {
+    const { client, calls } = fakeClient([
+      { data: row('Long grain rice', 'long grain rice'), error: null },
+    ])
+    const item = await updateKitchenItem(
+      client,
+      { id: 'id-rice', householdId: 'h1' },
+      { name: 'Long grain rice', defaultUnit: 'bag', defaultStoreTag: 'Mile 12' },
+    )
+    expect(item.name).toBe('Long grain rice')
+    expect(calls).toContainEqual([
+      'update',
+      {
+        name: 'Long grain rice',
+        normalized_name: 'long grain rice',
+        default_unit: 'bag',
+        default_store_tag: 'Mile 12',
+      },
+    ])
+  })
+
+  it('names the item that already has that name, so they can be merged', async () => {
+    const { client } = fakeClient([
+      { data: null, error: { code: '23505', message: 'duplicate key' } },
+      { data: row('Tomatoes', 'tomato'), error: null },
+    ])
+    const attempt = updateKitchenItem(
+      client,
+      { id: 'id-tomatos', householdId: 'h1' },
+      { name: 'Tomato' },
+    )
+    await expect(attempt).rejects.toBeInstanceOf(DuplicateKitchenItemError)
+    await expect(attempt).rejects.toMatchObject({ existing: { id: 'id-tomato' } })
+  })
+})
+
+describe('listKitchenConversions', () => {
+  it('reads factors stored as text', async () => {
+    const { client } = fakeClient([
+      {
+        data: [{ id: 'c1', item_id: 'id-rice', unit: 'bag', factor: '50.0000', to_unit: 'kg' }],
+        error: null,
+      },
+    ])
+    expect(await listKitchenConversions(client, 'h1')).toEqual([
+      { id: 'c1', itemId: 'id-rice', unit: 'bag', factor: 50, toUnit: 'kg' },
+    ])
   })
 })

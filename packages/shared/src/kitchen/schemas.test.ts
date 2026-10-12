@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { listItemFormSchema, pantryItemFormSchema, quantityInputSchema } from './schemas.ts'
+import {
+  itemConversionFormSchema,
+  listItemFormSchema,
+  pantryItemFormSchema,
+  quantityInputSchema,
+} from './schemas.ts'
 
 describe('quantityInputSchema', () => {
   it('reads decimals, with a comma or a point', () => {
@@ -54,5 +59,35 @@ describe('pantryItemFormSchema', () => {
   it('rejects negative stock and unknown places', () => {
     expect(pantryItemFormSchema.safeParse({ ...base, quantity: '-1' }).success).toBe(false)
     expect(pantryItemFormSchema.safeParse({ ...base, location: 'garage' }).success).toBe(false)
+  })
+})
+
+describe('itemConversionFormSchema', () => {
+  it('reads "1 bag = 50 kg"', () => {
+    expect(itemConversionFormSchema.parse({ unit: 'bag', factor: '50', toUnit: 'kg' })).toEqual({
+      unit: 'bag',
+      factor: 50,
+      toUnit: 'kg',
+    })
+    expect(
+      itemConversionFormSchema.parse({ unit: 'derica', factor: '0,75', toUnit: 'kg' }).factor,
+    ).toBe(0.75)
+  })
+
+  it("needs two different units that don't already convert", () => {
+    expect(
+      itemConversionFormSchema.safeParse({ unit: 'bag', factor: '1', toUnit: 'bag' }).success,
+    ).toBe(false)
+    expect(
+      itemConversionFormSchema.safeParse({ unit: 'kg', factor: '1000', toUnit: 'g' }).success,
+    ).toBe(false)
+  })
+
+  it('needs a sensible number', () => {
+    for (const factor of ['', '0', '-2', 'lots', '0.00001', '2000000']) {
+      expect(
+        itemConversionFormSchema.safeParse({ unit: 'bag', factor, toUnit: 'kg' }).success,
+      ).toBe(false)
+    }
   })
 })

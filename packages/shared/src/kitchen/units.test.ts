@@ -36,4 +36,27 @@ describe('convert', () => {
     expect(convert(1, 'bag', 'kg')).toBeNull()
     expect(convert(1, 'mudu', 'derica')).toBeNull()
   })
+
+  it("follows an item's own conversions, both ways and through metric", () => {
+    const rice = [{ unit: 'bag', factor: 50, toUnit: 'kg' }] as const
+    expect(convert(2, 'bag', 'kg', rice)).toBe(100)
+    expect(convert(2, 'bag', 'g', rice)).toBe(100000)
+    expect(convert(25, 'kg', 'bag', rice)).toBe(0.5)
+    expect(convert(5000, 'g', 'bag', rice)).toBeCloseTo(0.1)
+    expect(convert(1, 'tin', 'kg', rice)).toBeNull()
+  })
+
+  it('chains conversions between local measures', () => {
+    const tomatoes = [
+      { unit: 'crate', factor: 4, toUnit: 'paint_bucket' },
+      { unit: 'paint_bucket', factor: 6, toUnit: 'derica' },
+    ] as const
+    expect(convert(1, 'crate', 'derica', tomatoes)).toBe(24)
+    expect(convert(12, 'derica', 'crate', tomatoes)).toBeCloseTo(0.5)
+  })
+
+  it('ignores conversions that make no sense', () => {
+    expect(convert(1, 'bag', 'kg', [{ unit: 'bag', factor: 0, toUnit: 'kg' }])).toBeNull()
+    expect(convert(1, 'bag', 'kg', [{ unit: 'bag', factor: 1, toUnit: 'bag' }])).toBeNull()
+  })
 })

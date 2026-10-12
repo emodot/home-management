@@ -52,7 +52,12 @@ export function PantryItemPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <ItemHeading name={name} back="/kitchen/pantry" backLabel="Back to the pantry" />
+      <ItemHeading
+        name={name}
+        back="/kitchen/pantry"
+        backLabel="Back to the pantry"
+        itemId={itemId}
+      />
       {entry ? (
         <PantryItemForm
           key={entry.id}

@@ -143,8 +143,9 @@ item can have a low-stock threshold: when its stock falls to or below it, a data
 it's already there, nothing changes.
 
 **Prices** lists every item bought with a price: its latest per-unit price, the store, and the change
-since the previous purchase in the same unit (prices in different units aren't compared), sortable
-by biggest increase. An item's page shows the cheapest store over the last 90 days and a line chart
+since the previous purchase, sortable by biggest increase. Prices are compared in the unit each
+item is usually bought in; purchases in other units join in where they convert (see Items below),
+and the rest are left out of the comparison. An item's page shows the cheapest store over the last 90 days and a line chart
 of the per-unit price by store (`price-chart.tsx`, hand-drawn SVG: up to four stores, colours from
 the `--series-*` tokens, a crosshair that also works with the arrow keys) above the full purchases
 table, which is the chart's text alternative.
@@ -155,6 +156,18 @@ households after Groceries — and, if asked, keeps one "Refill cooking gas" tas
 `gas_reminders`) due 3 days before the predicted refill. The prediction (`kitchen/gas.ts`) is the
 mean, over the last 3 intervals, of days between refills per kg of the earlier cylinder, times the
 last cylinder's kg. Removing a refill (`remove_gas_refill`) sends its expense to Recently deleted.
+
+**Items** (`/kitchen/items`, linked as "Manage items" from Pantry and Prices) is the catalogue
+itself: rename an item (a name another item already has offers to merge the two instead), set its
+usual unit and store, and say how its units relate ("1 bag = 50 kg", in `kitchen_item_units`).
+Conversion (`kitchen_convert(item, …)` in the database, `convert()` in
+`packages/shared/src/kitchen/units.ts`) follows g↔kg, ml↔litre and the item's own conversions both
+ways, up to four steps, so a bag bought into a pantry kept in kg adds up. The page suggests pairs
+that look like the same item (the same words in another order, or a one-letter typo). Merging
+(`merge_kitchen_items`, one transaction) moves the other item's prices, conversions it doesn't
+clash with, list entry and pantry stock to the item kept: quantities add up where the units
+convert, otherwise the kept one's stays, notes are joined and the sooner use-by date wins. The
+other item is then deleted, which can't be undone.
 
 ## Deployment
 

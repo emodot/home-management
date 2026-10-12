@@ -6,7 +6,7 @@ import { mergeStoreTags, type ListItemSource, type ShoppingListItem } from './li
 import { isPantryLocation, type PantryItem, type PantryLocation } from './pantry.ts'
 import type { PricePoint } from './prices.ts'
 import { kitchenItemInputSchema, type KitchenItemInput, type ListItemPatch } from './schemas.ts'
-import { isKitchenUnit, type KitchenUnit } from './units.ts'
+import { isKitchenUnit, type KitchenUnit, type UnitConversion } from './units.ts'
 
 export interface KitchenItem {
   id: string
@@ -102,6 +102,138 @@ export async function createKitchenItem(
 export async function getKitchenItem(client: HomeClient, id: string): Promise<KitchenItem | null> {
   const row = unwrap(await client.from('kitchen_items').select('*').eq('id', id).maybeSingle())
   return row ? toKitchenItem(row) : null
+}
+
+// ---------------------------------------------------------------- managing the catalogue
+
+export interface CatalogItem extends KitchenItem {
+  /** How many prices it has on record. */
+  priceCount: number
+}
+
+/** Every item in the household's catalogue, A–Z, with how many prices each has. */
+export async function listCatalogItems(
+  client: HomeClient,
+  householdId: string,
+): Promise<CatalogItem[]> {
+  const rows = unwrap(
+    await client
+      .from('kitchen_items')
+      .select('*, prices:item_prices(count)')
+      .eq('household_id', householdId)
+      .order('name'),
+  )
+  return rows.map((r) => ({ ...toKitchenItem(r), priceCount: r.prices[0]?.count ?? 0 }))
+}
+
+/** Another item already has the name (its matching key) an item was being renamed to. */
+export class DuplicateKitchenItemError extends Error {
+  readonly existing: KitchenItem
+
+  constructor(existing: KitchenItem) {
+    super(`There's already an item called ${existing.name}.`)
+    this.name = 'DuplicateKitchenItemError'
+    this.existing = existing
+  }
+}
+
+/**
+ * Renames an item and sets its defaults. When another item already has that name, throws a
+ * DuplicateKitchenItemError carrying it (so the two can be merged instead).
+ */
+export async function updateKitchenItem(
+  client: HomeClient,
+  item: Pick<KitchenItem, 'id' | 'householdId'>,
+  input: KitchenItemInput,
+): Promise<KitchenItem> {
+  const parsed = kitchenItemInputSchema.parse(input)
+  const normalizedName = normalizeItemName(parsed.name)
+  const { data, error } = await client
+    .from('kitchen_items')
+    .update({
+      name: parsed.name,
+      normalized_name: normalizedName,
+      default_unit: parsed.defaultUnit,
+      default_store_tag: parsed.defaultStoreTag,
+    })
+    .eq('id', item.id)
+    .select('*')
+    .single()
+  if (!error) return toKitchenItem(data)
+  if (error.code !== '23505') throw error
+  const existing = unwrap(
+    await client
+      .from('kitchen_items')
+      .select('*')
+      .eq('household_id', item.householdId)
+      .eq('normalized_name', normalizedName)
+      .single(),
+  )
+  throw new DuplicateKitchenItemError(toKitchenItem(existing))
+}
+
+export interface ItemConversion extends UnitConversion {
+  id: string
+  itemId: string
+}
+
+/** How the household's items' units relate ("1 bag = 50 kg"), in the order they were added. */
+export async function listKitchenConversions(
+  client: HomeClient,
+  householdId: string,
+): Promise<ItemConversion[]> {
+  const rows = unwrap(
+    await client
+      .from('kitchen_item_units')
+      .select('*')
+      .eq('household_id', householdId)
+      .order('created_at'),
+  )
+  return rows.flatMap((r) =>
+    isKitchenUnit(r.unit) && isKitchenUnit(r.to_unit)
+      ? [
+          {
+            id: r.id,
+            itemId: r.item_id,
+            unit: r.unit,
+            factor: typeof r.factor === 'string' ? Number(r.factor) : r.factor,
+            toUnit: r.to_unit,
+          },
+        ]
+      : [],
+  )
+}
+
+export async function addItemConversion(
+  client: HomeClient,
+  item: Pick<KitchenItem, 'id' | 'householdId'>,
+  conversion: UnitConversion,
+): Promise<void> {
+  unwrap(
+    await client.from('kitchen_item_units').insert({
+      household_id: item.householdId,
+      item_id: item.id,
+      unit: conversion.unit,
+      factor: conversion.factor,
+      to_unit: conversion.toUnit,
+    }),
+  )
+}
+
+export async function removeItemConversion(client: HomeClient, id: string): Promise<void> {
+  unwrap(await client.from('kitchen_item_units').delete().eq('id', id))
+}
+
+/**
+ * Folds `mergeId` into `keepId` and deletes it: its prices, conversions, list entry and pantry
+ * stock move to the kept item (quantities added where the units convert).
+ */
+export async function mergeKitchenItems(
+  client: HomeClient,
+  keepId: string,
+  mergeId: string,
+): Promise<void> {
+  unwrap(await client.rpc('merge_kitchen_items', { p_keep: keepId, p_merge: mergeId }))
 }
 
 // ---------------------------------------------------------------- shopping list

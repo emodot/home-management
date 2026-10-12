@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   cheapestRecentStore,
+  inMainUnits,
+  inUnit,
   mainUnit,
   priceSeries,
   sortPriceSummaries,
@@ -125,5 +127,55 @@ describe('mainUnit', () => {
       'bag',
     )
     expect(mainUnit([])).toBeNull()
+  })
+})
+
+describe('inUnit', () => {
+  it("restates purchases in other units through the item's conversions", () => {
+    const bag = p('Rice', '2026-10-01', 7000000, 'Mile 12', 'bag')
+    const kg = p('Rice', '2026-10-05', 150000)
+    const tin = p('Rice', '2026-10-06', 90000, 'Mile 12', 'tin')
+    const [b, k, t] = inUnit([bag, kg, tin], 'kg', [{ unit: 'bag', factor: 50, toUnit: 'kg' }])
+    expect(b).toMatchObject({
+      unit: 'kg',
+      quantity: 50,
+      priceMinor: 7000000,
+      unitPriceMinor: 140000,
+    })
+    expect(k).toBe(kg)
+    expect(t).toBe(tin)
+  })
+
+  it('converts metric without any conversions', () => {
+    const [g] = inUnit(
+      [{ ...p('Pepper', '2026-10-01', 0, null, 'g'), quantity: 500, priceMinor: 100000 }],
+      'kg',
+      [],
+    )
+    expect(g).toMatchObject({ unit: 'kg', quantity: 0.5, unitPriceMinor: 200000 })
+  })
+})
+
+describe('inMainUnits', () => {
+  it("restates each item's purchases in its usual unit through its own conversions", () => {
+    const bags = [
+      p('Rice', '2026-09-01', 8000000, 'Mile 12', 'bag'),
+      p('Rice', '2026-10-01', 8500000, 'Mile 12', 'bag'),
+    ]
+    const kg = { ...p('Rice', '2026-09-20', 0), quantity: 5, priceMinor: 1000000 }
+    const beans = p('Beans', '2026-09-20', 120000, 'Mile 12', 'bag')
+    const out = inMainUnits(
+      [...bags, kg, beans],
+      [
+        { itemId: 'rice', unit: 'bag', factor: 50, toUnit: 'kg' },
+        { itemId: 'beans', unit: 'bag', factor: 100, toUnit: 'kg' },
+      ],
+    )
+    expect(out.map((x) => [x.name, x.unit, x.unitPriceMinor])).toEqual([
+      ['Rice', 'bag', 8000000],
+      ['Rice', 'bag', 8500000],
+      ['Rice', 'bag', 10000000],
+      ['Beans', 'bag', 120000],
+    ])
   })
 })

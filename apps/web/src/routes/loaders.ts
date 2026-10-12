@@ -11,12 +11,15 @@ import {
 } from '@home/shared'
 import { redirect, type LoaderFunctionArgs } from 'react-router'
 import {
+  catalogQuery,
+  conversionsQuery,
   gasRefillsQuery,
   householdPricesQuery,
   itemPricesQuery,
   kitchenItemQuery,
   pantryQuery,
   shoppingListQuery,
+  storeTagsQuery,
 } from '@/features/kitchen/lib/queries'
 import { pickActiveHousehold } from '@/hooks/use-household'
 import { getSessionUser } from '@/lib/auth'
@@ -574,7 +577,12 @@ export async function kitchenPantryItemLoader({ request, params }: LoaderFunctio
 
 export async function kitchenPricesLoader({ request }: LoaderFunctionArgs) {
   const { householdId } = await requireHousehold(request)
-  if (householdId) await queryClient.query(householdPricesQuery(householdId))
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(householdPricesQuery(householdId)),
+      queryClient.query(conversionsQuery(householdId)),
+    ])
+  }
   return null
 }
 
@@ -584,6 +592,33 @@ export async function kitchenPriceItemLoader({ request, params }: LoaderFunction
   await Promise.all([
     queryClient.query(kitchenItemQuery(householdId, itemId)),
     queryClient.query(householdPricesQuery(householdId)),
+    queryClient.query(conversionsQuery(householdId)),
+  ])
+  return null
+}
+
+export async function kitchenItemsLoader({ request }: LoaderFunctionArgs) {
+  const { householdId } = await requireHousehold(request)
+  if (householdId) {
+    await Promise.all([
+      queryClient.query(catalogQuery(householdId)),
+      queryClient.query(shoppingListQuery(householdId)),
+      queryClient.query(pantryQuery(householdId)),
+    ])
+  }
+  return null
+}
+
+export async function kitchenCatalogItemLoader({ request, params }: LoaderFunctionArgs) {
+  const itemId = params.itemId ?? ''
+  const householdId = await householdOfRecord(request, 'kitchen_items', itemId)
+  await Promise.all([
+    queryClient.query(kitchenItemQuery(householdId, itemId)),
+    queryClient.query(conversionsQuery(householdId)),
+    queryClient.query(catalogQuery(householdId)),
+    queryClient.query(shoppingListQuery(householdId)),
+    queryClient.query(pantryQuery(householdId)),
+    queryClient.query(storeTagsQuery(householdId)),
   ])
   return null
 }
