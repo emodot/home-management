@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooking gas', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooked it, and the week against the budget → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -363,6 +363,23 @@ test('super-admin creates a household → its admin joins → expense with recei
     await expect(page.getByLabel(/^Bought /)).toHaveCount(2)
     await expect(page.getByText(/^7 pieces/)).toBeVisible()
     await expect(page.getByText(/^6 pieces/)).toBeVisible()
+  })
+
+  await test.step('cooked it: the pot comes out of the pantry; the plan weighs the week against the budget', async () => {
+    await page.goto('/kitchen/recipes')
+    await page.getByRole('link', { name: /^Pepper soup/ }).click()
+    await page.getByRole('button', { name: 'Cooked it' }).click()
+    // For 4: 3 tomatoes, of the 2 in the pantry; no uziza there to take.
+    const sheet = page.getByRole('dialog', { name: 'Cooked Pepper soup' })
+    await expect(sheet.getByText(/2 pieces → 0 pieces/)).toBeVisible()
+    await sheet.getByRole('button', { name: 'Take 1 out of the pantry' }).click()
+    await expect(page.getByText('Pepper soup cooked: took 1 item out of the pantry')).toBeVisible()
+    await page.goto('/kitchen/pantry')
+    await expect(page.getByRole('group', { name: 'How much Tomatoes' })).toContainText('0 pieces')
+
+    await page.goto('/kitchen/plan')
+    await expect(page.getByText("This week's food, from the latest prices")).toBeVisible()
+    await expect(page.getByText(/^Groceries in /)).toBeVisible()
   })
 
   await test.step('cooking gas: two refills predict the next one, with a reminder task', async () => {

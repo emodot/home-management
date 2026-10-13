@@ -1,4 +1,5 @@
 import {
+  formatDate,
   itemSearchKey,
   laterMeals,
   leftoversOf,
@@ -9,7 +10,7 @@ import {
   type MealSlot,
   type RecipeSummary,
 } from '@home/shared'
-import { CheckIcon, MinusIcon, PlusIcon, SearchIcon } from 'lucide-react'
+import { CheckIcon, ChefHatIcon, MinusIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -35,7 +36,7 @@ import {
 import { useActiveHousehold } from '@/hooks/use-household'
 import { useMediaQuery } from '@/hooks/use-lookups'
 import { cn } from '@/lib/utils'
-import { useAddMeal, useEditMeal, useRemoveMeal } from '../hooks/use-meals'
+import { useAddMeal, useEditMeal, useMarkNotCooked, useRemoveMeal } from '../hooks/use-meals'
 
 export type MealSheetTarget =
   { kind: 'add'; date: string; slot: MealSlot } | { kind: 'edit'; meal: MealEntry }
@@ -50,6 +51,7 @@ export function MealSheet({
   meals,
   slots,
   recipes,
+  onCook,
   onClose,
 }: {
   target: MealSheetTarget | null
@@ -58,6 +60,8 @@ export function MealSheet({
   /** The household's slots. */
   slots: MealSlot[]
   recipes: RecipeSummary[]
+  /** "Cooked it" on a pot (the plan opens the cook sheet for it). */
+  onCook: (meal: MealEntry) => void
   onClose: () => void
 }) {
   const wide = useMediaQuery('(min-width: 768px)')
@@ -92,6 +96,7 @@ export function MealSheet({
             meal={shown.meal}
             meals={meals}
             slots={slots}
+            onCook={onCook}
             onClose={onClose}
           />
         )}
@@ -408,15 +413,18 @@ function EditMeal({
   meal,
   meals,
   slots,
+  onCook,
   onClose,
 }: {
   meal: MealEntry
   meals: MealEntry[]
   slots: MealSlot[]
+  onCook: (meal: MealEntry) => void
   onClose: () => void
 }) {
   const household = useActiveHousehold()
   const edit = useEditMeal(household.id)
+  const notCooked = useMarkNotCooked(household.id)
   const remove = useRemoveMeal(household.id)
   const pot = meal.leftoverOf ? meals.find((m) => m.id === meal.leftoverOf) : null
   const leftovers = leftoversOf(meal, meals)
@@ -472,6 +480,30 @@ function EditMeal({
             Open the recipe{total && !pot ? ` for ${total}` : ''}
           </Link>
         )}
+        {isPot &&
+          (meal.cookedAt ? (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2 text-sm">
+              <span className="flex items-center gap-1.5">
+                <CheckIcon className="size-4 text-primary" aria-hidden />
+                Cooked{' '}
+                {formatDate(meal.cookedAt.slice(0, 10), { weekday: 'short', day: 'numeric' })}
+              </span>
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0"
+                disabled={notCooked.isPending}
+                onClick={() => notCooked.mutate(meal.id)}
+              >
+                Not cooked yet
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={() => onCook(meal)}>
+              <ChefHatIcon aria-hidden />
+              Cooked it
+            </Button>
+          ))}
         {counted && (
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm">Eating at this meal</span>

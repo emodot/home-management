@@ -37,6 +37,7 @@ const pot: MealEntry = {
   title: 'Egusi soup',
   servings: 4,
   leftoverOf: null,
+  cookedAt: null,
   createdAt: '',
 }
 const leftover: MealEntry = {
@@ -61,6 +62,7 @@ describe('MealSheet', () => {
         meals={[]}
         slots={['breakfast', 'lunch', 'dinner']}
         recipes={recipes}
+        onCook={() => undefined}
         onClose={onClose}
       />,
     )
@@ -99,6 +101,7 @@ describe('MealSheet', () => {
         meals={[]}
         slots={['breakfast', 'lunch', 'dinner']}
         recipes={recipes}
+        onCook={() => undefined}
         onClose={() => undefined}
       />,
     )
@@ -122,6 +125,7 @@ describe('MealSheet', () => {
         meals={[pot, leftover]}
         slots={['breakfast', 'lunch', 'dinner']}
         recipes={recipes}
+        onCook={() => undefined}
         onClose={() => undefined}
       />,
     )

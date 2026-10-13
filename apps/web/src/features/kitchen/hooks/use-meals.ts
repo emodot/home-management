@@ -5,6 +5,7 @@ import {
   removeMeal,
   setMealLeftovers,
   setMealSlots,
+  uncook,
   updateMeal,
   type KitchenUnit,
   type LeftoverInput,
@@ -100,4 +101,9 @@ export function useAddPlanToList(householdId: string, weekStart: string) {
     onError: (error) => toast.error(`Couldn't add them. ${errorMessage(error)}`),
     onSettled: () => queryClient.invalidateQueries({ queryKey: shoppingListKey(householdId) }),
   })
+}
+
+/** A pot marked cooked by mistake: unmarks it (the pantry is left as it is). */
+export function useMarkNotCooked(householdId: string) {
+  return useMealChange(householdId, (mealId: string) => uncook(supabase, householdId, [], mealId))
 }

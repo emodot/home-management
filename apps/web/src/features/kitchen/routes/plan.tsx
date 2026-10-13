@@ -13,8 +13,9 @@ import {
   type MealEntry,
   type MealSlot,
 } from '@home/shared'
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import {
+  CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
@@ -38,10 +39,12 @@ import {
 import { useActiveHousehold, useIsHouseholdAdmin } from '@/hooks/use-household'
 import { useMediaQuery } from '@/hooks/use-lookups'
 import { cn } from '@/lib/utils'
+import { CookSheet, type CookTarget } from '../components/cook-sheet'
 import { MealSheet, type MealSheetTarget } from '../components/meal-sheet'
+import { PlanBudget } from '../components/plan-budget'
 import { PlanShoppingSheet } from '../components/plan-shopping-sheet'
 import { useCopyMealWeek, useSetMealSlots, useWeekMeals } from '../hooks/use-meals'
-import { recipesQuery, weekMealsQuery } from '../lib/queries'
+import { recipeQuery, recipesQuery, weekMealsQuery } from '../lib/queries'
 
 /** The week's meal plan: a grid of days and slots on wide screens, a day at a time on phones. */
 export function PlanPage() {
@@ -59,6 +62,27 @@ export function PlanPage() {
   const [target, setTarget] = useState<MealSheetTarget | null>(null)
   const [editingSlots, setEditingSlots] = useState(false)
   const [shopping, setShopping] = useState(false)
+  const [cooking, setCooking] = useState<CookTarget | null>(null)
+  const queryClient = useQueryClient()
+
+  /** "Cooked it" on a pot: everyone it feeds, from its recipe. */
+  async function cook(meal: MealEntry) {
+    if (!meal.recipeId) return
+    setTarget(null)
+    try {
+      const recipe = await queryClient.query(recipeQuery(household.id, meal.recipeId))
+      if (!recipe) return
+      setCooking({
+        title: recipe.title,
+        ingredients: recipe.ingredients,
+        from: recipe.servings,
+        to: potServings(meal, meals) ?? recipe.servings,
+        mealId: meal.id,
+      })
+    } catch {
+      toast.error("Couldn't open the recipe. Try again.")
+    }
+  }
 
   const slots = householdSlots(household.meal_slots)
   // A slot that's been turned off still shows while it has meals this week.
@@ -109,6 +133,8 @@ export function PlanPage() {
           )}
         </div>
       </div>
+
+      <PlanBudget weekStart={weekStart} meals={meals} />
 
       {meals.length === 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3">
@@ -165,8 +191,10 @@ export function PlanPage() {
         meals={meals}
         slots={slots}
         recipes={recipes}
+        onCook={(meal) => void cook(meal)}
         onClose={() => setTarget(null)}
       />
+      <CookSheet target={cooking} onClose={() => setCooking(null)} />
       <PlanShoppingSheet
         open={shopping}
         weekStart={weekStart}
@@ -399,13 +427,14 @@ function MealChip({
   const pot = meal.leftoverOf ? meals.find((m) => m.id === meal.leftoverOf) : null
   const covers = leftoversOf(meal, meals).length
   const total = potServings(meal, meals)
-  const detail = pot
+  const base = pot
     ? `Leftovers from ${formatDate(pot.date, { weekday: 'short' })}`
     : covers > 0 && total !== null
       ? `Pot for ${total}, ${covers} more ${covers === 1 ? 'meal' : 'meals'}`
       : meal.servings !== null
         ? `For ${meal.servings}`
         : null
+  const detail = meal.cookedAt ? ['Cooked', base].filter(Boolean).join(' · ') : base
 
   return (
     <button
@@ -421,6 +450,7 @@ function MealChip({
     >
       <span className="flex items-center gap-1 font-medium">
         {pot && <RepeatIcon className="size-3 shrink-0" aria-hidden />}
+        {meal.cookedAt && <CheckIcon className="size-3 shrink-0 text-primary" aria-hidden />}
         <span className={cn(compact && 'line-clamp-2')}>{meal.title}</span>
       </span>
       {detail && <span className="text-[0.7rem] text-muted-foreground">{detail}</span>}

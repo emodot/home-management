@@ -1,7 +1,7 @@
 -- My Kitchen meal planner: weeks of meals, batch cooking (leftovers), copying a week, and the
 -- household's meal slots.
 begin;
-select plan(33);
+select plan(41);
 
 create function pg_temp.create_household(p_name text)
 returns public.households
@@ -204,6 +204,60 @@ select throws_ok(
   'P0002', null, 'a week with no plan has nothing to add'
 );
 
+-- ---------------------------------------------------------------- cooked it
+insert into public.kitchen_items (household_id, name, normalized_name) values
+  (current_setting('test.hid')::uuid, 'Palm oil', 'palm oil'),
+  (current_setting('test.hid')::uuid, 'Crayfish', 'crayfish'),
+  (current_setting('test.hid')::uuid, 'Stockfish', 'stockfish');
+insert into public.pantry_items (household_id, item_id, quantity, unit) values
+  (current_setting('test.hid')::uuid, (select id from public.kitchen_items where normalized_name = 'egusi'), 10, 'derica'),
+  (current_setting('test.hid')::uuid, (select id from public.kitchen_items where normalized_name = 'palm oil'), 1, 'litre'),
+  (current_setting('test.hid')::uuid, (select id from public.kitchen_items where normalized_name = 'crayfish'), 1, 'derica'),
+  (current_setting('test.hid')::uuid, (select id from public.kitchen_items where normalized_name = 'stockfish'), 2, 'pcs');
+select set_config('test.cooked', public.cook_recipe(current_setting('test.hid')::uuid,
+  jsonb_build_array(
+    jsonb_build_object('item_id', (select id from public.kitchen_items where normalized_name = 'egusi'), 'quantity', 4, 'unit', 'derica'),
+    jsonb_build_object('item_id', (select id from public.kitchen_items where normalized_name = 'palm oil'), 'quantity', 250, 'unit', 'ml'),
+    jsonb_build_object('item_id', (select id from public.kitchen_items where normalized_name = 'crayfish'), 'quantity', 2, 'unit', 'derica'),
+    jsonb_build_object('item_id', (select id from public.kitchen_items where normalized_name = 'stockfish'), 'quantity', 1, 'unit', 'kg')
+  ), current_setting('test.cook')::uuid)::text, true);
+select is(
+  (select string_agg(x ->> 'status', ' ') from jsonb_array_elements(current_setting('test.cooked')::jsonb) x),
+  'used used ran_out skipped',
+  'cooking takes what the pot used out of the pantry'
+);
+select is(
+  (select string_agg(k.normalized_name || ' ' || p.quantity || ' ' || p.unit, ', ' order by k.normalized_name)
+   from public.pantry_items p join public.kitchen_items k on k.id = p.item_id
+   where p.household_id = current_setting('test.hid')::uuid),
+  'crayfish 0.00 derica, egusi 6.00 derica, palm oil 0.75 litre, stockfish 2.00 pcs',
+  'converting units, never below zero, and leaving what doesn''t convert'
+);
+select ok(
+  (select cooked_at is not null from public.meal_plan_entries where id = current_setting('test.cook')::uuid),
+  'and marks the meal cooked'
+);
+select lives_ok(
+  $$ select public.uncook(current_setting('test.hid')::uuid, current_setting('test.cooked')::jsonb, current_setting('test.cook')::uuid) $$,
+  'undo'
+);
+select is(
+  (select string_agg(k.normalized_name || ' ' || p.quantity, ', ' order by k.normalized_name)
+   from public.pantry_items p join public.kitchen_items k on k.id = p.item_id
+   where p.household_id = current_setting('test.hid')::uuid),
+  'crayfish 1.00, egusi 10.00, palm oil 1.00, stockfish 2.00',
+  'puts it all back'
+);
+select ok(
+  (select cooked_at is null from public.meal_plan_entries where id = current_setting('test.cook')::uuid),
+  'and unmarks the meal'
+);
+select throws_ok(
+  $$ select public.cook_recipe(current_setting('test.hid')::uuid, '[]',
+       (select id from public.meal_plan_entries where leftover_of = current_setting('test.cook')::uuid limit 1)) $$,
+  'P0002', null, 'leftovers aren''t cooked'
+);
+
 -- ---------------------------------------------------------------- removing
 delete from public.meal_plan_entries where id = current_setting('test.cook')::uuid;
 select is_empty(
@@ -231,6 +285,10 @@ select throws_ok(
 select throws_ok(
   $$ select public.add_plan_to_list(current_setting('test.hid')::uuid, '2026-10-11', '[]') $$,
   '42501', null, 'or put it on the list'
+);
+select throws_ok(
+  $$ select public.cook_recipe(current_setting('test.hid')::uuid, '[]') $$,
+  '42501', null, 'or cook from its pantry'
 );
 
 select * from finish();

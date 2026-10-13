@@ -233,3 +233,49 @@ export async function addPlanToList(
   ) as { item_id: string; status: RecipeListStatus }[]
   return result.map((r) => ({ itemId: r.item_id, status: r.status }))
 }
+
+/** What "Cooked it" did to one item (see cook_recipe); uncook takes these back. */
+export interface CookChange {
+  itemId: string
+  status: 'used' | 'ran_out' | 'not_in_pantry' | 'skipped'
+  used: number
+  unit: KitchenUnit | null
+}
+
+/** Takes what a pot used out of the pantry (and marks the planned meal cooked). */
+export async function cookRecipe(
+  client: HomeClient,
+  householdId: string,
+  lines: { itemId: string; quantity: number; unit: KitchenUnit }[],
+  mealId?: string,
+): Promise<CookChange[]> {
+  const result = unwrap(
+    await client.rpc('cook_recipe', {
+      p_household_id: householdId,
+      p_lines: lines.map((l) => ({ item_id: l.itemId, quantity: l.quantity, unit: l.unit })),
+      ...(mealId ? { p_meal_id: mealId } : {}),
+    }),
+  ) as { item_id: string; status: CookChange['status']; used: number | string; unit?: string }[]
+  return result.map((r) => ({
+    itemId: r.item_id,
+    status: r.status,
+    used: Number(r.used),
+    unit: r.unit && isKitchenUnit(r.unit) ? r.unit : null,
+  }))
+}
+
+/** Undoes cookRecipe: puts the amounts back and unmarks the meal. */
+export async function uncook(
+  client: HomeClient,
+  householdId: string,
+  changes: CookChange[],
+  mealId?: string,
+): Promise<void> {
+  unwrap(
+    await client.rpc('uncook', {
+      p_household_id: householdId,
+      p_changes: changes.map((c) => ({ item_id: c.itemId, used: c.used, unit: c.unit })),
+      ...(mealId ? { p_meal_id: mealId } : {}),
+    }),
+  )
+}

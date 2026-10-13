@@ -18,21 +18,26 @@ export interface Pot {
 }
 
 /**
- * The week's pots still to cook: recipe meals on or after `from` (today, for this week), each for
- * the servings of the meal and its leftovers (the recipe's own servings when none are given).
- * Meals whose recipe is gone are left out.
+ * Every pot in the week: each recipe meal that's cooked (not leftovers), for the servings of the
+ * meal and its leftovers (the recipe's own servings when none are given). Meals whose recipe is
+ * gone are left out.
  */
+export function weekPots(meals: readonly MealEntry[], recipes: readonly Recipe[]): Pot[] {
+  return meals.flatMap((meal) => {
+    if (meal.leftoverOf || !meal.recipeId) return []
+    const recipe = recipes.find((r) => r.id === meal.recipeId)
+    if (!recipe) return []
+    return [{ meal, recipe, servings: potServings(meal, meals) ?? recipe.servings }]
+  })
+}
+
+/** The pots still to shop for: on or after `from` (today, for this week), not yet cooked. */
 export function potsToShopFor(
   meals: readonly MealEntry[],
   recipes: readonly Recipe[],
   from: IsoDate,
 ): Pot[] {
-  return meals.flatMap((meal) => {
-    if (meal.leftoverOf || !meal.recipeId || meal.date < from) return []
-    const recipe = recipes.find((r) => r.id === meal.recipeId)
-    if (!recipe) return []
-    return [{ meal, recipe, servings: potServings(meal, meals) ?? recipe.servings }]
-  })
+  return weekPots(meals, recipes).filter((p) => p.meal.date >= from && !p.meal.cookedAt)
 }
 
 export interface PlanLine extends BuyLine {

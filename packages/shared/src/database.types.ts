@@ -739,6 +739,7 @@ export type Database = {
       }
       meal_plan_entries: {
         Row: {
+          cooked_at: string | null
           created_at: string
           created_by: string | null
           date: string
@@ -752,6 +753,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          cooked_at?: string | null
           created_at?: string
           created_by?: string | null
           date: string
@@ -765,6 +767,7 @@ export type Database = {
           title: string
         }
         Update: {
+          cooked_at?: string | null
           created_at?: string
           created_by?: string | null
           date?: string
@@ -1775,6 +1778,14 @@ export type Database = {
           p_title: string | null
         }
         Returns: string
+      }
+      cook_recipe: {
+        Args: { p_household_id: string; p_lines: Json; p_meal_id?: string }
+        Returns: Json
+      }
+      uncook: {
+        Args: { p_changes: Json; p_household_id: string; p_meal_id?: string }
+        Returns: undefined
       }
       copy_meal_week: {
         Args: { p_from: string; p_household_id: string; p_to: string }

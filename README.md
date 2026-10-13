@@ -212,6 +212,17 @@ recipes it's for. Stock in a unit that doesn't convert is listed to check rather
 plan"), merging with the list exactly as a recipe's "Add missing to list" does (both use
 `put_on_list`): an item already there is topped up to what's needed, never added twice.
 
+**Cooked it** — on a recipe's page (for the servings shown) and on a planned pot (for everyone it
+feeds) — reviews what comes out of the pantry (`cookLines` in `kitchen/cook.ts`; optional
+ingredients unticked; anything not in the pantry, or held in a unit that doesn't convert, can't be
+taken) and `cook_recipe` takes it out, never below zero, marking a planned pot cooked
+(`meal_plan_entries.cooked_at`) so the week's shopping stops counting it. Running low puts items on
+the list as usual. The toast's Undo (`uncook`) puts the amounts back and unmarks the pot. The plan
+also weighs the week against the budget (`kitchen/plan-budget.ts`): its pots' cost from the latest
+prices against a week's share (× 7 ÷ days in the month) of the Groceries budget — the budget on
+Groceries itself, or its sub-categories' added up — and how much of that month's Groceries budget
+is spent.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.

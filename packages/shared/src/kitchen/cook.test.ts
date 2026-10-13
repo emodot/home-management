@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   checkPantry,
+  cookLines,
   costByMonth,
   costChange,
   isBlocking,
@@ -172,5 +173,37 @@ describe('linesToBuy', () => {
       { itemId: 'pepper', name: 'pepper', quantity: 1, unit: 'pcs', optional: true, short: false },
       { itemId: 'beef', name: 'beef', quantity: 1500, unit: 'g', optional: false, short: false },
     ])
+  })
+})
+
+describe('cookLines', () => {
+  it('works out what comes out of the pantry, and what will be left', () => {
+    const lines = cookLines(
+      [
+        ing('egusi', 2, 'derica'),
+        ing('oil', 200, 'ml'),
+        ing('oil', 100, 'ml', true),
+        ing('salt', null, 'pcs'),
+        ing('rice', 1, 'derica'),
+        ing('crayfish', 1, 'derica'),
+      ],
+      4,
+      8,
+      [
+        { itemId: 'egusi', quantity: 10, unit: 'derica' },
+        { itemId: 'oil', quantity: 0.5, unit: 'litre' },
+        { itemId: 'rice', quantity: 1, unit: 'bag' },
+      ],
+      [],
+    )
+    expect(lines.map((l) => [l.itemId, l.quantity, l.unit, l.optional, l.left])).toEqual([
+      ['egusi', 4, 'derica', false, 6],
+      // 400 ml + 200 ml (optional too) of a 0.5 l bottle: down to nothing.
+      ['oil', 600, 'ml', false, 0],
+      // Held in bags: can't say.
+      ['rice', 2, 'derica', false, null],
+      ['crayfish', 2, 'derica', false, null],
+    ])
+    expect(lines.find((l) => l.itemId === 'crayfish')?.stock).toBeNull()
   })
 })

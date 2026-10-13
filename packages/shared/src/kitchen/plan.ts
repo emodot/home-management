@@ -34,6 +34,8 @@ export interface MealEntry {
   servings: number | null
   /** For leftovers: the meal whose pot covers this one. */
   leftoverOf: string | null
+  /** When "Cooked it" was pressed on this pot. */
+  cookedAt: string | null
   createdAt: string
 }
 

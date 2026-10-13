@@ -298,3 +298,68 @@ export function linesToBuy(
   }
   return lines
 }
+
+/** One item a pot uses, against the pantry, for "Cooked it". */
+export interface CookLine {
+  itemId: string
+  name: string
+  /** What the pot uses, exact. */
+  quantity: number
+  unit: KitchenUnit
+  /** Every ingredient it's for is optional. */
+  optional: boolean
+  /** What's in the pantry now, or null if none. */
+  stock: { quantity: number; unit: KitchenUnit } | null
+  /** What will be left, in the pantry's unit (null when it can't be worked out). */
+  left: number | null
+}
+
+/**
+ * What cooking `ingredients` for `toServings` takes out of the pantry, one line per item (an item
+ * used twice is added up where the units convert). "To taste" ingredients aren't counted.
+ */
+export function cookLines(
+  ingredients: readonly RecipeIngredient[],
+  fromServings: number,
+  toServings: number,
+  pantry: readonly Stock[],
+  conversions: readonly ItemUnitConversion[],
+): CookLine[] {
+  const lines: CookLine[] = []
+  for (const ingredient of ingredients) {
+    if (ingredient.quantity === null) continue
+    const own = conversionsOf(conversions, ingredient.itemId)
+    const quantity = (ingredient.quantity * toServings) / fromServings
+    const line = lines.find(
+      (l) =>
+        l.itemId === ingredient.itemId && convert(quantity, ingredient.unit, l.unit, own) !== null,
+    )
+    if (line) {
+      line.quantity += convert(quantity, ingredient.unit, line.unit, own) ?? 0
+      line.optional &&= ingredient.isOptional
+    } else {
+      const stock = pantry.find((s) => s.itemId === ingredient.itemId)
+      lines.push({
+        itemId: ingredient.itemId,
+        name: ingredient.name,
+        quantity,
+        unit: ingredient.unit,
+        optional: ingredient.isOptional,
+        stock: stock && stock.quantity > 0 ? { quantity: stock.quantity, unit: stock.unit } : null,
+        left: null,
+      })
+    }
+  }
+  for (const line of lines) {
+    if (!line.stock) continue
+    const used = convert(
+      line.quantity,
+      line.unit,
+      line.stock.unit,
+      conversionsOf(conversions, line.itemId),
+    )
+    line.left =
+      used === null ? null : Math.max(0, Math.round((line.stock.quantity - used) * 100) / 100)
+  }
+  return lines
+}

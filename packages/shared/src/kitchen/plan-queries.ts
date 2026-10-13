@@ -13,6 +13,7 @@ export function toMealEntry(row: Tables<'meal_plan_entries'>): MealEntry {
     title: row.title,
     servings: row.servings,
     leftoverOf: row.leftover_of,
+    cookedAt: row.cooked_at,
     createdAt: row.created_at,
   }
 }

@@ -13,6 +13,7 @@ import {
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import {
   CheckIcon,
+  ChefHatIcon,
   MinusIcon,
   PencilIcon,
   PlusIcon,
@@ -33,6 +34,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { AddMissingSheet } from '../components/add-missing-sheet'
+import { CookSheet, type CookTarget } from '../components/cook-sheet'
 import { ItemHeading } from '../components/item-heading'
 import { RecipeCost } from '../components/recipe-cost'
 import { RecipePhoto } from '../components/recipe-photo'
@@ -65,6 +67,7 @@ export function RecipePage() {
   const [params, setParams] = useSearchParams()
   const [adding, setAdding] = useState(false)
   const addToList = useAddRecipeToList(household.id, recipeId)
+  const [cooking, setCooking] = useState<CookTarget | null>(null)
 
   if (!recipe) return null
   const asked = Number(params.get('servings'))
@@ -116,6 +119,23 @@ export function RecipePage() {
               Edit
             </Link>
           </Button>
+          {recipe.ingredients.some((i) => i.quantity !== null) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCooking({
+                  title: recipe.title,
+                  ingredients: recipe.ingredients,
+                  from: recipe.servings,
+                  to: servings,
+                })
+              }
+            >
+              <ChefHatIcon aria-hidden />
+              Cooked it
+            </Button>
+          )}
           <DeleteRecipeButton recipe={recipe} />
         </div>
       </div>
@@ -232,6 +252,7 @@ export function RecipePage() {
         list={list}
         onClose={() => setAdding(false)}
       />
+      <CookSheet target={cooking} onClose={() => setCooking(null)} />
     </article>
   )
 }

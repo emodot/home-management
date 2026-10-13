@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { MealEntry } from './plan.ts'
+import { weekCost } from './plan-budget.ts'
 import { planNeeds, potsToShopFor } from './plan-list.ts'
 import type { Recipe, RecipeIngredient } from './recipes.ts'
 import type { KitchenUnit } from './units.ts'
@@ -65,6 +66,7 @@ const meal = (
   title: id,
   servings,
   leftoverOf,
+  cookedAt: null,
   createdAt: '',
 })
 
@@ -84,6 +86,15 @@ describe('potsToShopFor', () => {
     expect(pots.map((p) => [p.meal.id, p.servings])).toEqual([
       ['tue', 4],
       ['wed', 4],
+    ])
+  })
+
+  it('leaves out pots already cooked', () => {
+    const cooked = meals.map((m) =>
+      m.id === 'tue' ? { ...m, cookedAt: '2026-10-13T19:00:00Z' } : m,
+    )
+    expect(potsToShopFor(cooked, [egusi, jollof], '2026-10-13').map((p) => p.meal.id)).toEqual([
+      'wed',
     ])
   })
 
@@ -127,5 +138,32 @@ describe('planNeeds', () => {
     const { lines, toCheck } = planNeeds(pots, [{ itemId: 'rice', quantity: 1, unit: 'bag' }], [])
     expect(lines.some((l) => l.itemId === 'rice')).toBe(false)
     expect(toCheck.map((c) => c.ingredient.itemId)).toEqual(['rice'])
+  })
+})
+
+describe('weekCost', () => {
+  it("adds up each pot's cost for everyone it feeds", () => {
+    const pots = [
+      { meal: meal('sun', '2026-10-11', 'egusi', 8), recipe: egusi, servings: 8 },
+      { meal: meal('tue', '2026-10-13', 'jollof', 4), recipe: jollof, servings: 4 },
+    ]
+    const prices = [
+      {
+        itemId: 'egusi',
+        boughtOn: '2026-10-01',
+        quantity: 1,
+        unit: 'derica' as const,
+        priceMinor: 150000,
+      },
+      {
+        itemId: 'palm oil',
+        boughtOn: '2026-10-01',
+        quantity: 1,
+        unit: 'litre' as const,
+        priceMinor: 300000,
+      },
+    ]
+    // Egusi: 4 derica ₦6,000 + 0.4 l oil ₦1,200. Jollof: 0.1 l oil ₦300; rice has no price.
+    expect(weekCost(pots, prices, [])).toEqual({ totalMinor: 750000, unpriced: ['rice'] })
   })
 })

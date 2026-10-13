@@ -1,9 +1,12 @@
 import {
   addRecipeToList,
+  cookRecipe,
   deleteRecipe,
   removeRecipePhoto,
   saveRecipe,
   setRecipePhoto,
+  uncook,
+  type CookChange,
   type KitchenUnit,
   type Recipe,
   type RecipeFormValues,
@@ -12,7 +15,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { errorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
-import { recipeQuery, recipesKey, shoppingListKey } from '../lib/queries'
+import { mealsKey, pantryKey, recipeQuery, recipesKey, shoppingListKey } from '../lib/queries'
 
 /** What to do with the photo when saving: leave it, take it off, or use a new (prepared) one. */
 export type PhotoChange =
@@ -64,5 +67,47 @@ export function useAddRecipeToList(householdId: string, recipeId: string) {
       addRecipeToList(supabase, householdId, recipeId, lines),
     onError: (error) => toast.error(`Couldn't add them. ${errorMessage(error)}`),
     onSettled: () => queryClient.invalidateQueries({ queryKey: shoppingListKey(householdId) }),
+  })
+}
+
+/**
+ * "Cooked it": takes what the pot used out of the pantry (and marks a planned meal cooked), with
+ * Undo on the toast. Running low on something puts it on the list, as usual.
+ */
+export function useCookRecipe(householdId: string) {
+  const queryClient = useQueryClient()
+  const refresh = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: pantryKey(householdId) }),
+      queryClient.invalidateQueries({ queryKey: shoppingListKey(householdId) }),
+      queryClient.invalidateQueries({ queryKey: mealsKey(householdId) }),
+    ])
+  const undo = useMutation({
+    mutationFn: ({ changes, mealId }: { changes: CookChange[]; mealId?: string }) =>
+      uncook(supabase, householdId, changes, mealId),
+    onSuccess: () => toast('Put back in the pantry'),
+    onError: (error) => toast.error(`Couldn't undo it. ${errorMessage(error)}`),
+    onSettled: refresh,
+  })
+  return useMutation({
+    mutationFn: ({
+      lines,
+      mealId,
+    }: {
+      title: string
+      lines: { itemId: string; quantity: number; unit: KitchenUnit }[]
+      mealId?: string
+    }) => cookRecipe(supabase, householdId, lines, mealId),
+    onSuccess: (changes, { title, mealId }) => {
+      const used = changes.filter((c) => c.used > 0).length
+      toast.success(
+        used > 0
+          ? `${title} cooked: took ${used} ${used === 1 ? 'item' : 'items'} out of the pantry`
+          : `${title} marked cooked`,
+        { action: { label: 'Undo', onClick: () => undo.mutate({ changes, mealId }) } },
+      )
+    },
+    onError: (error) => toast.error(`Couldn't update the pantry. ${errorMessage(error)}`),
+    onSettled: refresh,
   })
 }
