@@ -1,10 +1,12 @@
 import {
   formatQuantity,
   type BuyLine,
+  type KitchenUnit,
   type RecipeListStatus,
   type ShoppingListItem,
 } from '@home/shared'
-import { useState } from 'react'
+import type { UseMutationResult } from '@tanstack/react-query'
+import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,28 +17,44 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { useActiveHousehold } from '@/hooks/use-household'
 import { useMediaQuery } from '@/hooks/use-lookups'
-import { useAddRecipeToList } from '../hooks/use-recipes'
+
+/** What "Add to list" sends, and what it says happened to each item. */
+export type AddToListMutation = Pick<
+  UseMutationResult<
+    { itemId: string; status: RecipeListStatus }[],
+    Error,
+    { itemId: string; quantity: number; unit: KitchenUnit }[]
+  >,
+  'mutate' | 'isPending'
+>
+
+/** A line to review: an item and how much, and (for a plan) the recipes it's for. */
+type Line = BuyLine & { recipes?: string[] }
 
 /**
- * Review before "Add missing to list": what's short, how much, and what's on the list already.
- * Optional ingredients start unticked.
+ * Review before putting what's short on the list: each item, how much, and what's on the list
+ * already. Optional ingredients, and anything the list already covers, start unticked.
  */
 export function AddMissingSheet({
   open,
-  recipeId,
-  recipeTitle,
+  title,
+  description,
   lines,
   list,
+  add,
+  footnote,
   onClose,
 }: {
   open: boolean
-  recipeId: string
-  recipeTitle: string
+  title: string
+  description: ReactNode
   /** What's short, one line per item (linesToBuy). */
-  lines: BuyLine[]
+  lines: Line[]
   list: ShoppingListItem[]
+  add: AddToListMutation
+  /** Under the lines, e.g. what wasn't counted. */
+  footnote?: ReactNode
   onClose: () => void
 }) {
   const wide = useMediaQuery('(min-width: 768px)')
@@ -53,10 +71,14 @@ export function AddMissingSheet({
       >
         {open && (
           <Review
-            recipeId={recipeId}
-            recipeTitle={recipeTitle}
+            // Ticks start from the lines: start again if they arrive (or change) while it's open.
+            key={lines.map((l) => `${l.itemId}:${l.unit}:${l.quantity}`).join('|')}
+            title={title}
+            description={description}
             lines={lines}
             list={list}
+            add={add}
+            footnote={footnote}
             onClose={onClose}
           />
         )}
@@ -89,20 +111,22 @@ function summary(results: { name: string; status: RecipeListStatus }[]): string 
 }
 
 function Review({
-  recipeId,
-  recipeTitle,
+  title,
+  description,
   lines,
   list,
+  add,
+  footnote,
   onClose,
 }: {
-  recipeId: string
-  recipeTitle: string
-  lines: BuyLine[]
+  title: string
+  description: ReactNode
+  lines: Line[]
   list: ShoppingListItem[]
+  add: AddToListMutation
+  footnote?: ReactNode
   onClose: () => void
 }) {
-  const household = useActiveHousehold()
-  const add = useAddRecipeToList(household.id, recipeId)
   const key = (l: BuyLine) => `${l.itemId}:${l.unit}`
   const onListFor = (l: BuyLine) => list.find((e) => e.itemId === l.itemId)
   // Already on the list (not yet bought) in at least that amount: nothing to add.
@@ -146,58 +170,67 @@ function Review({
   return (
     <div className="flex flex-col gap-4">
       <SheetHeader className="pb-0">
-        <SheetTitle>Add missing to the list</SheetTitle>
-        <SheetDescription>
-          What {recipeTitle} needs beyond what&apos;s in the pantry. Anything already on the list is
-          topped up rather than added twice.
-        </SheetDescription>
+        <SheetTitle>{title}</SheetTitle>
+        <SheetDescription>{description}</SheetDescription>
       </SheetHeader>
-      <ul className="mx-4 list-surface">
-        {lines.map((l) => {
-          const onList = onListFor(l)
-          const id = `missing-${key(l)}`
-          return (
-            <li key={key(l)} className="flex items-center gap-3 px-3 py-2.5">
-              <input
-                id={id}
-                type="checkbox"
-                className="size-5 shrink-0 accent-primary"
-                checked={picked.has(key(l))}
-                onChange={(e) => toggle(key(l), e.target.checked)}
-              />
-              <label htmlFor={id} className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate font-medium">{l.name}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {[
-                    l.short ? 'short' : 'not in the pantry',
-                    l.optional && 'optional',
-                    onList &&
-                      (covered(l)
-                        ? 'already on the list'
-                        : `on the list: ${formatQuantity(onList.quantity, onList.unit)}`),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
+      {lines.length > 0 && (
+        <ul className="mx-4 list-surface">
+          {lines.map((l) => {
+            const onList = onListFor(l)
+            const id = `missing-${key(l)}`
+            return (
+              <li key={key(l)} className="flex items-center gap-3 px-3 py-2.5">
+                <input
+                  id={id}
+                  type="checkbox"
+                  className="size-5 shrink-0 accent-primary"
+                  checked={picked.has(key(l))}
+                  onChange={(e) => toggle(key(l), e.target.checked)}
+                />
+                <label htmlFor={id} className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate font-medium">{l.name}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {[
+                      l.short ? 'short' : 'not in the pantry',
+                      l.optional && 'optional',
+                      l.recipes && l.recipes.length > 0 && `for ${l.recipes.join(', ')}`,
+                      onList &&
+                        (covered(l)
+                          ? 'already on the list'
+                          : `on the list: ${formatQuantity(onList.quantity, onList.unit)}`),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </label>
+                <span className="shrink-0 text-sm font-medium tabular-nums">
+                  {formatQuantity(l.quantity, l.unit)}
                 </span>
-              </label>
-              <span className="shrink-0 text-sm font-medium tabular-nums">
-                {formatQuantity(l.quantity, l.unit)}
-              </span>
-            </li>
-          )
-        })}
-      </ul>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {footnote && <div className="px-4 text-sm text-muted-foreground">{footnote}</div>}
       <SheetFooter className="gap-2">
-        <Button size="lg" onClick={confirm} disabled={chosen.length === 0 || add.isPending}>
-          {add.isPending
-            ? 'Adding…'
-            : chosen.length === 0
-              ? 'Choose what to add'
-              : `Add ${plural(chosen.length, 'item')} to the list`}
-        </Button>
-        <Button variant="ghost" onClick={onClose} disabled={add.isPending}>
-          Cancel
-        </Button>
+        {lines.length === 0 ? (
+          <Button size="lg" variant="outline" onClick={onClose}>
+            Close
+          </Button>
+        ) : (
+          <>
+            <Button size="lg" onClick={confirm} disabled={chosen.length === 0 || add.isPending}>
+              {add.isPending
+                ? 'Adding…'
+                : chosen.length === 0
+                  ? 'Choose what to add'
+                  : `Add ${plural(chosen.length, 'item')} to the list`}
+            </Button>
+            <Button variant="ghost" onClick={onClose} disabled={add.isPending}>
+              Cancel
+            </Button>
+          </>
+        )}
       </SheetFooter>
     </div>
   )

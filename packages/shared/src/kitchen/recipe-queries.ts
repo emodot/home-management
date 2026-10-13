@@ -83,6 +83,20 @@ export async function getRecipe(client: HomeClient, id: string): Promise<Recipe 
   return row ? toRecipe(row) : null
 }
 
+/** Several recipes with their ingredients and steps (those that are this household's). */
+export async function getRecipes(client: HomeClient, ids: string[]): Promise<Recipe[]> {
+  if (ids.length === 0) return []
+  const rows = unwrap(
+    await client
+      .from('recipes')
+      .select(
+        '*, ingredients:recipe_ingredients(*, item:kitchen_items(name)), steps:recipe_steps(*)',
+      )
+      .in('id', ids),
+  )
+  return rows.map(toRecipe)
+}
+
 /**
  * Creates a recipe (no `recipeId`) or replaces one's details, ingredients and steps, from the
  * parsed recipe form.
@@ -194,6 +208,26 @@ export async function addRecipeToList(
     await client.rpc('add_recipe_to_list', {
       p_household_id: householdId,
       p_recipe_id: recipeId,
+      p_lines: lines.map((l) => ({ item_id: l.itemId, quantity: l.quantity, unit: l.unit })),
+    }),
+  ) as { item_id: string; status: RecipeListStatus }[]
+  return result.map((r) => ({ itemId: r.item_id, status: r.status }))
+}
+
+/**
+ * Puts what the week's plan needs on the shopping list, for that week's plan; merges with the
+ * list like addRecipeToList.
+ */
+export async function addPlanToList(
+  client: HomeClient,
+  householdId: string,
+  weekStart: string,
+  lines: { itemId: string; quantity: number; unit: KitchenUnit }[],
+): Promise<{ itemId: string; status: RecipeListStatus }[]> {
+  const result = unwrap(
+    await client.rpc('add_plan_to_list', {
+      p_household_id: householdId,
+      p_week_start: weekStart,
       p_lines: lines.map((l) => ({ item_id: l.itemId, quantity: l.quantity, unit: l.unit })),
     }),
   ) as { item_id: string; status: RecipeListStatus }[]

@@ -1788,6 +1788,10 @@ export type Database = {
         Args: { p_household_id: string; p_slots: string[] }
         Returns: undefined
       }
+      add_plan_to_list: {
+        Args: { p_household_id: string; p_lines: Json; p_week_start: string }
+        Returns: Json
+      }
       add_recipe_to_list: {
         Args: { p_household_id: string; p_lines: Json; p_recipe_id: string }
         Returns: Json

@@ -1,10 +1,12 @@
 import {
   addMeal,
+  addPlanToList,
   copyMealWeek,
   removeMeal,
   setMealLeftovers,
   setMealSlots,
   updateMeal,
+  type KitchenUnit,
   type LeftoverInput,
   type MealInput,
   type MealSlot,
@@ -15,7 +17,7 @@ import { useCurrentUser } from '@/hooks/use-household'
 import { errorMessage } from '@/lib/errors'
 import { householdsQuery } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
-import { mealsKey, weekMealsQuery } from '../lib/queries'
+import { mealsKey, shoppingListKey, weekMealsQuery } from '../lib/queries'
 import { useLiveTable } from './use-live-table'
 
 const mealChangeKey = (householdId: string) => ['meal-change', householdId]
@@ -86,5 +88,16 @@ export function useSetMealSlots(householdId: string) {
     mutationFn: (slots: MealSlot[]) => setMealSlots(supabase, householdId, slots),
     onError: (error) => toast.error(`Couldn't change the slots. ${errorMessage(error)}`),
     onSettled: () => queryClient.invalidateQueries({ queryKey: householdsQuery(user.id).queryKey }),
+  })
+}
+
+/** What the week's plan needs beyond the pantry, onto the list for that week. */
+export function useAddPlanToList(householdId: string, weekStart: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (lines: { itemId: string; quantity: number; unit: KitchenUnit }[]) =>
+      addPlanToList(supabase, householdId, weekStart, lines),
+    onError: (error) => toast.error(`Couldn't add them. ${errorMessage(error)}`),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: shoppingListKey(householdId) }),
   })
 }

@@ -1,6 +1,7 @@
 import {
   getKitchenItem,
   getRecipe,
+  getRecipes,
   listCatalogItems,
   listGasRefills,
   listHouseholdPrices,
@@ -143,4 +144,11 @@ export const weekMealsQuery = (householdId: string, weekStart: string) =>
     queryKey: [...mealsKey(householdId), weekStart],
     queryFn: () => listWeekMeals(supabase, householdId, weekStart),
     refetchOnWindowFocus: true,
+  })
+
+/** The recipes (with ingredients) a week's meals use, for shopping for them. */
+export const planRecipesQuery = (householdId: string, ids: string[]) =>
+  queryOptions({
+    queryKey: [...recipesKey(householdId), 'some', [...ids].sort()],
+    queryFn: () => getRecipes(supabase, ids),
   })

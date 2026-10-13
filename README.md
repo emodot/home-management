@@ -203,6 +203,15 @@ it feeds. Meals are added, given leftovers and copied from last week (into an em
 and all) through `add_meal`, `set_meal_leftovers` and `copy_meal_week`, which keep each meal in its
 week and leftovers after their pot; the plan updates live for everyone through Realtime.
 
+**Shopping list** on the plan reviews what the week still needs (`planNeeds` in
+`packages/shared/src/kitchen/plan-list.ts`): the pots still to cook — from today on for this week,
+the whole of a later week — each for everyone it feeds (leftovers counted in their pot, so a pot's
+ingredients count once), with the pantry taken off once across them, one line per item and the
+recipes it's for. Stock in a unit that doesn't convert is listed to check rather than counted.
+`add_plan_to_list` puts what's ticked on the list for that week's plan (shown as "for the meal
+plan"), merging with the list exactly as a recipe's "Add missing to list" does (both use
+`put_on_list`): an item already there is topped up to what's needed, never added twice.
+
 ## Deployment
 
 The backend is a hosted Supabase project; the frontend is a static site on Vercel.

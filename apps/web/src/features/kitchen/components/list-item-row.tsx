@@ -36,7 +36,9 @@ export function ListItemRow({
       ? 'from pantry'
       : forRecipe
         ? `for ${forRecipe}`
-        : addedBy && `added by ${addedBy}`,
+        : entry.source === 'meal_plan'
+          ? 'for the meal plan'
+          : addedBy && `added by ${addedBy}`,
     entry.notes,
   ].filter(Boolean)
 

@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → cooking gas', async ({
+test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -335,6 +335,30 @@ test('super-admin creates a household → its admin joins → expense with recei
     await expect(page.getByRole('heading', { name: /^Monday/ })).toBeVisible()
     await expect(page.getByText('Leftovers from Sun')).toBeVisible()
     await page.setViewportSize({ width: 1280, height: 720 })
+  })
+
+  await test.step('the week onto the list: next week, less the pantry, merged with the list', async () => {
+    // Next week: pepper soup on Sunday for Monday and Tuesday lunch too, a pot for 12.
+    await page.getByRole('link', { name: 'Next week' }).click()
+    await page.getByRole('button', { name: /^Add to Dinner on Sunday/ }).click()
+    await page.getByRole('button', { name: 'Pepper soup', exact: true }).click()
+    await page.getByLabel(/^Mon \d+ · Lunch$/).check()
+    await page.getByLabel(/^Tue \d+ · Lunch$/).check()
+    await page.getByRole('button', { name: 'Add to the plan' }).click()
+    await expect(page.getByText('Pot for 12, 2 more meals')).toBeVisible()
+
+    // 9 tomatoes, less the 2 in the pantry, and 6 uziza: both partly on the list already.
+    await page.getByRole('button', { name: 'Shopping list' }).click()
+    const sheet = page.getByRole('dialog', { name: 'Shopping for the week' })
+    await expect(sheet.getByText('7 pieces', { exact: true })).toBeVisible()
+    await expect(sheet.getByText('6 pieces', { exact: true })).toBeVisible()
+    await sheet.getByRole('button', { name: 'Add 2 items to the list' }).click()
+    await expect(page.getByText('Topped up 2 items on the list.')).toBeVisible()
+
+    await page.goto('/kitchen/list')
+    await expect(page.getByLabel(/^Bought /)).toHaveCount(2)
+    await expect(page.getByText(/^7 pieces/)).toBeVisible()
+    await expect(page.getByText(/^6 pieces/)).toBeVisible()
   })
 
   await test.step('cooking gas: two refills predict the next one, with a reminder task', async () => {

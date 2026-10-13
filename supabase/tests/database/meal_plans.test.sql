@@ -1,7 +1,7 @@
 -- My Kitchen meal planner: weeks of meals, batch cooking (leftovers), copying a week, and the
 -- household's meal slots.
 begin;
-select plan(27);
+select plan(33);
 
 create function pg_temp.create_household(p_name text)
 returns public.households
@@ -170,6 +170,40 @@ select throws_ok(
   '23505', null, 'only into an empty week'
 );
 
+-- ---------------------------------------------------------------- the week onto the shopping list
+select is(
+  public.add_plan_to_list(current_setting('test.hid')::uuid, '2026-10-11',
+    jsonb_build_array(jsonb_build_object('item_id', (select id from public.kitchen_items where normalized_name = 'egusi'), 'quantity', 4, 'unit', 'derica')))
+    -> 0 ->> 'status',
+  'added',
+  'what the week needs goes on the list'
+);
+select is(
+  (select quantity || ' ' || unit || ' ' || source || ' ' || (source_ref = p.id)
+   from public.shopping_list_items e, public.meal_plans p
+   where e.item_id = (select id from public.kitchen_items where normalized_name = 'egusi')
+     and p.household_id = e.household_id and p.week_start = '2026-10-11'),
+  '4.00 derica meal_plan true',
+  'for that week''s plan'
+);
+select is(
+  (select string_agg(x ->> 'status', ' ') from jsonb_array_elements(public.add_plan_to_list(
+    current_setting('test.hid')::uuid, '2026-10-11',
+    jsonb_build_array(jsonb_build_object('item_id', (select id from public.kitchen_items where normalized_name = 'egusi'), 'quantity', 6, 'unit', 'derica')))) x),
+  'topped_up',
+  'doing it again tops the entry up rather than adding another'
+);
+select is(
+  (select count(*)::int || ' ' || max(quantity) from public.shopping_list_items
+   where item_id = (select id from public.kitchen_items where normalized_name = 'egusi')),
+  '1 6.00',
+  'one entry, with what''s needed'
+);
+select throws_ok(
+  $$ select public.add_plan_to_list(current_setting('test.hid')::uuid, '2027-01-03', '[]') $$,
+  'P0002', null, 'a week with no plan has nothing to add'
+);
+
 -- ---------------------------------------------------------------- removing
 delete from public.meal_plan_entries where id = current_setting('test.cook')::uuid;
 select is_empty(
@@ -193,6 +227,10 @@ select is_empty(
 select throws_ok(
   $$ select public.add_meal(current_setting('test.hid')::uuid, '2026-10-14', 'lunch', null, 'Sneaky', null) $$,
   '42501', null, 'or add to it'
+);
+select throws_ok(
+  $$ select public.add_plan_to_list(current_setting('test.hid')::uuid, '2026-10-11', '[]') $$,
+  '42501', null, 'or put it on the list'
 );
 
 select * from finish();

@@ -21,6 +21,7 @@ import {
   PlusIcon,
   RepeatIcon,
   Settings2Icon,
+  ShoppingBasketIcon,
 } from 'lucide-react'
 import { useRef, useState, type PointerEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
@@ -38,6 +39,7 @@ import { useActiveHousehold, useIsHouseholdAdmin } from '@/hooks/use-household'
 import { useMediaQuery } from '@/hooks/use-lookups'
 import { cn } from '@/lib/utils'
 import { MealSheet, type MealSheetTarget } from '../components/meal-sheet'
+import { PlanShoppingSheet } from '../components/plan-shopping-sheet'
 import { useCopyMealWeek, useSetMealSlots, useWeekMeals } from '../hooks/use-meals'
 import { recipesQuery, weekMealsQuery } from '../lib/queries'
 
@@ -56,6 +58,7 @@ export function PlanPage() {
   const copy = useCopyMealWeek(household.id)
   const [target, setTarget] = useState<MealSheetTarget | null>(null)
   const [editingSlots, setEditingSlots] = useState(false)
+  const [shopping, setShopping] = useState(false)
 
   const slots = householdSlots(household.meal_slots)
   // A slot that's been turned off still shows while it has meals this week.
@@ -91,12 +94,20 @@ export function PlanPage() {
             </Button>
           )}
         </div>
-        {isAdmin && (
-          <Button variant="ghost" size="sm" onClick={() => setEditingSlots(true)}>
-            <Settings2Icon aria-hidden />
-            Meal slots
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {meals.some((m) => m.recipeId) && (
+            <Button size="sm" onClick={() => setShopping(true)}>
+              <ShoppingBasketIcon aria-hidden />
+              Shopping list
+            </Button>
+          )}
+          {isAdmin && (
+            <Button variant="ghost" size="sm" onClick={() => setEditingSlots(true)}>
+              <Settings2Icon aria-hidden />
+              Meal slots
+            </Button>
+          )}
+        </div>
       </div>
 
       {meals.length === 0 && (
@@ -155,6 +166,14 @@ export function PlanPage() {
         slots={slots}
         recipes={recipes}
         onClose={() => setTarget(null)}
+      />
+      <PlanShoppingSheet
+        open={shopping}
+        weekStart={weekStart}
+        // Meals on days already gone are cooked; a later week counts from its start.
+        from={today > weekStart ? today : weekStart}
+        meals={meals}
+        onClose={() => setShopping(false)}
       />
       {isAdmin && (
         <SlotsDialog

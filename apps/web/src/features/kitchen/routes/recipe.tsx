@@ -37,7 +37,7 @@ import { ItemHeading } from '../components/item-heading'
 import { RecipeCost } from '../components/recipe-cost'
 import { RecipePhoto } from '../components/recipe-photo'
 import { usePantry } from '../hooks/use-pantry'
-import { useDeleteRecipe } from '../hooks/use-recipes'
+import { useAddRecipeToList, useDeleteRecipe } from '../hooks/use-recipes'
 import {
   conversionsQuery,
   householdPricesQuery,
@@ -64,6 +64,7 @@ export function RecipePage() {
   const conversions = useSuspenseQuery(conversionsQuery(household.id)).data
   const [params, setParams] = useSearchParams()
   const [adding, setAdding] = useState(false)
+  const addToList = useAddRecipeToList(household.id, recipeId)
 
   if (!recipe) return null
   const asked = Number(params.get('servings'))
@@ -224,8 +225,9 @@ export function RecipePage() {
       )}
       <AddMissingSheet
         open={adding}
-        recipeId={recipe.id}
-        recipeTitle={recipe.title}
+        title="Add missing to the list"
+        description={`What ${recipe.title} needs beyond what's in the pantry. Anything already on the list is topped up rather than added twice.`}
+        add={addToList}
         lines={toBuy}
         list={list}
         onClose={() => setAdding(false)}
