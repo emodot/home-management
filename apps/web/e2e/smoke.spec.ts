@@ -162,7 +162,8 @@ test('super-admin creates a household → its admin joins → expense with recei
     // …and the other member sees it without reloading, then checks it off.
     await expect(guestPage.getByLabel('Bought Tomatoes')).toBeVisible()
     await guestPage.getByLabel('Bought Tomatoes').check()
-    await expect(page.getByLabel('Bought Tomatoes')).toBeChecked()
+    // Realtime can take a while to connect on a cold CI runner.
+    await expect(page.getByLabel('Bought Tomatoes')).toBeChecked({ timeout: 30_000 })
 
     // Adding it again puts the same entry back rather than a second one.
     await quickAdd.fill('tomato')
@@ -339,7 +340,10 @@ test('super-admin creates a household → its admin joins → expense with recei
 
   await test.step('the week onto the list: next week, less the pantry, merged with the list', async () => {
     // Next week: pepper soup on Sunday for Monday and Tuesday lunch too, a pot for 12.
+    // Wait for next week to show: until then the page (and its buttons) is still this week's.
+    const thisWeek = (await page.getByRole('heading', { level: 2 }).first().textContent()) ?? ''
     await page.getByRole('link', { name: 'Next week' }).click()
+    await expect(page.getByRole('heading', { name: thisWeek, exact: true })).toHaveCount(0)
     await page.getByRole('button', { name: /^Add to Dinner on Sunday/ }).click()
     await page.getByRole('button', { name: 'Pepper soup', exact: true }).click()
     await page.getByLabel(/^Mon \d+ · Lunch$/).check()
