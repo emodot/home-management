@@ -474,7 +474,7 @@ port = 465
 user = "resend"
 pass = "env(RESEND_API_KEY)"
 admin_email = "no-reply@hm.davidemaye.com"
-sender_name = "Home"
+sender_name = "Lintel"
 
 [remotes.production.auth.rate_limit]
 # Emails per hour across the project (the local value of 2 is for development only).

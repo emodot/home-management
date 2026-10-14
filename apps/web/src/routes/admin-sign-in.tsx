@@ -60,7 +60,7 @@ export function AdminSignInPage() {
       description={
         <span className="flex items-center gap-1.5">
           <ShieldIcon className="size-4" aria-hidden />
-          For Home super-admins only.
+          For Lintel super-admins only.
         </span>
       }
     >

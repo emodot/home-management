@@ -57,7 +57,7 @@ Deno.test('emails the same link it returns when given an email', async () => {
   assertEquals(emails.length, 1)
   assertEquals(emails[0]!.to, 'bola@example.com')
   assert(emails[0]!.email.text.includes(body.inviteUrl), 'email contains the returned link')
-  assertEquals(emails[0]!.email.subject, 'Ada Obi invited you to Lekki flat on Home')
+  assertEquals(emails[0]!.email.subject, 'Ada Obi invited you to Lekki flat on Lintel')
   assertMatch(emails[0]!.email.text, /expires on 1 October 2026/)
 })
 

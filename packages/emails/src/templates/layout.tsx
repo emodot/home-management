@@ -11,7 +11,7 @@ export const colors = {
 
 export function EmailLayout({
   preview,
-  footer = "You received this because someone used Home to contact you. If you weren't expecting it, you can ignore this email.",
+  footer = "You received this because someone used Lintel to contact you. If you weren't expecting it, you can ignore this email.",
   children,
 }: {
   preview: string
@@ -41,7 +41,7 @@ export function EmailLayout({
             padding: '32px 28px',
           }}
         >
-          <Text style={{ fontSize: 15, fontWeight: 600, margin: '0 0 24px' }}>🏠 Home</Text>
+          <Text style={{ fontSize: 15, fontWeight: 600, margin: '0 0 24px' }}>🏠 Lintel</Text>
           <Section>{children}</Section>
           <Hr style={{ borderColor: colors.border, margin: '28px 0 16px' }} />
           <Text style={{ color: colors.muted, fontSize: 12, lineHeight: '18px', margin: 0 }}>

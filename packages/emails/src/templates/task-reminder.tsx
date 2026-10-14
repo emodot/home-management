@@ -35,7 +35,7 @@ export function TaskReminderEmail({
       preview={
         overdue ? `${p.taskTitle} was due ${p.dueDate}` : `${p.taskTitle} is due ${p.dueText}`
       }
-      footer="Task reminders from Home, for households you belong to."
+      footer="Task reminders from Lintel, for households you belong to."
     >
       <Text style={{ fontSize: 15, margin: '0 0 8px' }}>Hi {p.recipientName},</Text>
       <Heading as="h1" style={{ fontSize: 22, lineHeight: '30px', margin: '0 0 12px' }}>

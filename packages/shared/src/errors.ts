@@ -9,7 +9,7 @@ export const APP_ERROR_MESSAGES = {
   invite_revoked: 'This invite was cancelled. Ask a member to send you a new one.',
   invite_used: 'This invite has already been used.',
   last_admin:
-    "You're this household's only admin. Ask the Home administrator to make someone else an admin before you leave.",
+    "You're this household's only admin. Ask the Lintel administrator to make someone else an admin before you leave.",
   not_household_admin: 'Only household admins can do that.',
   forbidden: "You don't have access to that.",
   household_not_found: "That household doesn't exist (it may have been deleted).",

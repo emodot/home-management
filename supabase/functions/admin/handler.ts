@@ -227,7 +227,7 @@ export const handler = endpoint(adminRequestSchema, async (request, user, deps: 
           await deps.sendEmail(
             invite.email,
             renderInviteEmail({
-              inviterName: 'The Home team',
+              inviterName: 'The Lintel team',
               householdName: invite.household_name,
               inviteUrl,
               email: invite.email,

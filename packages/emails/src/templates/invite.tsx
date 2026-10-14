@@ -10,7 +10,7 @@ export interface InviteEmailProps {
 }
 
 export const inviteSubject = ({ inviterName, householdName }: InviteEmailProps) =>
-  `${inviterName} invited you to ${householdName} on Home`
+  `${inviterName} invited you to ${householdName} on Lintel`
 
 export function InviteEmail({
   inviterName,

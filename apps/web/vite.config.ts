@@ -74,8 +74,8 @@ export default defineConfig(({ command, mode }) => {
         injectRegister: false,
         includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
         manifest: {
-          name: 'Home',
-          short_name: 'Home',
+          name: 'Lintel',
+          short_name: 'Lintel',
           description:
             'Household expenses, tasks and service providers, shared with your household.',
           lang: 'en-NG',

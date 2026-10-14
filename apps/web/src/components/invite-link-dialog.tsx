@@ -52,8 +52,8 @@ export function InviteLinkDialog({
   async function share(url: string) {
     try {
       await navigator.share({
-        title: `Join ${householdName} on Home`,
-        text: `Join ${householdName} on Home to share expenses, tasks and providers.`,
+        title: `Join ${householdName} on Lintel`,
+        text: `Join ${householdName} on Lintel to share expenses, tasks and providers.`,
         url,
       })
     } catch (error) {

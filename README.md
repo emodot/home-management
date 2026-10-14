@@ -1,4 +1,4 @@
-# Home Management
+# Lintel
 
 Household expenses, tasks and providers. See [SPEC.md](SPEC.md) for the Phase 1 build spec.
 
@@ -234,7 +234,7 @@ supabase link --project-ref <ref>
 supabase db push                 # apply supabase/migrations
 supabase functions deploy        # send-invite, accept-invite, revoke-invite, leave-household, daily-jobs
 supabase secrets set APP_URL=https://<your-domain> RESEND_API_KEY=<key> \
-  EMAIL_FROM="Home <home@your-verified-domain>" CRON_SECRET=<long random string>
+  EMAIL_FROM="Lintel <no-reply@your-verified-domain>" CRON_SECRET=<long random string>
 ```
 
 Then add the two Vault secrets from [Daily jobs](#daily-jobs), and under Authentication → URL

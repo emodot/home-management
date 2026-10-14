@@ -126,7 +126,7 @@ export function MembersPage() {
         title="Leave household"
         description={
           onlyAdmin && members.length > 1
-            ? "You're the only household admin, so you can't leave while others are here. Ask the Home administrator to make someone else an admin first."
+            ? "You're the only household admin, so you can't leave while others are here. Ask the Lintel administrator to make someone else an admin first."
             : 'You will lose access until a household admin invites you again.'
         }
       >

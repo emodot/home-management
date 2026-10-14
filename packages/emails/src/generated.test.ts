@@ -6,7 +6,7 @@ import { taskReminderSample } from './templates/task-reminder.tsx'
 describe('renderInviteEmail', () => {
   it('fills every value into subject, HTML and text', () => {
     const email = renderInviteEmail(inviteSample)
-    expect(email.subject).toBe('Ada Obi invited you to Lekki flat on Home')
+    expect(email.subject).toBe('Ada Obi invited you to Lekki flat on Lintel')
     expect(email.html).toContain('href="http://localhost:5173/invite/sample-token"')
     expect(email.html).toContain('Join <!-- -->Lekki flat')
     expect(email.text).toContain('http://localhost:5173/invite/sample-token')
@@ -24,7 +24,7 @@ describe('renderInviteEmail', () => {
 
   it('keeps the subject on one line', () => {
     expect(renderInviteEmail({ ...inviteSample, inviterName: 'Ada\r\nBcc: x' }).subject).toBe(
-      'Ada Bcc: x invited you to Lekki flat on Home',
+      'Ada Bcc: x invited you to Lekki flat on Lintel',
     )
   })
 })

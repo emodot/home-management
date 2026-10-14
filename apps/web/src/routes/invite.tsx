@@ -33,7 +33,7 @@ export function InvitePage() {
     return (
       <AuthCard title="Invite unavailable" description={data.message}>
         <Button asChild className="w-full">
-          <Link to="/">Go to Home</Link>
+          <Link to="/">Go to Lintel</Link>
         </Button>
       </AuthCard>
     )
