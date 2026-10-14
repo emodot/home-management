@@ -479,3 +479,16 @@ sender_name = "Lintel"
 [remotes.production.auth.rate_limit]
 # Emails per hour across the project (the local value of 2 is for development only).
 email_sent = 30
+
+# The hosted connection pooler's sizes (set in the dashboard).
+[remotes.production.db.pooler]
+default_pool_size = 15
+max_client_conn = 200
+
+# On in production (a Pro plan feature); left out of local development.
+[remotes.production.storage.image_transformation]
+enabled = true
+
+# `config diff` reports auth.sms.twilio.enabled as on in production: Twilio is just the SMS
+# provider Supabase selects by default (config push can't unset it). Phone sign-in itself is off
+# there (auth.sms.enable_signup = false), so nothing is ever sent through it.
