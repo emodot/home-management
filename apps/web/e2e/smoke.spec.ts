@@ -1,4 +1,5 @@
-import { expect, test, type BrowserContext, type Page } from '@playwright/test'
+import { expect, test, type BrowserContext, type Page, type Request } from '@playwright/test'
+import { MODULE_TOURS } from '../src/features/onboarding/tours/modules'
 
 // A 1×1 PNG, attached as a receipt.
 const RECEIPT_PNG = Buffer.from(
@@ -35,12 +36,39 @@ const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? 'superadmin@example.com'
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? 'super-admin-e2e'
 const NEW_PASSWORD = 'battery staple horse'
 
+/**
+ * Marks tours as seen for the signed-in user, through the API the app itself called in `request`
+ * (its address and the user's token), so they don't pop up over the steps that follow.
+ */
+async function markToursSeen(
+  page: Page,
+  request: Request,
+  tours: { id: string; version: number }[],
+) {
+  const headers = await request.allHeaders()
+  for (const tour of tours) {
+    const response = await page.request.post(
+      `${new URL(request.url()).origin}/rest/v1/rpc/mark_onboarding`,
+      {
+        headers: { apikey: headers.apikey ?? '', authorization: headers.authorization ?? '' },
+        data: {
+          p_key: `tour:${tour.id}`,
+          p_version: tour.version,
+          p_status: 'dismissed',
+          p_last_step: 0,
+        },
+      },
+    )
+    expect(response.ok()).toBe(true)
+  }
+}
+
 async function choose(page: Page, fieldId: string, option: string) {
   await page.locator(`#${fieldId}`).click()
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → welcome tour, skipped once → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooked it, and the week against the budget → cooking gas', async ({
+test('super-admin creates a household → its admin joins → welcome tour, skipped once → the Expenses tour after it → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooked it, and the week against the budget → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -92,12 +120,24 @@ test('super-admin creates a household → its admin joins → welcome tour, skip
     await expenses.getByRole('button', { name: 'Skip tour' }).click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
 
-    // Reloaded (as on another device), it stays away once the user's progress is in.
-    const progress = page.waitForResponse((r) => r.url().includes('/rest/v1/user_onboarding'))
+    // Reloaded (as on another device), the welcome tour stays away, and the Expenses tour takes
+    // its turn: on an empty page, only its Budgets step has something to point at.
+    const progress = page.waitForRequest((r) => r.url().includes('/rest/v1/user_onboarding'))
     await page.reload()
-    await progress
+    const progressRequest = await progress
     await expect(page.getByText('Track your first expense')).toBeVisible()
+    const budgets = page.getByRole('dialog', { name: 'Budgets' })
+    await expect(budgets).toContainText('4 of 4')
+    await expect(page.getByRole('dialog', { name: 'Welcome to Lintel' })).toHaveCount(0)
+    await budgets.getByRole('button', { name: 'Done' }).click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
+
+    // The other modules' tours would cover the steps below.
+    await markToursSeen(
+      page,
+      progressRequest,
+      MODULE_TOURS.filter((t) => t.id !== 'expenses'),
+    )
   })
 
   await test.step('add an expense with a receipt', async () => {

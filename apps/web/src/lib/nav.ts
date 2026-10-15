@@ -23,6 +23,8 @@ export interface NavItem {
   matches?: (pathname: string) => boolean
   /** Shown to household admins only. */
   adminOnly?: boolean
+  /** More data-tour ids for product tours to point at, besides nav.<label>. */
+  tours?: string[]
 }
 
 const isExpensesPath = (pathname: string) => pathname === '/' || pathname.startsWith('/expenses')
@@ -36,7 +38,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/insights', label: 'Insights', icon: ChartColumnIcon },
   { to: '/activity', label: 'Activity', icon: HistoryIcon },
   { to: '/recurring', label: 'Recurring bills', icon: RepeatIcon },
-  { to: '/budgets', label: 'Budgets', icon: PiggyBankIcon },
+  { to: '/budgets', label: 'Budgets', icon: PiggyBankIcon, tours: ['expenses.budgets'] },
   { to: '/categories', label: 'Categories', icon: TagsIcon },
   { to: '/members', label: 'Members', icon: UsersIcon },
   { to: '/recently-deleted', label: 'Recently deleted', icon: Trash2Icon },
@@ -50,6 +52,8 @@ export const BOTTOM_ITEMS: NavItem[] = [
     to: '/more',
     label: 'More',
     icon: EllipsisIcon,
+    // Budgets lives under More on phones.
+    tours: ['expenses.budgets'],
     matches: (p) =>
       [
         '/more',
@@ -68,7 +72,7 @@ export const BOTTOM_ITEMS: NavItem[] = [
   },
 ]
 
-/** The data-tour id product tours point at: nav.expenses, nav.kitchen, nav.more, ... */
+/** The data-tour ids product tours point at: nav.expenses, nav.kitchen, nav.more, ... */
 export function navTourId(item: NavItem): string {
-  return `nav.${item.label.toLowerCase().replace(/\s+/g, '-')}`
+  return [`nav.${item.label.toLowerCase().replace(/\s+/g, '-')}`, ...(item.tours ?? [])].join(' ')
 }

@@ -1,5 +1,10 @@
 /** How long a step waits for its target to appear (e.g. a page still loading) before it's skipped. */
 export const TARGET_WAIT_MS = 3000
+/**
+ * Once the page has finished loading (nothing aria-busy) for this long, a target that still isn't
+ * there won't be: skip the step without waiting out the rest (e.g. an empty list's controls).
+ */
+export const SETTLED_MS = 400
 
 /** Whether an element takes up space on screen: not display:none, not visibility:hidden. */
 function isShown(element: Element): boolean {
@@ -7,11 +12,12 @@ function isShown(element: Element): boolean {
 }
 
 /**
- * The element a step points at: the shown one carrying data-tour="<id>". The same id can sit on
- * more than one element, e.g. the bottom nav on phones and the sidebar on wider screens.
+ * The element a step points at: the shown one carrying data-tour="<id>" (one of a space-separated
+ * list). The same id can sit on more than one element, e.g. the bottom nav on phones and the
+ * sidebar on wider screens.
  */
 export function findTarget(id: string): Element | undefined {
-  const candidates = document.querySelectorAll(`[data-tour="${CSS.escape(id)}"]`)
+  const candidates = document.querySelectorAll(`[data-tour~="${CSS.escape(id)}"]`)
   return Array.from(candidates).find(isShown)
 }
 
@@ -45,9 +51,25 @@ function waitFor<T>(
   })
 }
 
-/** The step's target once it's on screen, or undefined if it doesn't appear in time. */
+function isLoading(): boolean {
+  return document.querySelector('[aria-busy="true"]') !== null
+}
+
+/**
+ * The step's target once it's on screen, or undefined if it doesn't appear in time: within
+ * `timeoutMs`, or SETTLED_MS after the page has finished loading.
+ */
 export function waitForTarget(id: string, timeoutMs = TARGET_WAIT_MS, signal?: AbortSignal) {
-  return waitFor(() => findTarget(id), timeoutMs, signal)
+  const settled = new AbortController()
+  signal?.addEventListener('abort', () => settled.abort())
+  let quietSince = Date.now()
+  const check = window.setInterval(() => {
+    if (isLoading()) quietSince = Date.now()
+    else if (Date.now() - quietSince >= SETTLED_MS) settled.abort()
+  }, 100)
+  return waitFor(() => findTarget(id), timeoutMs, settled.signal).finally(() =>
+    window.clearInterval(check),
+  )
 }
 
 /** An open sheet, dialog or menu, which a tour mustn't cover. */

@@ -128,7 +128,7 @@ export function TasksPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
       {tasks.length > 0 && (
         <Button asChild size="sm">
-          <Link to="/tasks/new">
+          <Link to="/tasks/new" data-tour="tasks.add-button">
             <PlusIcon aria-hidden />
             Add
           </Link>
@@ -146,7 +146,7 @@ export function TasksPage() {
           title="Keep the house running"
           action={
             <Button asChild>
-              <Link to="/tasks/new">
+              <Link to="/tasks/new" data-tour="tasks.add-button">
                 <PlusIcon aria-hidden />
                 Add task
               </Link>
@@ -165,6 +165,7 @@ export function TasksPage() {
       {header}
       <div
         className="inline-flex w-fit rounded-lg border p-0.5"
+        data-tour="tasks.upcoming"
         role="tablist"
         aria-label="Which tasks"
       >

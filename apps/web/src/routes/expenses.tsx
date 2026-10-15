@@ -258,7 +258,7 @@ export function ExpensesPage() {
             </Button>
           </div>
           <div className="flex items-end justify-between gap-3">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1" data-tour="expenses.summary">
               <p className="text-sm text-muted-foreground">
                 {hasFilters ? 'Matching' : 'Spent'}
                 {month === thisMonth ? ' this month' : ` in ${formatMonth(month)}`}

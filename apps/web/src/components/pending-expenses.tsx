@@ -142,7 +142,11 @@ export function PendingExpenses() {
   if (pending.length === 0) return null
 
   return (
-    <section aria-labelledby="pending-heading" className="flex flex-col gap-2">
+    <section
+      aria-labelledby="pending-heading"
+      className="flex flex-col gap-2"
+      data-tour="expenses.pending"
+    >
       <div className="flex items-center justify-between gap-2">
         <h2 id="pending-heading" className="flex items-center gap-2 text-sm font-semibold">
           <RepeatIcon className="size-4 text-muted-foreground" aria-hidden />

@@ -42,7 +42,7 @@ export function ProvidersPage() {
           title="Keep your trusted people in one place"
           action={
             <Button asChild>
-              <Link to="/providers/new">
+              <Link to="/providers/new" data-tour="providers.add-button">
                 <PlusIcon aria-hidden />
                 Add provider
               </Link>
@@ -61,7 +61,7 @@ export function ProvidersPage() {
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Providers</h1>
         <Button asChild size="sm">
-          <Link to="/providers/new">
+          <Link to="/providers/new" data-tour="providers.add-button">
             <PlusIcon aria-hidden />
             Add
           </Link>
@@ -111,7 +111,7 @@ export function ProvidersPage() {
       {shown.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">No providers match.</p>
       ) : (
-        <ul className="stagger list-surface">
+        <ul className="stagger list-surface" data-tour="providers.list">
           {shown.map((p) => (
             <li key={p.id} className="flex items-center gap-3 px-3 py-3">
               <Link to={`/providers/${p.id}`} className="min-w-0 flex-1">

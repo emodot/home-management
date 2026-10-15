@@ -75,7 +75,7 @@ export function ExpenseFiltersSheet({
       }}
     >
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" data-tour="expenses.filters">
           <SlidersHorizontalIcon aria-hidden />
           Filters
           {activeCount > 0 && <Badge className="ml-1 h-5 min-w-5 px-1.5">{activeCount}</Badge>}

@@ -61,7 +61,7 @@ export function ShoppingListPage() {
                 : `${toBuy} ${toBuy === 1 ? 'thing' : 'things'} to buy`}
             </p>
             <Button asChild size="sm">
-              <Link to="/kitchen/list/shop">
+              <Link to="/kitchen/list/shop" data-tour="kitchen.start-shopping">
                 <ShoppingCartIcon aria-hidden />
                 Start shopping
               </Link>
