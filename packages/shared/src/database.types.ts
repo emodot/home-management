@@ -1507,6 +1507,33 @@ export type Database = {
           },
         ]
       }
+      user_onboarding: {
+        Row: {
+          key: string
+          last_step: number | null
+          status: string
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          key: string
+          last_step?: number | null
+          status: string
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          key?: string
+          last_step?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       expense_list: {
@@ -1927,6 +1954,10 @@ export type Database = {
       shares_household_with: {
         Args: { other_user_id: string }
         Returns: boolean
+      }
+      mark_onboarding: {
+        Args: { p_key: string; p_version: number; p_status: string; p_last_step?: number | null }
+        Returns: undefined
       }
     }
     Enums: {
