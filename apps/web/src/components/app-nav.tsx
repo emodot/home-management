@@ -1,6 +1,6 @@
 import { PlusIcon } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router'
-import { BOTTOM_ITEMS, SIDEBAR_ITEMS, type NavItem } from '@/lib/nav'
+import { BOTTOM_ITEMS, navTourId, SIDEBAR_ITEMS, type NavItem } from '@/lib/nav'
 import { useIsHouseholdAdmin } from '@/hooks/use-household'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -36,6 +36,7 @@ export function Sidebar() {
         <NavLink
           key={item.to}
           to={item.to}
+          data-tour={navTourId(item)}
           className={cn(
             'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
             isActive(item) && 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary',
@@ -61,6 +62,7 @@ export function BottomNav() {
           <NavLink
             key={item.to}
             to={item.to}
+            data-tour={navTourId(item)}
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground',
               isActive(item) && 'text-primary',

@@ -239,6 +239,125 @@
   }
 }
 
+/* Product tours (driver.js), in the app's own colours and type, light and dark. */
+.driver-popover.lintel-tour {
+  font-family: var(--font-sans);
+  color: var(--popover-foreground);
+  background-color: var(--popover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 12px 32px -8px rgb(0 0 0 / 0.3),
+    0 2px 6px -2px rgb(0 0 0 / 0.15);
+  min-width: 0;
+  width: 22rem;
+  max-width: calc(100vw - 2rem);
+  padding: 1rem 1.25rem 1rem;
+}
+/* Phones: full width, above or below what it points at. */
+@media (max-width: 639px) {
+  .driver-popover.lintel-tour {
+    width: calc(100vw - 2rem);
+    /* Driver lines it up with the target; on a phone keep the page's 16px gutters instead. */
+    left: 1rem !important;
+    right: auto !important;
+  }
+}
+.lintel-tour .driver-popover-arrow {
+  display: none;
+}
+.lintel-tour .driver-popover-progress-text {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.lintel-tour .driver-popover-title {
+  padding-right: 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+.lintel-tour .driver-popover-description {
+  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.lintel-tour .driver-popover-close-btn {
+  top: 0.625rem;
+  right: 0.625rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.lintel-tour .driver-popover-close-btn:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.lintel-tour .driver-popover-footer {
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.lintel-tour .driver-popover-navigation-btns {
+  gap: 0.5rem;
+}
+.lintel-tour .driver-popover-navigation-btns button + button {
+  margin-left: 0;
+}
+.lintel-tour .driver-popover-footer-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-shadow: none;
+}
+.lintel-tour .driver-popover-footer-btn:hover {
+  background-color: var(--accent);
+}
+.lintel-tour .driver-popover-next-btn {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.lintel-tour .driver-popover-next-btn:hover {
+  background-color: color-mix(in oklab, var(--primary) 90%, transparent);
+}
+.lintel-tour .lintel-tour-skip {
+  padding: 0 0.25rem;
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--muted-foreground);
+}
+.lintel-tour .lintel-tour-skip:hover {
+  background-color: transparent;
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.lintel-tour button:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--ring) 50%, transparent);
+  outline-offset: 1px;
+}
+.lintel-tour .driver-popover-btn-disabled,
+.lintel-tour button:disabled {
+  opacity: 0.5;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

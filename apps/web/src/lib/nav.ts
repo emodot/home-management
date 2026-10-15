@@ -67,3 +67,8 @@ export const BOTTOM_ITEMS: NavItem[] = [
       ].some((prefix) => p.startsWith(prefix)),
   },
 ]
+
+/** The data-tour id product tours point at: nav.expenses, nav.kitchen, nav.more, ... */
+export function navTourId(item: NavItem): string {
+  return `nav.${item.label.toLowerCase().replace(/\s+/g, '-')}`
+}

@@ -41,6 +41,7 @@ export function KitchenTabs() {
             <NavLink
               to={tab.to}
               end={tab.end}
+              data-tour={`kitchen.tab-${tab.label.toLowerCase()}`}
               className={({ isActive }) =>
                 cn(
                   '-mb-px flex h-11 items-center border-b-2 border-transparent px-3 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground',
