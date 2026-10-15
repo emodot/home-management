@@ -3,10 +3,11 @@ import { createContext, useContext } from 'react'
 
 export interface TourControls {
   /**
-   * Runs a tour once no sheet, dialog or other tour is on screen, whatever the user did with it
-   * before. Asking again for one already queued or running does nothing.
+   * Runs a tour once no sheet, dialog or other tour is on screen. Asking again for one already
+   * queued or running does nothing; so does asking again for one that ended this session, unless
+   * `replay` (the user asked to see it).
    */
-  start: (tour: TourDefinition) => void
+  start: (tour: TourDefinition, options?: { replay?: boolean }) => void
   /** The tour on screen, if any. */
   activeTourId: string | null
 }

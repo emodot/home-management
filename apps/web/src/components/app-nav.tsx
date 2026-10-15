@@ -27,7 +27,7 @@ export function Sidebar() {
         aria-hidden={onExpensesList || undefined}
         tabIndex={onExpensesList ? -1 : undefined}
       >
-        <Link to="/expenses/new">
+        <Link to="/expenses/new" data-tour="expenses.add-button">
           <PlusIcon aria-hidden />
           Add expense
         </Link>
@@ -95,6 +95,7 @@ export function AddExpenseButton() {
   return (
     <Link
       to="/expenses/new"
+      data-tour="expenses.add-button"
       aria-label="Add expense"
       className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 focus-visible:ring-4 focus-visible:ring-ring/50 focus-visible:outline-none active:scale-95 md:hidden"
     >

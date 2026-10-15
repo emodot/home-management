@@ -137,6 +137,11 @@ describe('TourProvider', () => {
       p_status: 'completed',
       p_last_step: null,
     })
+
+    // Asked for again this session, it stays away (until replayed).
+    await user.click(screen.getByRole('button', { name: 'Start nothing' }))
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.queryByRole('dialog')).toBeNull()
   }, 10_000)
 
   it('records the step a tour was skipped on, and waits for an open dialog to close', async () => {

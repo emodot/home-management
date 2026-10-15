@@ -192,7 +192,7 @@ export function ExpensesPage() {
           title="Track your first expense"
           action={
             <Button asChild>
-              <Link to="/expenses/new">
+              <Link to="/expenses/new" data-tour="expenses.add-button">
                 <PlusIcon aria-hidden />
                 Add expense
               </Link>
@@ -303,7 +303,7 @@ export function ExpensesPage() {
           />
         </div>
         <Button asChild>
-          <Link to="/expenses/new">
+          <Link to="/expenses/new" data-tour="expenses.add-button">
             <PlusIcon aria-hidden />
             Add expense
           </Link>

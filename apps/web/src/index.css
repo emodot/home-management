@@ -258,9 +258,6 @@
 @media (max-width: 639px) {
   .driver-popover.lintel-tour {
     width: calc(100vw - 2rem);
-    /* Driver lines it up with the target; on a phone keep the page's 16px gutters instead. */
-    left: 1rem !important;
-    right: auto !important;
   }
 }
 .lintel-tour .driver-popover-arrow {

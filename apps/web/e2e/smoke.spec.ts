@@ -40,7 +40,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooked it, and the week against the budget → cooking gas', async ({
+test('super-admin creates a household → its admin joins → welcome tour, skipped once → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooked it, and the week against the budget → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -82,6 +82,22 @@ test('super-admin creates a household → its admin joins → expense with recei
     await page.getByRole('button', { name: 'Create account' }).click()
     await page.getByRole('button', { name: 'Join household' }).click()
     await expect(page.getByText('Track your first expense')).toBeVisible()
+  })
+
+  await test.step('the welcome tour shows once, and skipping it is remembered', async () => {
+    const welcome = page.getByRole('dialog', { name: 'Welcome to Lintel' })
+    await welcome.getByRole('button', { name: 'Next' }).click()
+    const expenses = page.getByRole('dialog', { name: 'Expenses' })
+    await expect(expenses).toContainText('This is your home screen.')
+    await expenses.getByRole('button', { name: 'Skip tour' }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+
+    // Reloaded (as on another device), it stays away once the user's progress is in.
+    const progress = page.waitForResponse((r) => r.url().includes('/rest/v1/user_onboarding'))
+    await page.reload()
+    await progress
+    await expect(page.getByText('Track your first expense')).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
   })
 
   await test.step('add an expense with a receipt', async () => {
@@ -140,6 +156,7 @@ test('super-admin creates a household → its admin joins → expense with recei
     await guestPage.getByRole('button', { name: 'Create account' }).click()
     await guestPage.getByRole('button', { name: 'Join household' }).click()
     await expect(guestPage.getByText('Welcome to Obi home')).toBeVisible()
+    await guestPage.getByRole('button', { name: 'Skip tour' }).click()
     // Members who aren't household admins can't invite.
     await guestPage.goto('/members')
     await expect(guestPage.getByText('Ask a household admin to invite them')).toBeVisible()

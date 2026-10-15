@@ -18,6 +18,8 @@ export class TourQueue {
   private active: { id: string; stop: () => void } | null = null
   private clearing: AbortController | null = null
   private handlers: TourAppHandlers | null = null
+  /** Finished or skipped since the app opened: not started again unless replayed. */
+  private readonly ended = new Set<string>()
   private readonly onActiveChange: (tourId: string | null) => void
   private readonly run: typeof runTour
 
@@ -31,9 +33,13 @@ export class TourQueue {
     void this.next()
   }
 
-  /** Queues a tour. Asking again for one already queued or on screen does nothing. */
-  start(tour: TourDefinition) {
+  /**
+   * Queues a tour. Asking again for one already queued or on screen does nothing, and so does
+   * asking for one that ended this session, unless it's a replay (the user asked for it).
+   */
+  start(tour: TourDefinition, { replay = false } = {}) {
     if (this.active?.id === tour.id || this.waitingTours.some((t) => t.id === tour.id)) return
+    if (this.ended.has(tour.id) && !replay) return
     this.waitingTours.push(tour)
     void this.next()
   }
@@ -58,6 +64,7 @@ export class TourQueue {
       navigate: (to) => this.handlers?.navigate(to),
       pathname: () => this.handlers?.pathname() ?? '',
       onEnd: (status, step) => {
+        this.ended.add(tour.id)
         this.active = null
         this.onActiveChange(null)
         this.handlers?.record(tour, status, step)

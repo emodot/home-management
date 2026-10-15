@@ -277,7 +277,8 @@ deployment's domain must be in Supabase's redirect URLs (see step 1) for sign-in
 ### Smoke tests
 
 `pnpm e2e` runs the Playwright smoke test against the local stack: a super-admin creates a
-household and an admin invite → the household admin signs up through it → expense with receipt →
+household and an admin invite → the household admin signs up through it → the welcome tour shows, is
+skipped and stays away after a reload → expense with receipt →
 invites by email and by link, with a member joining (and seeing no invite controls) → that member sees the shopping list change live, including changes made in shopping mode while offline, and finishing the trip into an expense → running low in the pantry adds to the list once → a second trip shows the price change → two gas refills predict the next with a reminder task → task →
 complete → scan a receipt PDF to log the expense → scan two at once → profile and password change → sign back in. It needs `pnpm db:start`, the
 edge functions (`supabase functions serve --env-file supabase/functions/.env`), `apps/web/.env`

@@ -37,11 +37,11 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const search = params.toString()
     void navigate({ search: search ? `?${search}` : '' }, { replace: true })
     const tour = TOURS[requested]
-    if (tour) queue.start(tour)
+    if (tour) queue.start(tour, { replay: true })
   }, [requested, location.search, navigate, queue])
 
   const controls = useMemo<TourControls>(
-    () => ({ start: (tour) => queue.start(tour), activeTourId }),
+    () => ({ start: (tour, options) => queue.start(tour, options), activeTourId }),
     [queue, activeTourId],
   )
   return <TourContext value={controls}>{children}</TourContext>

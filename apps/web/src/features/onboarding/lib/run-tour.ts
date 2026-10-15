@@ -24,6 +24,19 @@ function delay(ms: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, ms))
 }
 
+/** The page's side gutters: driver lets a popover touch the edge of the screen. */
+const GUTTER_PX = 16
+
+function keepInGutters(popover: HTMLElement | undefined) {
+  if (!popover?.isConnected) return
+  const rect = popover.getBoundingClientRect()
+  const furthest = Math.max(GUTTER_PX, window.innerWidth - GUTTER_PX - rect.width)
+  const left = Math.min(Math.max(rect.left, GUTTER_PX), furthest)
+  if (Math.abs(left - rect.left) < 0.5) return
+  popover.style.left = `${String(left)}px`
+  popover.style.right = 'auto'
+}
+
 function escapeHtml(text: string) {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
@@ -71,14 +84,22 @@ export function runTour(tour: TourDefinition, options: RunTourOptions): RunningT
     ended = true
     waits.abort()
     window.removeEventListener('keyup', onKeyup)
+    window.removeEventListener('resize', onResize)
     document.removeEventListener('animationend', refresh, true)
     tourDriver.destroy()
     if (status) options.onEnd(status, current)
     if (returnFocus?.isConnected) returnFocus.focus()
   }
 
+  // Driver places the popover again on the next frame (on refresh or a resize); move it back
+  // inside the gutters after that.
+  function onResize() {
+    requestAnimationFrame(() => keepInGutters(popover?.wrapper))
+  }
+
   function refresh() {
     tourDriver.refresh()
+    onResize()
   }
 
   function setBusy(value: boolean) {
@@ -145,8 +166,12 @@ export function runTour(tour: TourDefinition, options: RunTourOptions): RunningT
             skip.addEventListener('click', () => end('dismissed'))
             dom.footer.insertBefore(skip, dom.footerButtons)
           }
-          // Driver focuses the first button (×); start on Next instead, so Enter moves on.
-          requestAnimationFrame(() => dom.nextButton.focus())
+          // Driver places the popover right after this, then focuses the first button (×):
+          // keep it inside the gutters, and start on Next instead, so Enter moves on.
+          requestAnimationFrame(() => {
+            keepInGutters(dom.wrapper)
+            dom.nextButton.focus()
+          })
         },
       },
     })
@@ -159,6 +184,7 @@ export function runTour(tour: TourDefinition, options: RunTourOptions): RunningT
   }
 
   window.addEventListener('keyup', onKeyup)
+  window.addEventListener('resize', onResize)
   // Pages arrive with a short rise; re-measure once it ends so the highlight sits right.
   document.addEventListener('animationend', refresh, true)
   void show(0, 1)

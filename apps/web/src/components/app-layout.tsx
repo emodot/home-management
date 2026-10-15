@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { AutoTours } from '@/features/onboarding/components/auto-tours'
 import { TourProvider } from '@/features/onboarding/components/tour-provider'
 import { Outlet, useLocation } from 'react-router'
 import {
@@ -69,6 +70,7 @@ export function AppLayout() {
         </div>
         <BottomNav />
         <AddExpenseButton />
+        <AutoTours />
       </TourProvider>
     </ActiveHouseholdContext>
   )

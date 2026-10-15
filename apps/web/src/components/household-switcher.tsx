@@ -10,7 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useActiveHousehold, useHouseholds, useSwitchHousehold } from '@/hooks/use-household'
+import {
+  useActiveHousehold,
+  useHouseholds,
+  useIsHouseholdAdmin,
+  useSwitchHousehold,
+} from '@/hooks/use-household'
 import { errorMessage } from '@/lib/errors'
 
 export function HouseholdSwitcher() {
@@ -18,6 +23,8 @@ export function HouseholdSwitcher() {
   const active = useActiveHousehold()
   const switchHousehold = useSwitchHousehold()
   const navigate = useNavigate()
+  // The welcome tour points household admins here for inviting (Members, in this menu).
+  const isAdmin = useIsHouseholdAdmin()
 
   function select(householdId: string) {
     if (householdId === active.id) return
@@ -33,6 +40,7 @@ export function HouseholdSwitcher() {
         <Button
           variant="ghost"
           className="-ml-2 max-w-[70vw] min-w-0 justify-start px-2 sm:max-w-xs"
+          data-tour={isAdmin ? 'household.invite' : undefined}
         >
           <HomeIcon aria-hidden />
           <span className="truncate font-semibold">{active.name}</span>
