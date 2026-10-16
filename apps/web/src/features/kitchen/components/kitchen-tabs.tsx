@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router'
+import { FeatureHint } from '@/features/onboarding/components/feature-hint'
 import { cn } from '@/lib/utils'
 
 const TABS = [
@@ -37,7 +38,7 @@ export function KitchenTabs() {
     >
       <ul className="flex gap-1">
         {TABS.map((tab) => (
-          <li key={tab.to}>
+          <li key={tab.to} className="relative">
             <NavLink
               to={tab.to}
               end={tab.end}
@@ -51,6 +52,13 @@ export function KitchenTabs() {
             >
               {tab.label}
             </NavLink>
+            {tab.to === '/kitchen/plan' && (
+              <FeatureHint
+                id="meal-plan"
+                title="Meal planner"
+                body="Plan the week’s meals, cook in batches, and send what’s missing to the shopping list."
+              />
+            )}
           </li>
         ))}
       </ul>

@@ -20,9 +20,14 @@ vi.stubGlobal(
     dispatchEvent: vi.fn(() => false),
   })),
 )
+// A class, not an arrow function: Radix popovers construct it with `new`.
 vi.stubGlobal(
   'ResizeObserver',
-  vi.fn(() => ({ observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() })),
+  class {
+    observe = vi.fn()
+    unobserve = vi.fn()
+    disconnect = vi.fn()
+  },
 )
 Object.assign(Element.prototype, {
   scrollIntoView: vi.fn(),

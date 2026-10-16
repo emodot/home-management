@@ -6,13 +6,14 @@ import {
 } from '@home/shared'
 import { useQuery } from '@tanstack/react-query'
 import { CircleCheckIcon, CircleIcon, PartyPopperIcon, XIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { useContext, useEffect } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useActiveHousehold } from '@/hooks/use-household'
 import { cn } from '@/lib/utils'
 import { useOnboarding } from '../hooks/use-onboarding'
 import { checklistQuery } from '../lib/queries'
+import { TourContext } from '../lib/tour-context'
 
 const ITEMS: Record<ChecklistItem, { label: string; action: string; to: string }> = {
   expense: { label: 'Add your first expense', action: 'Add expense', to: '/expenses/new' },
@@ -30,7 +31,10 @@ const ITEMS: Record<ChecklistItem, { label: string; action: string; to: string }
 export function GettingStarted() {
   const household = useActiveHousehold()
   const { shouldShow, mark } = useOnboarding()
-  const visible = shouldShow(CHECKLIST_KEY)
+  const tours = useContext(TourContext)
+  // Reopened from Help, it shows whatever happened to it before.
+  const reopened = tours?.checklistOpen ?? false
+  const visible = shouldShow(CHECKLIST_KEY) || reopened
   const progress = useQuery({ ...checklistQuery(household.id), enabled: visible }).data
   const done = progress ? checklistDoneCount(progress) : 0
   const allDone = done === CHECKLIST_ITEMS.length
@@ -43,8 +47,10 @@ export function GettingStarted() {
 
   if (!visible || !progress) return null
 
-  const hide = () =>
+  const hide = () => {
+    tours?.setChecklistOpen(false)
     mark(CHECKLIST_KEY, { version: 1, status: allDone ? 'completed' : 'dismissed' })
+  }
 
   return (
     <section
@@ -58,7 +64,7 @@ export function GettingStarted() {
           </h2>
           <p className="text-sm text-muted-foreground">
             {allDone
-              ? 'Everything’s in place. This card won’t show again.'
+              ? 'Everything’s in place. Help → Getting started brings this back.'
               : `${String(done)} of ${String(CHECKLIST_ITEMS.length)} done`}
           </p>
         </div>

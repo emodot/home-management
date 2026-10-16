@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderInApp } from '@/test/render-app'
+import { TourContext } from '../lib/tour-context'
 import { GettingStarted } from './getting-started'
 
 const db = vi.hoisted(() => ({
@@ -90,6 +91,30 @@ describe('GettingStarted', () => {
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(screen.queryByRole('region')).toBeNull()
     expect(db.rpc).not.toHaveBeenCalledWith('getting_started', expect.anything())
+  })
+
+  it('comes back from Help after being hidden', async () => {
+    db.rows = [
+      {
+        user_id: 'u1',
+        key: 'checklist',
+        version: 1,
+        status: 'dismissed',
+        last_step: null,
+        updated_at: '',
+      },
+    ]
+    const setChecklistOpen = vi.fn()
+    renderInApp(
+      <TourContext
+        value={{ start: vi.fn(), activeTourId: null, checklistOpen: true, setChecklistOpen }}
+      >
+        <GettingStarted />
+      </TourContext>,
+    )
+    await screen.findByRole('region', { name: 'Get your home set up' })
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Hide getting started' }))
+    expect(setChecklistOpen).toHaveBeenCalledWith(false)
   })
 
   it('says when everything is done, then goes once they leave the page', async () => {

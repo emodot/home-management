@@ -14,6 +14,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const location = useLocation()
   const { markTour } = useOnboarding()
   const [activeTourId, setActiveTourId] = useState<string | null>(null)
+  const [checklistOpen, setChecklistOpen] = useState(false)
   const [queue] = useState(() => new TourQueue(setActiveTourId))
 
   // The running tour reads the app as it is now, not as it was when the tour started.
@@ -41,8 +42,13 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [requested, location.search, navigate, queue])
 
   const controls = useMemo<TourControls>(
-    () => ({ start: (tour, options) => queue.start(tour, options), activeTourId }),
-    [queue, activeTourId],
+    () => ({
+      start: (tour, options) => queue.start(tour, options),
+      activeTourId,
+      checklistOpen,
+      setChecklistOpen,
+    }),
+    [queue, activeTourId, checklistOpen],
   )
   return <TourContext value={controls}>{children}</TourContext>
 }

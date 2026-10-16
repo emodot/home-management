@@ -40,7 +40,9 @@ function renderAt(url: string) {
         loader: () => ({ user: TEST_USER }),
         path: '*',
         element: (
-          <TourContext value={{ start, activeTourId: null }}>
+          <TourContext
+            value={{ start, activeTourId: null, checklistOpen: false, setChecklistOpen: vi.fn() }}
+          >
             <AutoTours />
           </TourContext>
         ),

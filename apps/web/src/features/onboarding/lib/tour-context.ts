@@ -10,6 +10,9 @@ export interface TourControls {
   start: (tour: TourDefinition, options?: { replay?: boolean }) => void
   /** The tour on screen, if any. */
   activeTourId: string | null
+  /** Getting started was reopened from Help: it shows even though it was hidden or finished. */
+  checklistOpen: boolean
+  setChecklistOpen: (open: boolean) => void
 }
 
 export const TourContext = createContext<TourControls | null>(null)

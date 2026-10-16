@@ -119,10 +119,12 @@ export function runTour(tour: TourDefinition, options: RunTourOptions): RunningT
     const step = steps[index]
     if (!step) return
     setBusy(true)
+    // A replay from elsewhere starts on the tour's own page.
+    const route = step.route ?? (index === 0 ? tour.route : undefined)
     // The wait for the target starts once the page's code and data are in, not before.
-    if (step.route && options.pathname() !== step.route) {
+    if (route && options.pathname() !== route) {
       // Not forever, though, should the navigation be interrupted.
-      await Promise.race([options.navigate(step.route), delay(NAVIGATION_WAIT_MS)])
+      await Promise.race([options.navigate(route), delay(NAVIGATION_WAIT_MS)])
     }
     const element = step.target
       ? await waitForTarget(step.target, options.waitMs ?? TARGET_WAIT_MS, waits.signal)

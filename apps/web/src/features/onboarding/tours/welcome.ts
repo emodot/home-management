@@ -39,5 +39,12 @@ export const welcomeTour: TourDefinition = {
       body: 'Invite the people you live with from Members, in this menu. Everyone sees and edits the same home.',
       side: 'bottom',
     },
+    // Added after launch; the version stays at 1 so people who've seen the tour aren't shown it again.
+    {
+      target: 'help.menu',
+      title: 'Help is here',
+      body: 'Take any tour again, or bring back Getting started.',
+      side: 'bottom',
+    },
   ],
 }

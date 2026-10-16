@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { AutoTours } from '@/features/onboarding/components/auto-tours'
+import { HelpMenu } from '@/features/onboarding/components/help-menu'
 import { TourProvider } from '@/features/onboarding/components/tour-provider'
 import { Outlet, useLocation } from 'react-router'
 import {
@@ -50,7 +51,10 @@ export function AppLayout() {
         <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
           <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-2 px-4">
             <HouseholdSwitcher />
-            <AccountMenu />
+            <div className="flex items-center gap-1">
+              <HelpMenu />
+              <AccountMenu />
+            </div>
           </div>
         </header>
         <div className="mx-auto flex w-full max-w-6xl">
