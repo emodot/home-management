@@ -63,6 +63,16 @@ async function markToursSeen(
   }
 }
 
+/** Steps a recipe's servings up one at a time, waiting for each, so no tap is lost to a re-render. */
+async function scaleServings(page: Page, from: number, to: number) {
+  const servings = page.getByRole('group', { name: 'Servings' })
+  await expect(servings).toContainText(String(from))
+  for (let n = from + 1; n <= to; n++) {
+    await page.getByRole('button', { name: 'More servings' }).click()
+    await expect(servings).toContainText(String(n))
+  }
+}
+
 async function choose(page: Page, fieldId: string, option: string) {
   await page.locator(`#${fieldId}`).click()
   await page.getByRole('option', { name: option, exact: true }).click()
@@ -357,8 +367,7 @@ test('super-admin creates a household → its admin joins → welcome tour, skip
 
     await expect(page.getByRole('heading', { name: 'Pepper soup' })).toBeVisible()
     await expect(page.getByText('3 pieces', { exact: true })).toBeVisible()
-    for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'More servings' }).click()
-    await expect(page.getByRole('group', { name: 'Servings' })).toContainText('10')
+    await scaleServings(page, 4, 10)
     await expect(page.getByText('7.5 pieces', { exact: true })).toBeVisible()
     await expect(page.getByText('5 pieces', { exact: true })).toBeVisible()
 
@@ -369,7 +378,7 @@ test('super-admin creates a household → its admin joins → welcome tour, skip
   await test.step('can I cook it? what the pantry is short of goes on the list, once', async () => {
     // For 10: 7.5 tomatoes against the 2 in the pantry, and no uziza at all.
     await page.getByRole('link', { name: /^Pepper soup/ }).click()
-    for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'More servings' }).click()
+    await scaleServings(page, 4, 10)
     await expect(page.getByText("You can't cook this yet")).toBeVisible()
     await expect(page.getByText('Short: need 5.5 pieces more')).toBeVisible()
     await page.getByRole('button', { name: 'Add missing to list' }).click()

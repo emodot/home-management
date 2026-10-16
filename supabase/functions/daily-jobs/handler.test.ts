@@ -159,13 +159,13 @@ Deno.test('emails each claimed reminder with the task, due date, provider and li
   assert(upcoming && overdue)
   assertEquals(upcoming.to, 'ada@example.com')
   assertEquals(upcoming.email.subject, 'Reminder: Service generator is due tomorrow')
-  assertMatch(upcoming.email.text, /Provider: Emeka Gen · \+234 805 123 4567/)
+  assertMatch(upcoming.email.text, /Provider\nEmeka Gen · \+234 805 123 4567/)
   assertMatch(upcoming.email.text, /https:\/\/home\.example\/tasks\/t1/)
   assertMatch(upcoming.email.text, /as a member of Lekki flat/)
 
   assertEquals(overdue.to, 'bola@example.com')
   assertEquals(overdue.email.subject, 'Overdue: Service generator was due 20 September 2026')
-  assert(!overdue.email.text.includes('Provider:'))
+  assert(!overdue.email.text.includes('Emeka Gen'))
   assertMatch(overdue.email.text, /assigned to you/)
 })
 
