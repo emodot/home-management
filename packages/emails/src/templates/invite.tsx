@@ -1,5 +1,13 @@
-import { Button, Heading, Text } from '@react-email/components'
-import { colors, EmailLayout } from './layout.tsx'
+import {
+  Details,
+  EmailLayout,
+  Eyebrow,
+  LinkFallback,
+  Note,
+  Paragraph,
+  PrimaryButton,
+  Title,
+} from './layout.tsx'
 
 export interface InviteEmailProps {
   inviterName: string
@@ -20,30 +28,27 @@ export function InviteEmail({
   expiresOn,
 }: InviteEmailProps) {
   return (
-    <EmailLayout preview={`${inviterName} invited you to help manage ${householdName}`}>
-      <Heading as="h1" style={{ fontSize: 22, lineHeight: '30px', margin: '0 0 12px' }}>
-        Join {householdName}
-      </Heading>
-      <Text style={{ fontSize: 15, lineHeight: '24px', margin: '0 0 24px' }}>
-        {inviterName} has invited you to help manage {householdName}: shared expenses and receipts,
-        recurring household tasks and your trusted service providers.
-      </Text>
-      <Button
-        href={inviteUrl}
-        style={{
-          backgroundColor: colors.primary,
-          borderRadius: 8,
-          color: colors.primaryText,
-          fontSize: 15,
-          fontWeight: 600,
-          padding: '12px 20px',
-        }}
-      >
-        Accept invite
-      </Button>
-      <Text style={{ color: colors.muted, fontSize: 13, lineHeight: '20px', margin: '24px 0 0' }}>
-        Sign in with {email} to accept. This invite expires on {expiresOn}.
-      </Text>
+    <EmailLayout preview={`${inviterName} invited you to help run ${householdName}`}>
+      <Eyebrow>Invitation</Eyebrow>
+      <Title>Join {householdName}</Title>
+      <Paragraph>
+        {inviterName} has invited you to help run {householdName} on Lintel: shared expenses and
+        receipts, the shopping list and pantry, recurring jobs around the house and the people you
+        trust to do them.
+      </Paragraph>
+      <Details
+        rows={[
+          { label: 'Household', value: householdName },
+          { label: 'Invited by', value: inviterName },
+          { label: 'Expires', value: expiresOn },
+        ]}
+      />
+      <PrimaryButton href={inviteUrl}>Accept invite</PrimaryButton>
+      <Note>
+        Sign in or create an account with {email} to accept. The invite works once, for that
+        address.
+      </Note>
+      <LinkFallback href={inviteUrl} />
     </EmailLayout>
   )
 }

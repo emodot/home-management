@@ -32,6 +32,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/password-input'
 import { UserAvatar } from '@/components/user-avatar'
 import { useCurrentUser, useProfile } from '@/hooks/use-household'
 import {
@@ -286,9 +287,8 @@ export function PasswordSection({ onChanged }: { onChanged?: () => void }) {
         <FieldGroup>
           <Field data-invalid={!!errors.current}>
             <FieldLabel htmlFor="current-password">Current password</FieldLabel>
-            <Input
+            <PasswordInput
               id="current-password"
-              type="password"
               autoComplete="current-password"
               aria-invalid={!!errors.current}
               {...form.register('current')}
@@ -308,9 +308,8 @@ export function PasswordSection({ onChanged }: { onChanged?: () => void }) {
           </Field>
           <Field data-invalid={!!errors.password}>
             <FieldLabel htmlFor="new-password">New password</FieldLabel>
-            <Input
+            <PasswordInput
               id="new-password"
-              type="password"
               autoComplete="new-password"
               aria-invalid={!!errors.password}
               {...form.register('password')}
@@ -320,9 +319,8 @@ export function PasswordSection({ onChanged }: { onChanged?: () => void }) {
           </Field>
           <Field data-invalid={!!errors.confirm}>
             <FieldLabel htmlFor="confirm-password">Confirm new password</FieldLabel>
-            <Input
+            <PasswordInput
               id="confirm-password"
-              type="password"
               autoComplete="new-password"
               aria-invalid={!!errors.confirm}
               {...form.register('confirm')}

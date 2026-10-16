@@ -9,6 +9,7 @@ import { AuthCard } from '@/components/auth-card'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/password-input'
 import { getSessionUser, requestPasswordReset, signInWithPassword, signOut } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
@@ -101,9 +102,8 @@ export function AdminSignInPage() {
                 Forgot password?
               </button>
             </div>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="current-password"
               aria-invalid={!!errors.password}
               {...form.register('password')}

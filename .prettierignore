@@ -9,3 +9,5 @@ SPEC.md
 packages/emails/generated
 supabase/functions/*/deno.lock
 apps/web/public/ocr
+# Rendered from packages/emails/src/templates/auth.tsx
+supabase/templates/

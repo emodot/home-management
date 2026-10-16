@@ -1,5 +1,4 @@
-import { Button, Heading, Text } from '@react-email/components'
-import { colors, EmailLayout } from './layout.tsx'
+import { Details, EmailLayout, Eyebrow, Note, Paragraph, PrimaryButton, Title } from './layout.tsx'
 
 export interface TaskReminderEmailProps {
   recipientName: string
@@ -37,38 +36,24 @@ export function TaskReminderEmail({
       }
       footer="Task reminders from Lintel, for households you belong to."
     >
-      <Text style={{ fontSize: 15, margin: '0 0 8px' }}>Hi {p.recipientName},</Text>
-      <Heading as="h1" style={{ fontSize: 22, lineHeight: '30px', margin: '0 0 12px' }}>
-        {p.taskTitle}
-      </Heading>
-      <Text style={{ fontSize: 15, lineHeight: '24px', margin: '0 0 8px' }}>
+      {overdue ? <Eyebrow tone="critical">Overdue</Eyebrow> : <Eyebrow>Due {p.dueText}</Eyebrow>}
+      <Title>{p.taskTitle}</Title>
+      <Paragraph>
+        Hi {p.recipientName},{' '}
         {overdue
-          ? `This was due on ${p.dueDate} in ${p.householdName} and hasn't been marked done yet.`
-          : `This is due ${p.dueText} (${p.dueDate}) in ${p.householdName}.`}
-      </Text>
-      {withProvider && (
-        <Text style={{ fontSize: 15, lineHeight: '24px', margin: '0 0 8px' }}>
-          Provider: {p.providerLine}
-        </Text>
-      )}
-      <Button
-        href={p.taskUrl}
-        style={{
-          backgroundColor: colors.primary,
-          borderRadius: 8,
-          color: colors.primaryText,
-          fontSize: 15,
-          fontWeight: 600,
-          marginTop: 16,
-          padding: '12px 20px',
-        }}
-      >
-        {overdue ? 'Open task' : 'View task'}
-      </Button>
-      <Text style={{ color: colors.muted, fontSize: 13, lineHeight: '20px', margin: '24px 0 0' }}>
-        {p.reason} When it&apos;s done, mark it done in the app and you&apos;ll stop getting
-        reminders for it.
-      </Text>
+          ? `this was due on ${p.dueDate} in ${p.householdName} and hasn't been marked done yet.`
+          : `this is due ${p.dueText} (${p.dueDate}) in ${p.householdName}.`}
+      </Paragraph>
+      <Details
+        tone={overdue ? 'critical' : 'primary'}
+        rows={[
+          { label: 'Household', value: p.householdName },
+          { label: overdue ? 'Was due' : 'Due', value: p.dueDate },
+          ...(withProvider ? [{ label: 'Provider', value: p.providerLine }] : []),
+        ]}
+      />
+      <PrimaryButton href={p.taskUrl}>{overdue ? 'Open task' : 'View task'}</PrimaryButton>
+      <Note>{p.reason} When it&apos;s done, mark it done in the app and the reminders stop.</Note>
     </EmailLayout>
   )
 }

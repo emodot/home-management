@@ -20,6 +20,7 @@ import { AuthCard } from '@/components/auth-card'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/password-input'
 import { requestPasswordReset, signInWithPassword, signUp } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 import type { signInLoader } from './loaders'
@@ -229,9 +230,8 @@ function SignInForm({
               Forgot password?
             </button>
           </div>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
             aria-invalid={!!errors.password}
             {...form.register('password')}
@@ -275,9 +275,8 @@ function SignUpForm({ email, onEmailChange, next, onSent }: FormProps) {
         />
         <Field data-invalid={!!errors.password}>
           <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="new-password"
             aria-invalid={!!errors.password}
             {...form.register('password')}

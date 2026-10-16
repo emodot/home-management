@@ -1,10 +1,12 @@
 // Pre-renders the React Email templates into generated/index.ts: a dependency-free module the
 // Deno edge functions import. Values are substituted at send time (HTML-escaped in the HTML part).
 // Templates can't branch at send time, so conditional content is rendered as named variants.
+// Supabase Auth's own emails are rendered to supabase/templates/*.html (see supabase/config.toml).
 // Run: pnpm --filter @home/emails build
 import { render } from '@react-email/render'
-import { writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import type { ReactElement } from 'react'
+import { AUTH_TEMPLATES } from '../src/templates/auth.tsx'
 import {
   InviteEmail,
   inviteSample,
@@ -129,3 +131,13 @@ export function ${t.fn}(${single ? '' : `variant: ${t.propsType.replace(/Vars$/,
 
 await writeFile(new URL('../generated/index.ts', import.meta.url), out)
 console.log(`Rendered ${templates.length} template(s) to generated/index.ts`)
+
+const authDir = new URL('../../../supabase/templates/', import.meta.url)
+await mkdir(authDir, { recursive: true })
+for (const t of AUTH_TEMPLATES) {
+  const html = await render(<t.element />)
+  // Supabase fills these in at send time; React must have left them intact.
+  if (!html.includes('{{ .ConfirmationURL }}')) throw new Error(`${t.name}: no confirmation link`)
+  await writeFile(new URL(`${t.name}.html`, authDir), html)
+}
+console.log(`Rendered ${AUTH_TEMPLATES.length} Supabase Auth template(s) to supabase/templates/`)

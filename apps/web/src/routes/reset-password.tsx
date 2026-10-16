@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { AuthCard } from '@/components/auth-card'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/password-input'
 import { updatePassword } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 
@@ -35,9 +35,8 @@ export function ResetPasswordPage() {
         <FieldGroup>
           <Field data-invalid={!!errors.password}>
             <FieldLabel htmlFor="password">New password</FieldLabel>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="new-password"
               autoFocus
               aria-invalid={!!errors.password}
@@ -48,9 +47,8 @@ export function ResetPasswordPage() {
           </Field>
           <Field data-invalid={!!errors.confirm}>
             <FieldLabel htmlFor="confirm">Confirm new password</FieldLabel>
-            <Input
+            <PasswordInput
               id="confirm"
-              type="password"
               autoComplete="new-password"
               aria-invalid={!!errors.confirm}
               {...form.register('confirm')}

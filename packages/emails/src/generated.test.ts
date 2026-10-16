@@ -33,8 +33,8 @@ describe('renderTaskReminderEmail', () => {
   it('renders upcoming reminders with the provider when there is one', () => {
     const email = renderTaskReminderEmail('upcomingWithProvider', taskReminderSample)
     expect(email.subject).toBe('Reminder: Service the generator is due tomorrow')
-    expect(email.text).toContain('This is due tomorrow (26 September 2026) in Lekki flat.')
-    expect(email.text).toContain('Provider: Emeka Gen Services · +234 805 123 4567')
+    expect(email.text).toContain('this is due tomorrow (26 September 2026) in Lekki flat.')
+    expect(email.text).toContain('Provider\nEmeka Gen Services · +234 805 123 4567')
     expect(email.html).toContain('href="http://localhost:5173/tasks/sample"')
   })
 
@@ -42,7 +42,21 @@ describe('renderTaskReminderEmail', () => {
     const email = renderTaskReminderEmail('overdue', taskReminderSample)
     expect(email.subject).toBe('Overdue: Service the generator was due 26 September 2026')
     expect(email.text).toContain("hasn't been marked done yet")
-    expect(email.text).not.toContain('Provider:')
+    expect(email.text).not.toContain('Emeka Gen Services')
     expect(email.html).not.toMatch(/%%\d+%%/)
+  })
+})
+
+describe('Supabase Auth templates', () => {
+  it('keep the placeholders Supabase fills in', async () => {
+    const { readFile } = await import('node:fs/promises')
+    for (const name of ['confirmation', 'recovery', 'email_change', 'magic_link']) {
+      const html = await readFile(
+        new URL(`../../../supabase/templates/${name}.html`, import.meta.url),
+        'utf8',
+      )
+      expect(html, name).toContain('href="{{ .ConfirmationURL }}"')
+      expect(html, name).toContain('{{ .Email }}')
+    }
   })
 })

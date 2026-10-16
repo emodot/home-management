@@ -19,6 +19,13 @@ pnpm dev                               # http://localhost:5173
 Auth emails (confirmations, password resets) are caught locally by Mailpit at
 http://127.0.0.1:54324.
 
+Every email shares one design ("the doorway"), built with React Email in `packages/emails`: the
+app's own (invites, task reminders) and Supabase Auth's (sign-up confirmation, password reset,
+email change, sign-in link), which render to `supabase/templates/*.html` for
+`[auth.email.template.*]` in `supabase/config.toml`. Edit the templates, then run
+`pnpm --filter @home/emails build`; push the auth ones to the hosted project with
+`supabase config push`.
+
 ### Sign-in, households and roles
 
 People sign in with email and password only. "Forgot password?" emails a link to
@@ -293,6 +300,6 @@ App icons are generated from `apps/web/public/icon.svg` with `pnpm --filter @hom
 ```
 apps/web          Vite + React SPA (React Router, TanStack Query, Tailwind, shadcn/ui)
 packages/shared   Platform-agnostic logic shared with the future mobile app
-packages/emails   React Email templates
+packages/emails   React Email templates (the app's emails and Supabase Auth's)
 supabase/         config, migrations, edge functions, seed
 ```
