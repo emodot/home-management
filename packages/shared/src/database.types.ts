@@ -1955,6 +1955,17 @@ export type Database = {
         Args: { other_user_id: string }
         Returns: boolean
       }
+      getting_started: {
+        Args: { p_household_id: string }
+        Returns: {
+          has_expense: boolean
+          has_receipt: boolean
+          has_invited: boolean
+          has_provider: boolean
+          has_recurring_task: boolean
+          has_shopping_list: boolean
+        }[]
+      }
       mark_onboarding: {
         Args: { p_key: string; p_version: number; p_status: string; p_last_step?: number | null }
         Returns: undefined

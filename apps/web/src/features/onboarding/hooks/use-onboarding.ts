@@ -10,6 +10,7 @@ import {
   type TourDefinition,
 } from '@home/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/use-household'
 import { supabase } from '@/lib/supabase'
 import { onboardingEnabled, onboardingQuery } from '../lib/queries'
@@ -28,7 +29,7 @@ export function useOnboarding() {
   const { queryKey } = onboardingQuery(user.id)
   const state = useQuery({ ...onboardingQuery(user.id), enabled }).data
 
-  const mark = useMutation({
+  const { mutate } = useMutation({
     mutationFn: ({ key, ...input }: MarkVariables) => markOnboarding(supabase, key, input),
     // Settled straight away, so the tour closes for good even before the save lands. If the save
     // fails it isn't rolled back: the tour stays away for now and comes back next session.
@@ -47,6 +48,17 @@ export function useOnboarding() {
     },
   })
 
+  // Stable, so effects can depend on them.
+  const mark = useCallback(
+    (key: string, input: MarkOnboardingInput) => mutate({ key, ...input }),
+    [mutate],
+  )
+  const markTour = useCallback(
+    (tour: Pick<TourDefinition, 'id' | 'version'>, status: OnboardingStatus, lastStep?: number) =>
+      mutate({ key: tourKey(tour.id), version: tour.version, status, lastStep }),
+    [mutate],
+  )
+
   const ready = enabled && state !== undefined
   return {
     /** Progress has loaded and onboarding is on. */
@@ -56,11 +68,7 @@ export function useOnboarding() {
     shouldShow: (key: string, version?: number) => ready && shouldShow(state, key, version),
     /** Finished or skipped. Everything counts as settled while nothing can show. */
     isSettled: (key: string) => !ready || isSettled(state, key),
-    markTour: (
-      tour: Pick<TourDefinition, 'id' | 'version'>,
-      status: OnboardingStatus,
-      lastStep?: number,
-    ) => mark.mutate({ key: tourKey(tour.id), version: tour.version, status, lastStep }),
-    mark: (key: string, input: MarkOnboardingInput) => mark.mutate({ key, ...input }),
+    markTour,
+    mark,
   }
 }

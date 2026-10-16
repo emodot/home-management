@@ -68,7 +68,7 @@ async function choose(page: Page, fieldId: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-test('super-admin creates a household → its admin joins → welcome tour, skipped once → the Expenses tour after it → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooked it, and the week against the budget → cooking gas', async ({
+test('super-admin creates a household → its admin joins → welcome tour, skipped once → the Expenses tour after it → getting-started checklist → expense with receipt → invite → task → complete → scan a receipt to log the expense → scan several at once → shared shopping list → shopping offline → finish shopping → pantry low stock → price history → merge duplicate items → a recipe scaled up → its missing ingredients onto the list → a week of meals, batch cooked → the week onto the list → cooked it, and the week against the budget → cooking gas', async ({
   page,
   browser,
 }) => {
@@ -131,6 +131,11 @@ test('super-admin creates a household → its admin joins → welcome tour, skip
     await expect(page.getByRole('dialog', { name: 'Welcome to Lintel' })).toHaveCount(0)
     await budgets.getByRole('button', { name: 'Done' }).click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
+
+    // The getting-started checklist, ticked from the household's data: nothing yet.
+    await expect(page.getByRole('region', { name: 'Get your home set up' })).toContainText(
+      '0 of 6 done',
+    )
 
     // The other modules' tours would cover the steps below.
     await markToursSeen(
@@ -254,6 +259,10 @@ test('super-admin creates a household → its admin joins → welcome tour, skip
     // The trip is in Expenses, and what was bought is in the pantry.
     await page.goto('/')
     await expect(page.getByRole('link', { name: /^Shopping/ })).toContainText('₦2,500')
+    // An expense, a receipt, a second member and a shopping list: four of the six first things.
+    await expect(page.getByRole('region', { name: 'Get your home set up' })).toContainText(
+      '4 of 6 done',
+    )
     await page.goto('/kitchen/pantry')
     await expect(page.getByRole('group', { name: 'How much Tomatoes' })).toContainText('1 piece')
   })

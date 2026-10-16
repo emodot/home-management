@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { HomeClient } from '../client.ts'
-import { getOnboardingState, markOnboarding, markTour } from './onboarding-queries.ts'
+import {
+  getChecklistProgress,
+  getOnboardingState,
+  markOnboarding,
+  markTour,
+} from './onboarding-queries.ts'
 
 describe('getOnboardingState', () => {
   it('reads the user’s rows keyed by what they are for', async () => {
@@ -67,5 +72,32 @@ describe('markOnboarding', () => {
         status: 'dismissed',
       }),
     ).rejects.toBe(error)
+  })
+})
+
+describe('getChecklistProgress', () => {
+  it('reads what the household has done', async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: {
+        has_expense: true,
+        has_receipt: false,
+        has_invited: true,
+        has_provider: false,
+        has_recurring_task: false,
+        has_shopping_list: true,
+      },
+      error: null,
+    })
+    const rpc = vi.fn(() => ({ single }))
+    const progress = await getChecklistProgress({ rpc } as unknown as HomeClient, 'h1')
+    expect(rpc).toHaveBeenCalledWith('getting_started', { p_household_id: 'h1' })
+    expect(progress).toEqual({
+      expense: true,
+      receipt: false,
+      invite: true,
+      provider: false,
+      recurringTask: false,
+      shoppingList: true,
+    })
   })
 })

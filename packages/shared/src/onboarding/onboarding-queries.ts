@@ -2,6 +2,7 @@ import { unwrap, type HomeClient } from '../client.ts'
 import type { Tables } from '../database.types.ts'
 import {
   tourKey,
+  type ChecklistProgress,
   type OnboardingRecord,
   type OnboardingState,
   type OnboardingStatus,
@@ -57,4 +58,20 @@ export function markTour(
   lastStep?: number,
 ): Promise<void> {
   return markOnboarding(client, tourKey(tour.id), { version: tour.version, status, lastStep })
+}
+
+/** What the household has done of the getting-started checklist, from its own data. */
+export async function getChecklistProgress(
+  client: HomeClient,
+  householdId: string,
+): Promise<ChecklistProgress> {
+  const row = unwrap(await client.rpc('getting_started', { p_household_id: householdId }).single())
+  return {
+    expense: row.has_expense,
+    receipt: row.has_receipt,
+    invite: row.has_invited,
+    provider: row.has_provider,
+    recurringTask: row.has_recurring_task,
+    shoppingList: row.has_shopping_list,
+  }
 }

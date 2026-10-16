@@ -64,3 +64,22 @@ export function shouldShowTour(state: OnboardingState, tour: TourDefinition): bo
 export function isSettled(state: OnboardingState, key: string): boolean {
   return state[key] !== undefined
 }
+
+/** The getting-started checklist's items, in order. */
+export const CHECKLIST_ITEMS = [
+  'expense',
+  'receipt',
+  'invite',
+  'provider',
+  'recurringTask',
+  'shoppingList',
+] as const
+
+export type ChecklistItem = (typeof CHECKLIST_ITEMS)[number]
+
+/** Which checklist items the household has done, worked out from its own data. */
+export type ChecklistProgress = Record<ChecklistItem, boolean>
+
+export function checklistDoneCount(progress: ChecklistProgress): number {
+  return CHECKLIST_ITEMS.filter((item) => progress[item]).length
+}

@@ -28,6 +28,7 @@ import { CategoryIcon } from '@/components/category-icon'
 import { EmptyState } from '@/components/empty-state'
 import { ExpenseFiltersSheet, FilterChips } from '@/components/expense-filters'
 import { PendingExpenses } from '@/components/pending-expenses'
+import { GettingStarted } from '@/features/onboarding/components/getting-started'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -187,6 +188,7 @@ export function ExpensesPage() {
     return (
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>
+        <GettingStarted />
         <EmptyState
           icon={ReceiptTextIcon}
           title="Track your first expense"
@@ -228,6 +230,8 @@ export function ExpensesPage() {
           />
         </div>
       </div>
+
+      <GettingStarted />
 
       <PendingExpenses />
 
