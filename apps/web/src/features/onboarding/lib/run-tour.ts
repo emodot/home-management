@@ -88,7 +88,13 @@ export function runTour(tour: TourDefinition, options: RunTourOptions): RunningT
     document.removeEventListener('animationend', refresh, true)
     tourDriver.destroy()
     if (status) options.onEnd(status, current)
-    if (returnFocus?.isConnected) returnFocus.focus()
+    // Back where it was; or, if that's gone (the tour changed pages) or was nothing, the page's
+    // main content, so keyboard users carry on from somewhere sensible.
+    const focusTarget =
+      returnFocus?.isConnected && returnFocus !== document.body
+        ? returnFocus
+        : document.getElementById('main')
+    focusTarget?.focus({ preventScroll: true })
   }
 
   // Driver places the popover again on the next frame (on refresh or a resize); move it back
@@ -160,6 +166,14 @@ export function runTour(tour: TourDefinition, options: RunTourOptions): RunningT
           dom.wrapper.setAttribute('aria-modal', 'true')
           // The step count sits above the title; "Skip tour" takes its place in the footer.
           dom.wrapper.insertBefore(dom.progress, dom.title)
+          // Screen readers hear "2 of 7" with the step's text.
+          if (steps.length > 1) {
+            dom.progress.id = 'driver-popover-progress'
+            dom.wrapper.setAttribute(
+              'aria-describedby',
+              'driver-popover-progress driver-popover-description',
+            )
+          }
           if (!last) {
             const skip = document.createElement('button')
             skip.type = 'button'

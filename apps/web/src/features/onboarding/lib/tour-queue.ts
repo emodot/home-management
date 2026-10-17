@@ -57,6 +57,9 @@ export class TourQueue {
     const clearing = new AbortController()
     this.clearing = clearing
     const clear = await waitForClearScreen(clearing.signal)
+    // A menu that just closed hands focus back to its button on the next frame; wait for it, so
+    // the tour returns focus there when it ends.
+    if (clear) await new Promise((resolve) => requestAnimationFrame(resolve))
     this.clearing = null
     const tour = this.waitingTours.shift()
     if (!clear || !tour) return

@@ -293,6 +293,11 @@ pointing at the local API, a super-admin (`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWOR
 `superadmin@example.com` / `super-admin-e2e`; CI creates it) and Chromium once:
 `pnpm --filter @home/web exec playwright install chromium`. The dev server is started for you.
 
+`e2e/onboarding.spec.ts` checks the product tours for accessibility: a new member goes through the
+welcome tour with the keyboard alone (Enter, arrow keys, Tab kept inside the popover, Esc), with
+reduced motion; skipping is remembered after a reload; Help replays it and hands focus back; and on
+a phone the tour points at the bottom nav without covering it.
+
 App icons are generated from `apps/web/public/icon.svg` with `pnpm --filter @home/web icons`.
 
 ## Layout

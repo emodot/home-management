@@ -160,8 +160,11 @@ describe('TourProvider', () => {
     await waitFor(() =>
       expect(document.querySelector('.driver-active-element')).toHaveTextContent('Kitchen'),
     )
+    expect(screen.getByRole('dialog')).toHaveAccessibleDescription('2 of 5 The visible one of two.')
     await user.click((await popover()).getByRole('button', { name: 'Skip tour' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    // Focus goes back to what started it.
+    expect(screen.getByRole('button', { name: 'Start nothing' })).toHaveFocus()
     expect(rpc).toHaveBeenCalledWith('mark_onboarding', {
       p_key: 'tour:two-pages',
       p_version: 3,
