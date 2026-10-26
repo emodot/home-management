@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Upkeep · Lintel</title>
+    <meta
+      name="description"
+      content="Recurring household jobs with email reminders before they’re due, and the providers who do them, a tap from a call or WhatsApp."
+    />
+    <meta property="og:title" content="Upkeep · Lintel" />
+    <meta
+      property="og:description"
+      content="Recurring household jobs with email reminders before they’re due, and the providers who do them, a tap from a call or WhatsApp."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#11254b" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5.3.0/index.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist-mono@5.2.7/index.css"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="beam">
+      <div class="wrap">
+        <nav class="site-nav" aria-label="Main">
+          <a class="brand" href="/" translate="no" aria-label="Lintel, home"
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path
+                d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              /></svg
+            >Lintel</a
+          >
+          <div class="nav-links">
+            <a href="/expenses">Expenses</a><a href="/kitchen">Kitchen</a
+            ><a href="/upkeep" aria-current="page">Upkeep</a><a href="/together">Together</a
+            ><a href="/join">Joining</a><a href="/questions">Questions</a>
+          </div>
+          <a
+            class="btn btn-light nav-signin nav-signin-wide"
+            href="https://hm-amber.vercel.app/sign-in"
+            >Sign in</a
+          >
+          <details class="menu">
+            <summary aria-label="Menu">
+              <svg class="icon icon-open" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 5h16" />
+                <path d="M4 12h16" />
+                <path d="M4 19h16" /></svg
+              ><svg
+                class="icon icon-close"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </summary>
+            <div class="menu-panel">
+              <a href="/expenses"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M13 16H8" />
+                  <path d="M14 8H8" />
+                  <path d="M16 12H8" />
+                  <path
+                    d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"
+                  /></svg
+                >Expenses</a
+              ><a href="/kitchen"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2 12h20" />
+                  <path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" />
+                  <path d="m4 8 16-4" />
+                  <path
+                    d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"
+                  /></svg
+                >Kitchen</a
+              ><a href="/upkeep" aria-current="page"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                  <path
+                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                  />
+                  <path d="m9 14 2 2 4-4" /></svg
+                >Upkeep</a
+              ><a href="/together"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <path d="M16 3.128a4 4 0 0 1 0 7.744" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <circle cx="9" cy="7" r="4" /></svg
+                >Together</a
+              ><a href="/join"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg
+                >Joining</a
+              ><a href="/questions"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <path d="M12 17h.01" /></svg
+                >Questions</a
+              >
+              <hr />
+              <a href="https://hm-amber.vercel.app/sign-in"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" /></svg
+                >Sign in</a
+              >
+            </div>
+          </details>
+        </nav>
+      </div>
+
+      <div class="wrap page-title">
+        <p class="eyebrow">Upkeep</p>
+        <h1 class="h1">Set the job once. Get reminded before it’s due.</h1>
+        <p class="lede">
+          Servicing the generator, fumigation, washing the water tank, paying the security levy:
+          Lintel keeps the jobs that keep the house running, and the people who do them.
+        </p>
+        <div class="actions">
+          <a class="btn btn-light" href="https://hm-amber.vercel.app/sign-in">Sign in</a>
+        </div>
+      </div>
+    </header>
+    <main id="main" class="opening">
+      <section class="section">
+        <div class="wrap">
+          <div class="feature" id="tasks">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                  <path
+                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                  />
+                  <path d="m9 14 2 2 4-4" /></svg
+                >Tasks
+              </p>
+              <h2 class="h2">The house’s recurring jobs, never forgotten.</h2>
+              <p class="lede">
+                Add a job once with how often it comes round, and Lintel emails a reminder in the
+                morning, days before it’s due, and again if it’s overdue.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Any schedule.</strong> One-off, or daily, weekly, monthly, quarterly or
+                    yearly; on fixed dates, or counted from when it was last done.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>The right person.</strong> Assign a task to someone and the reminder
+                    goes to them; otherwise everyone in the house hears about it.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Done, and what it cost.</strong> Mark it done and log the cost as an
+                    expense in the same step. Each task keeps its history.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="mock-head">
+                    <h3>Next 30 days</h3>
+                    <span class="badge red">1 overdue</span>
+                  </div>
+                  <ul class="mock-rows">
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                          <path
+                            d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                          />
+                          <path d="m9 14 2 2 4-4" /></svg></span
+                      ><span class="what"
+                        >Fumigation<small>Every 6 months · was due 12 Oct</small></span
+                      ><span class="badge red">Overdue</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                          <path
+                            d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                          />
+                          <path d="m9 14 2 2 4-4" /></svg></span
+                      ><span class="what"
+                        >Service the generator<small>Every 3 months · Bola · Emeka Gen</small></span
+                      ><span class="badge blue">In 3 days</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                          <path
+                            d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                          />
+                          <path d="m9 14 2 2 4-4" /></svg></span
+                      ><span class="what">Wash the water tank<small>Every 6 months</small></span
+                      ><span class="badge">2 Nov</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"
+                          /></svg></span
+                      ><span class="what"
+                        >Refill cooking gas<small>Predicted from past refills</small></span
+                      ><span class="badge">9 Nov</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example tasks</figcaption>
+            </figure>
+          </div>
+
+          <div class="feature flip" id="providers">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5" />
+                  <path d="M14 6a6 6 0 0 1 6 6v3" />
+                  <path d="M4 15v-3a6 6 0 0 1 6-6" />
+                  <rect x="2" y="15" width="20" height="4" rx="1" /></svg
+                >Providers
+              </p>
+              <h2 class="h2">The people you trust, a tap away.</h2>
+              <p class="lede">
+                Save your plumber, electrician, generator technician and gas vendor once, for the
+                whole house, and call or WhatsApp them in one tap.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Everything about them.</strong> Trade, phone number, WhatsApp, email,
+                    area, a rating and your own notes.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Their history with you.</strong> What you’ve spent with each provider
+                    and the jobs they look after.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Linked to the work.</strong> Attach a provider to a task or an expense,
+                    so their number is right there when it’s due.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="mock-head">
+                    <h3>Providers</h3>
+                    <span class="muted tiny">3 saved</span>
+                  </div>
+                  <ul class="mock-rows">
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5" />
+                          <path d="M14 6a6 6 0 0 1 6 6v3" />
+                          <path d="M4 15v-3a6 6 0 0 1 6-6" />
+                          <rect x="2" y="15" width="20" height="4" rx="1" /></svg></span
+                      ><span class="what"
+                        >Emeka Gen Services<small
+                          >Generator · Ikeja · ₦96,000 this year</small
+                        ></span
+                      ><span class="pill-btns" aria-hidden="true"
+                        ><span
+                          ><svg
+                            class="icon"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path
+                              d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"
+                            /></svg
+                          >Call</span
+                        ></span
+                      >
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5" />
+                          <path d="M14 6a6 6 0 0 1 6 6v3" />
+                          <path d="M4 15v-3a6 6 0 0 1 6-6" />
+                          <rect x="2" y="15" width="20" height="4" rx="1" /></svg></span
+                      ><span class="what">Mama Nkechi Gas<small>Cooking gas · Yaba</small></span
+                      ><span class="pill-btns" aria-hidden="true"
+                        ><span
+                          ><svg
+                            class="icon"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path
+                              d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
+                            /></svg
+                          >WhatsApp</span
+                        ></span
+                      >
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5" />
+                          <path d="M14 6a6 6 0 0 1 6 6v3" />
+                          <path d="M4 15v-3a6 6 0 0 1 6-6" />
+                          <rect x="2" y="15" width="20" height="4" rx="1" /></svg></span
+                      ><span class="what">Tunde Plumbing<small>Plumber · Lekki · ★★★★★</small></span
+                      ><span class="pill-btns" aria-hidden="true"
+                        ><span
+                          ><svg
+                            class="icon"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path
+                              d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"
+                            /></svg
+                          >Call</span
+                        ></span
+                      >
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example providers</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+      <section class="section" aria-labelledby="cta-title">
+        <div class="wrap">
+          <div class="cta">
+            <h2 class="h2" id="cta-title">Already in? Sign in.</h2>
+            <p class="lede">
+              Have an invite link? Open it to create your account and join your household.
+            </p>
+            <div class="actions">
+              <a class="btn btn-light" href="https://hm-amber.vercel.app/sign-in">Sign in</a>
+              <a class="btn btn-outline-light" href="/join">How joining works</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <div class="threshold" aria-hidden="true"></div>
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div>
+          <p class="footer-brand" translate="no">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path
+                d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              /></svg
+            >Lintel
+          </p>
+          <p class="small" style="margin-top: 12px; max-width: 28em">
+            One shared place for a household’s money, kitchen, repairs and helpers.
+          </p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h2>Product</h2>
+            <ul>
+              <li><a href="/expenses">Expenses</a></li>
+              <li><a href="/kitchen">Kitchen</a></li>
+              <li><a href="/upkeep">Upkeep</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Household</h2>
+            <ul>
+              <li><a href="/together">Together</a></li>
+              <li><a href="/join">Joining</a></li>
+              <li><a href="/questions">Questions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>App</h2>
+            <ul>
+              <li><a href="https://hm-amber.vercel.app/sign-in">Sign in</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

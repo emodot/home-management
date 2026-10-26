@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kitchen · Lintel</title>
+    <meta
+      name="description"
+      content="A shopping list the whole house shares, that works at the market with no signal; a pantry that refills the list; prices in market measures; cooking gas, recipes and the week’s meals."
+    />
+    <meta property="og:title" content="Kitchen · Lintel" />
+    <meta
+      property="og:description"
+      content="A shopping list the whole house shares, that works at the market with no signal; a pantry that refills the list; prices in market measures; cooking gas, recipes and the week’s meals."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#11254b" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5.3.0/index.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist-mono@5.2.7/index.css"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="beam">
+      <div class="wrap">
+        <nav class="site-nav" aria-label="Main">
+          <a class="brand" href="/" translate="no" aria-label="Lintel, home"
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path
+                d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              /></svg
+            >Lintel</a
+          >
+          <div class="nav-links">
+            <a href="/expenses">Expenses</a><a href="/kitchen" aria-current="page">Kitchen</a
+            ><a href="/upkeep">Upkeep</a><a href="/together">Together</a><a href="/join">Joining</a
+            ><a href="/questions">Questions</a>
+          </div>
+          <a
+            class="btn btn-light nav-signin nav-signin-wide"
+            href="https://hm-amber.vercel.app/sign-in"
+            >Sign in</a
+          >
+          <details class="menu">
+            <summary aria-label="Menu">
+              <svg class="icon icon-open" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 5h16" />
+                <path d="M4 12h16" />
+                <path d="M4 19h16" /></svg
+              ><svg
+                class="icon icon-close"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </summary>
+            <div class="menu-panel">
+              <a href="/expenses"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M13 16H8" />
+                  <path d="M14 8H8" />
+                  <path d="M16 12H8" />
+                  <path
+                    d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"
+                  /></svg
+                >Expenses</a
+              ><a href="/kitchen" aria-current="page"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2 12h20" />
+                  <path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" />
+                  <path d="m4 8 16-4" />
+                  <path
+                    d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"
+                  /></svg
+                >Kitchen</a
+              ><a href="/upkeep"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                  <path
+                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                  />
+                  <path d="m9 14 2 2 4-4" /></svg
+                >Upkeep</a
+              ><a href="/together"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <path d="M16 3.128a4 4 0 0 1 0 7.744" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <circle cx="9" cy="7" r="4" /></svg
+                >Together</a
+              ><a href="/join"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg
+                >Joining</a
+              ><a href="/questions"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <path d="M12 17h.01" /></svg
+                >Questions</a
+              >
+              <hr />
+              <a href="https://hm-amber.vercel.app/sign-in"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" /></svg
+                >Sign in</a
+              >
+            </div>
+          </details>
+        </nav>
+      </div>
+
+      <div class="wrap page-title">
+        <p class="eyebrow">Kitchen</p>
+        <h1 class="h1">One shopping list, still working at the market.</h1>
+        <p class="lede">
+          The whole house adds to the same list and sees it change live. At the market, check things
+          off and price them even when the signal drops. Then the pantry, prices, gas, recipes and
+          the week’s meals follow on their own.
+        </p>
+        <div class="actions">
+          <a class="btn btn-light" href="https://hm-amber.vercel.app/sign-in">Sign in</a>
+        </div>
+      </div>
+    </header>
+    <main id="main" class="opening">
+      <section class="section">
+        <div class="wrap">
+          <div class="feature" id="list">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m15 11-1 9" />
+                  <path d="m19 11-4-7" />
+                  <path d="M2 11h20" />
+                  <path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4" />
+                  <path d="M4.5 15.5h15" />
+                  <path d="m5 11 4-7" />
+                  <path d="m9 11 1 9" /></svg
+                >Shopping list
+              </p>
+              <h2 class="h2">Shop together, even offline.</h2>
+              <p class="lede">
+                Type an item and press Enter; everyone in the house sees it straight away. In
+                shopping mode, check things off and enter what you paid. No signal? It keeps
+                working, and sends the changes when you’re back, even if you close the app first.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>One entry per item.</strong> Add tomatoes twice and you still have one
+                    entry for tomatoes, not two.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>By store.</strong> Group the list by where you buy each thing: the
+                    market, the supermarket, the corner shop.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Finish shopping.</strong> Confirm the prices and the total paid, and
+                    the trip becomes one expense, every price is saved, and what you bought goes
+                    into the pantry.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="offline-banner">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M12 20h.01" />
+                      <path d="M8.5 16.429a5 5 0 0 1 7 0" />
+                      <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
+                      <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
+                      <path d="M2 8.82a15 15 0 0 1 4.177-2.643" />
+                      <path d="M22 8.82a15 15 0 0 0-11.288-3.764" />
+                      <path d="m2 2 20 20" /></svg
+                    >Offline · 2 changes will send when you’re back
+                  </div>
+                  <div class="mock-head">
+                    <h3>Shopping · Mile 12</h3>
+                    <span class="muted tiny">3 to buy</span>
+                  </div>
+                  <ul class="mock-rows">
+                    <li class="done">
+                      <span class="box"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M20 6 9 17l-5-5" /></svg></span
+                      ><span class="what">Tomatoes, 1&nbsp;paint bucket</span
+                      ><span class="amt">₦9,000</span>
+                    </li>
+                    <li class="done">
+                      <span class="box"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M20 6 9 17l-5-5" /></svg></span
+                      ><span class="what">Rice, 1&nbsp;derica</span><span class="amt">₦2,400</span>
+                    </li>
+                    <li class="">
+                      <span class="box"></span
+                      ><span class="what">Pepper, 2&nbsp;derica<small>Added by Chi</small></span
+                      ><span class="badge">for Jollof rice</span>
+                    </li>
+                    <li class="">
+                      <span class="box"></span><span class="what">Palm oil, 1&nbsp;litre</span
+                      ><span class="badge">Running low</span>
+                    </li>
+                    <li class="">
+                      <span class="box"></span><span class="what">Onions, 1&nbsp;mudu</span>
+                    </li>
+                  </ul>
+                  <div class="mock-foot"><span>So far</span><span class="num">₦11,400</span></div>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example list in shopping mode</figcaption>
+            </figure>
+          </div>
+
+          <div class="feature flip" id="pantry">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M5 6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6Z"
+                  />
+                  <path d="M5 10h14" />
+                  <path d="M15 7v6" /></svg
+                >Pantry
+              </p>
+              <h2 class="h2">A pantry that refills the list.</h2>
+              <p class="lede">
+                Know what’s in the fridge, freezer, pantry and store room, and what to use soon.
+                Give an item a low-stock level, and when it runs low it goes back on the shopping
+                list by itself.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Quick to keep up.</strong> Step quantities up and down as you cook;
+                    shopping adds to it for you.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Units that add up.</strong> Bought a bag, keep it in kilos? Tell Lintel
+                    “1&nbsp;bag = 50&nbsp;kg” once and the pantry does the sums.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="mock-head">
+                    <h3>Pantry · Store room</h3>
+                    <span class="badge blue">2 to use soon</span>
+                  </div>
+                  <ul class="mock-rows">
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M5 6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6Z"
+                          />
+                          <path d="M5 10h14" />
+                          <path d="M15 7v6" /></svg></span
+                      ><span class="what">Tomato paste<small>3 tins · use by 19 Oct</small></span
+                      ><span class="badge blue">Use soon</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="m15 11-1 9" />
+                          <path d="m19 11-4-7" />
+                          <path d="M2 11h20" />
+                          <path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4" />
+                          <path d="M4.5 15.5h15" />
+                          <path d="m5 11 4-7" />
+                          <path d="m9 11 1 9" /></svg></span
+                      ><span class="what">Rice<small>6&nbsp;kg · low below 2&nbsp;kg</small></span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="m15 11-1 9" />
+                          <path d="m19 11-4-7" />
+                          <path d="M2 11h20" />
+                          <path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4" />
+                          <path d="M4.5 15.5h15" />
+                          <path d="m5 11 4-7" />
+                          <path d="m9 11 1 9" /></svg></span
+                      ><span class="what"
+                        >Palm oil<small>0.5&nbsp;litre · low below 1&nbsp;litre</small></span
+                      ><span class="badge">On the list</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="m15 11-1 9" />
+                          <path d="m19 11-4-7" />
+                          <path d="M2 11h20" />
+                          <path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4" />
+                          <path d="M4.5 15.5h15" />
+                          <path d="m5 11 4-7" />
+                          <path d="m9 11 1 9" /></svg></span
+                      ><span class="what">Garri<small>1 paint bucket</small></span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example pantry</figcaption>
+            </figure>
+          </div>
+
+          <div class="feature" id="prices">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                  />
+                  <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></svg
+                >Prices
+              </p>
+              <h2 class="h2">What things cost, trip to trip.</h2>
+              <p class="lede">
+                Every priced line from every trip is kept. See the latest price per unit, how it’s
+                moved since last time, the cheapest store over the last 90&nbsp;days and a chart by
+                store.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Market measures.</strong> Derica, mudu, paint buckets, bags, crates,
+                    tubers, tins and sachets as well as kilos and litres; they convert where they
+                    can, so prices compare fairly.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Tidy items.</strong> Lintel spots items that look like the same thing,
+                    “Tomato” and “Tomatoes”, and merges them with their history.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Cooking gas.</strong> Log each refill; Lintel predicts the next one
+                    from how long your cylinders last and can remind you a few days before.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="mock-head">
+                    <h3>Prices</h3>
+                    <span class="muted tiny">Biggest rise first</span>
+                  </div>
+                  <ul class="mock-rows">
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                          />
+                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></svg></span
+                      ><span class="what">Tomatoes<small>Per paint bucket · Mile 12</small></span
+                      ><span class="amt">₦9,000 <span class="badge red">+20%</span></span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                          />
+                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></svg></span
+                      ><span class="what">Rice<small>Per derica · Mile 12</small></span
+                      ><span class="amt">₦2,400 <span class="badge red">+9%</span></span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                          />
+                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></svg></span
+                      ><span class="what">Garri<small>Per paint bucket · Mile 12</small></span
+                      ><span class="amt">₦4,500 <span class="badge">same</span></span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                          />
+                          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></svg></span
+                      ><span class="what">Onions<small>Per mudu · Ketu</small></span
+                      ><span class="amt">₦1,500 <span class="badge blue">−6%</span></span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example prices</figcaption>
+            </figure>
+          </div>
+
+          <div class="feature flip" id="meals">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M8 2v3" />
+                  <path d="M16 2v3" />
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18" />
+                  <path d="M8 13h.01" />
+                  <path d="M12 13h.01" />
+                  <path d="M16 13h.01" />
+                  <path d="M8 17h.01" />
+                  <path d="M12 17h.01" />
+                  <path d="M16 17h.01" /></svg
+                >Recipes and meals
+              </p>
+              <h2 class="h2">From recipe to pot to shopping list.</h2>
+              <p class="lede">
+                Keep the house’s recipes with photos, steps and ingredients. Scale any recipe to the
+                servings you need, see whether the pantry can cover it and what a pot costs, and
+                send what’s missing to the list.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Plan the week.</strong> Breakfast, lunch and dinner, Sunday to
+                    Saturday. Cook one pot and let it cover leftovers later in the week.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>The week onto the list.</strong> Turn the plan into a shopping list,
+                    less what’s already in the pantry, merged with what’s on it.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Cooked it.</strong> Take what you used out of the pantry in one tap,
+                    with Undo; the week’s cost is weighed against the groceries budget.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="mock-head">
+                    <h3>This week’s meals</h3>
+                    <span class="badge blue">₦18,400 of a ₦21,000 share</span>
+                  </div>
+                  <div class="week">
+                    <span class="day">Sun</span><span class="day">Mon</span
+                    ><span class="day">Tue</span><span class="day">Wed</span>
+                    <span class="meal pot">Jollof rice<small>Pot for 8</small></span>
+                    <span class="meal">Jollof rice<small>Leftovers</small></span>
+                    <span class="meal">Jollof rice<small>Leftovers</small></span>
+                    <span class="meal">Eat out</span>
+                    <span class="meal">Egusi soup<small>Pot for 6</small></span>
+                    <span class="meal">Egusi soup<small>Leftovers</small></span>
+                    <span class="meal">Moi moi</span>
+                    <span class="meal pot">Pepper soup<small>Pot for 4</small></span>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example meal plan</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+      <section class="section" aria-labelledby="cta-title">
+        <div class="wrap">
+          <div class="cta">
+            <h2 class="h2" id="cta-title">Already in? Sign in.</h2>
+            <p class="lede">
+              Have an invite link? Open it to create your account and join your household.
+            </p>
+            <div class="actions">
+              <a class="btn btn-light" href="https://hm-amber.vercel.app/sign-in">Sign in</a>
+              <a class="btn btn-outline-light" href="/join">How joining works</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <div class="threshold" aria-hidden="true"></div>
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div>
+          <p class="footer-brand" translate="no">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path
+                d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              /></svg
+            >Lintel
+          </p>
+          <p class="small" style="margin-top: 12px; max-width: 28em">
+            One shared place for a household’s money, kitchen, repairs and helpers.
+          </p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h2>Product</h2>
+            <ul>
+              <li><a href="/expenses">Expenses</a></li>
+              <li><a href="/kitchen">Kitchen</a></li>
+              <li><a href="/upkeep">Upkeep</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Household</h2>
+            <ul>
+              <li><a href="/together">Together</a></li>
+              <li><a href="/join">Joining</a></li>
+              <li><a href="/questions">Questions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>App</h2>
+            <ul>
+              <li><a href="https://hm-amber.vercel.app/sign-in">Sign in</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

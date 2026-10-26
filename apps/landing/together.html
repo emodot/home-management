@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Together · Lintel</title>
+    <meta
+      name="description"
+      content="Everyone in the house on the same page: invite by link or email, household admins and members, live updates, an activity feed, and Lintel on every phone."
+    />
+    <meta property="og:title" content="Together · Lintel" />
+    <meta
+      property="og:description"
+      content="Everyone in the house on the same page: invite by link or email, household admins and members, live updates, an activity feed, and Lintel on every phone."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#11254b" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5.3.0/index.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist-mono@5.2.7/index.css"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="beam">
+      <div class="wrap">
+        <nav class="site-nav" aria-label="Main">
+          <a class="brand" href="/" translate="no" aria-label="Lintel, home"
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path
+                d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              /></svg
+            >Lintel</a
+          >
+          <div class="nav-links">
+            <a href="/expenses">Expenses</a><a href="/kitchen">Kitchen</a
+            ><a href="/upkeep">Upkeep</a><a href="/together" aria-current="page">Together</a
+            ><a href="/join">Joining</a><a href="/questions">Questions</a>
+          </div>
+          <a
+            class="btn btn-light nav-signin nav-signin-wide"
+            href="https://hm-amber.vercel.app/sign-in"
+            >Sign in</a
+          >
+          <details class="menu">
+            <summary aria-label="Menu">
+              <svg class="icon icon-open" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 5h16" />
+                <path d="M4 12h16" />
+                <path d="M4 19h16" /></svg
+              ><svg
+                class="icon icon-close"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </summary>
+            <div class="menu-panel">
+              <a href="/expenses"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M13 16H8" />
+                  <path d="M14 8H8" />
+                  <path d="M16 12H8" />
+                  <path
+                    d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"
+                  /></svg
+                >Expenses</a
+              ><a href="/kitchen"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2 12h20" />
+                  <path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" />
+                  <path d="m4 8 16-4" />
+                  <path
+                    d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"
+                  /></svg
+                >Kitchen</a
+              ><a href="/upkeep"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                  <path
+                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                  />
+                  <path d="m9 14 2 2 4-4" /></svg
+                >Upkeep</a
+              ><a href="/together" aria-current="page"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <path d="M16 3.128a4 4 0 0 1 0 7.744" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <circle cx="9" cy="7" r="4" /></svg
+                >Together</a
+              ><a href="/join"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg
+                >Joining</a
+              ><a href="/questions"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <path d="M12 17h.01" /></svg
+                >Questions</a
+              >
+              <hr />
+              <a href="https://hm-amber.vercel.app/sign-in"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" /></svg
+                >Sign in</a
+              >
+            </div>
+          </details>
+        </nav>
+      </div>
+
+      <div class="wrap page-title">
+        <p class="eyebrow">Together</p>
+        <h1 class="h1">The same home, on every phone.</h1>
+        <p class="lede">
+          Whoever adds the expense, ticks off the tomatoes or finishes the job, everyone else in the
+          house sees it.
+        </p>
+        <div class="actions">
+          <a class="btn btn-light" href="https://hm-amber.vercel.app/sign-in">Sign in</a>
+        </div>
+      </div>
+    </header>
+    <main id="main" class="opening">
+      <section class="section" aria-labelledby="people-title">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">People</p>
+            <h2 class="h2" id="people-title">Everyone in, and the right people in charge.</h2>
+          </div>
+          <div class="cards cards-3">
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg
+              ></span>
+              <h3 class="h3">Invite by link or email</h3>
+              <p>
+                Share a link on WhatsApp, SMS or anywhere else, or send it by email. Each link lets
+                one person in and expires after 7&nbsp;days.
+              </p>
+            </div>
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+                  />
+                  <path d="m9 12 2 2 4-4" /></svg
+              ></span>
+              <h3 class="h3">Admins and members</h3>
+              <p>
+                Household admins invite people and look after income. Members share expenses, the
+                kitchen, tasks and providers.
+              </p>
+            </div>
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                  <path d="M12 7v5l4 2" /></svg
+              ></span>
+              <h3 class="h3">Who changed what</h3>
+              <p>
+                An activity feed shows every change and who made it, so nobody has to ask “who
+                bought this?”
+              </p>
+            </div>
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"
+                  /></svg
+              ></span>
+              <h3 class="h3">Live, as it happens</h3>
+              <p>
+                The shopping list, pantry and meal plan update on everyone’s phone the moment
+                someone changes them.
+              </p>
+            </div>
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+                  <path
+                    d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                  /></svg
+              ></span>
+              <h3 class="h3">More than one household</h3>
+              <p>
+                Run your own home and help with a parent’s? Belong to both and switch between them
+                from the household name.
+              </p>
+            </div>
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"
+                  />
+                  <path d="M20 2v4" />
+                  <path d="M22 4h-4" />
+                  <circle cx="4" cy="20" r="2" /></svg
+              ></span>
+              <h3 class="h3">A friendly start</h3>
+              <p>
+                New members get a short tour and a getting-started checklist that ticks itself off
+                as the house fills in.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section" aria-labelledby="phone-title">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">Anywhere</p>
+            <h2 class="h2" id="phone-title">On your phone, without an app store.</h2>
+          </div>
+          <div class="cards cards-3">
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
+                  <path d="M12 18h.01" /></svg
+              ></span>
+              <h3 class="h3">Install it like an app</h3>
+              <p>
+                Lintel runs in the browser on any phone or computer. Add it to your home screen and
+                it opens like an app.
+              </p>
+            </div>
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 20h.01" />
+                  <path d="M8.5 16.429a5 5 0 0 1 7 0" />
+                  <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
+                  <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
+                  <path d="M2 8.82a15 15 0 0 1 4.177-2.643" />
+                  <path d="M22 8.82a15 15 0 0 0-11.288-3.764" />
+                  <path d="m2 2 20 20" /></svg
+              ></span>
+              <h3 class="h3">Shopping with no signal</h3>
+              <p>
+                Once the list is open, shopping mode works offline and catches up when the
+                connection is back.
+              </p>
+            </div>
+            <div class="card">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" />
+                  <rect x="2" y="4" width="20" height="16" rx="2" /></svg
+              ></span>
+              <h3 class="h3">Reminders by email</h3>
+              <p>Task reminders arrive early in the morning, so the day starts with what’s due.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section" aria-labelledby="cta-title">
+        <div class="wrap">
+          <div class="cta">
+            <h2 class="h2" id="cta-title">Already in? Sign in.</h2>
+            <p class="lede">
+              Have an invite link? Open it to create your account and join your household.
+            </p>
+            <div class="actions">
+              <a class="btn btn-light" href="https://hm-amber.vercel.app/sign-in">Sign in</a>
+              <a class="btn btn-outline-light" href="/join">How joining works</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <div class="threshold" aria-hidden="true"></div>
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div>
+          <p class="footer-brand" translate="no">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path
+                d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              /></svg
+            >Lintel
+          </p>
+          <p class="small" style="margin-top: 12px; max-width: 28em">
+            One shared place for a household’s money, kitchen, repairs and helpers.
+          </p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h2>Product</h2>
+            <ul>
+              <li><a href="/expenses">Expenses</a></li>
+              <li><a href="/kitchen">Kitchen</a></li>
+              <li><a href="/upkeep">Upkeep</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Household</h2>
+            <ul>
+              <li><a href="/together">Together</a></li>
+              <li><a href="/join">Joining</a></li>
+              <li><a href="/questions">Questions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>App</h2>
+            <ul>
+              <li><a href="https://hm-amber.vercel.app/sign-in">Sign in</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expenses · Lintel</title>
+    <meta
+      name="description"
+      content="Log what the house spends, read receipts on your phone, set budgets by category, confirm recurring bills and see where the month went."
+    />
+    <meta property="og:title" content="Expenses · Lintel" />
+    <meta
+      property="og:description"
+      content="Log what the house spends, read receipts on your phone, set budgets by category, confirm recurring bills and see where the month went."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#11254b" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5.3.0/index.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist-mono@5.2.7/index.css"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="beam">
+      <div class="wrap">
+        <nav class="site-nav" aria-label="Main">
+          <a class="brand" href="/" translate="no" aria-label="Lintel, home"
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path
+                d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              /></svg
+            >Lintel</a
+          >
+          <div class="nav-links">
+            <a href="/expenses" aria-current="page">Expenses</a><a href="/kitchen">Kitchen</a
+            ><a href="/upkeep">Upkeep</a><a href="/together">Together</a><a href="/join">Joining</a
+            ><a href="/questions">Questions</a>
+          </div>
+          <a
+            class="btn btn-light nav-signin nav-signin-wide"
+            href="https://hm-amber.vercel.app/sign-in"
+            >Sign in</a
+          >
+          <details class="menu">
+            <summary aria-label="Menu">
+              <svg class="icon icon-open" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 5h16" />
+                <path d="M4 12h16" />
+                <path d="M4 19h16" /></svg
+              ><svg
+                class="icon icon-close"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </summary>
+            <div class="menu-panel">
+              <a href="/expenses" aria-current="page"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M13 16H8" />
+                  <path d="M14 8H8" />
+                  <path d="M16 12H8" />
+                  <path
+                    d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"
+                  /></svg
+                >Expenses</a
+              ><a href="/kitchen"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2 12h20" />
+                  <path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" />
+                  <path d="m4 8 16-4" />
+                  <path
+                    d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"
+                  /></svg
+                >Kitchen</a
+              ><a href="/upkeep"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                  <path
+                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                  />
+                  <path d="m9 14 2 2 4-4" /></svg
+                >Upkeep</a
+              ><a href="/together"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <path d="M16 3.128a4 4 0 0 1 0 7.744" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <circle cx="9" cy="7" r="4" /></svg
+                >Together</a
+              ><a href="/join"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg
+                >Joining</a
+              ><a href="/questions"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <path d="M12 17h.01" /></svg
+                >Questions</a
+              >
+              <hr />
+              <a href="https://hm-amber.vercel.app/sign-in"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" /></svg
+                >Sign in</a
+              >
+            </div>
+          </details>
+        </nav>
+      </div>
+
+      <div class="wrap page-title">
+        <p class="eyebrow">Expenses</p>
+        <h1 class="h1">Every naira the home spends, in one place.</h1>
+        <p class="lede">
+          Log what the house spends and who paid. Snap the receipt and Lintel reads it right on your
+          phone. Set a budget for each category and see where the month went.
+        </p>
+        <div class="actions">
+          <a class="btn btn-light" href="https://hm-amber.vercel.app/sign-in">Sign in</a>
+        </div>
+      </div>
+    </header>
+    <main id="main" class="opening">
+      <section class="section">
+        <div class="wrap">
+          <div class="feature">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M13 16H8" />
+                  <path d="M14 8H8" />
+                  <path d="M16 12H8" />
+                  <path
+                    d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"
+                  /></svg
+                >Logging
+              </p>
+              <h2 class="h2">Everything the house pays for, with who paid.</h2>
+              <p class="lede">
+                Add an expense in seconds: amount, date, what it was for, the category and who paid.
+                Attach the receipt or invoice, link the provider, and add a note.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Ready-made categories.</strong> Electricity, fuel and the generator,
+                    water, internet, repairs, cleaning, security, estate dues, rent, groceries,
+                    cooking gas and more, with your own sub-categories.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Search and filter.</strong> By month, category, provider, who paid or
+                    whether there’s a receipt. Export what you see to a spreadsheet.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Nothing lost by mistake.</strong> Deleted expenses wait 30&nbsp;days in
+                    Recently deleted before they’re gone.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="mock-head">
+                    <h3>October</h3>
+                    <span class="badge blue">1 bill to confirm</span>
+                  </div>
+                  <ul class="mock-rows">
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                          />
+                          <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                          <path d="M2 21h13" />
+                          <path d="M3 9h11" /></svg></span
+                      ><span class="what"
+                        >Diesel, 50&nbsp;litres<small
+                          >Fuel &amp; Generator · Paid by Bola</small
+                        ></span
+                      ><span class="amt">₦45,000</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"
+                          />
+                          <path
+                            d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"
+                          /></svg></span
+                      ><span class="what">Water tanker<small>Water · Receipt attached</small></span
+                      ><span class="amt">₦18,000</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="m17 2 4 4-4 4" />
+                          <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+                          <path d="m7 22-4-4 4-4" />
+                          <path d="M21 13v1a4 4 0 0 1-4 4H3" /></svg></span
+                      ><span class="what"
+                        >Service charge, Q4<small>Estate Dues · Waiting to confirm</small></span
+                      ><span class="amt">₦35,000</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path
+                            d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"
+                          /></svg></span
+                      ><span class="what"
+                        >Prepaid electricity<small>Electricity · Paid by Ada</small></span
+                      ><span class="amt">₦20,000</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example expenses</figcaption>
+            </figure>
+          </div>
+
+          <div class="feature flip" id="receipts">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                  <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                  <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                  <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                  <path d="M7 12h10" /></svg
+                >Receipts
+              </p>
+              <h2 class="h2">Snap the receipt. Lintel fills in the rest.</h2>
+              <p class="lede">
+                Take a photo or pick a PDF, and the amount, date and shop are read on your phone,
+                with the category it was filed under last time. Nothing you’ve already typed is
+                overwritten.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Read on your device.</strong> Receipts aren’t sent anywhere to be read.
+                    If you attach one, it’s stored privately with the expense.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>A pile at once.</strong> Pick up to 20 receipts and review a draft
+                    expense for each, then save them together.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Duplicates caught.</strong> A receipt that matches an expense you’ve
+                    already logged is flagged before you save it twice.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="mock-head">
+                    <h3>3 receipts read</h3>
+                    <span class="badge red">1 looks like a duplicate</span>
+                  </div>
+                  <ul class="mock-rows">
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                          <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                          <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                          <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                          <path d="M7 12h10" /></svg></span
+                      ><span class="what">Shoprite Lekki<small>14 Oct · Groceries</small></span
+                      ><span class="amt">₦23,750</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                          <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                          <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                          <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                          <path d="M7 12h10" /></svg></span
+                      ><span class="what"
+                        >Total filling station<small>15 Oct · Fuel &amp; Generator</small></span
+                      ><span class="amt">₦45,000</span>
+                    </li>
+                    <li class="">
+                      <span class="chip-icon"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                          <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                          <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                          <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                          <path d="M7 12h10" /></svg></span
+                      ><span class="what"
+                        >Shoprite Lekki<small>14 Oct · Same as a logged expense</small></span
+                      ><span class="amt">₦23,750</span>
+                    </li>
+                  </ul>
+                  <div class="mock-foot">
+                    <span>Save 2 expenses</span><span class="num">₦68,750</span>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example batch of scanned receipts</figcaption>
+            </figure>
+          </div>
+
+          <div class="feature" id="budgets">
+            <div class="feature-copy">
+              <p class="eyebrow">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M11 17h3v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a3.16 3.16 0 0 0 2-2h1a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-1a5 5 0 0 0-2-4V3a4 4 0 0 0-3.2 1.6l-.3.4H11a6 6 0 0 0-6 6v1a5 5 0 0 0 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1z"
+                  />
+                  <path d="M16 10h.01" />
+                  <path d="M2 8v1a2 2 0 0 0 2 2h1" /></svg
+                >Budgets and insights
+              </p>
+              <h2 class="h2">See where the month went.</h2>
+              <p class="lede">
+                Give each category, or sub-category, a monthly budget. Insights show the month by
+                category, your top providers and how each budget is holding.
+              </p>
+              <ul class="points">
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Month by month.</strong> Step back through earlier months, or pick
+                    which month a bill counts towards.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Bills that come round again.</strong> Rent, dues and subscriptions turn
+                    into expenses on their own, waiting for a tap to confirm.</span
+                  >
+                </li>
+                <li>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 6 9 17l-5-5" /></svg
+                  ><span
+                    ><strong>Income, for household admins.</strong> Record what comes in, including
+                    regular income, and see the month’s net. Hide the figures on screen when
+                    someone’s looking over your shoulder.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <figure>
+              <div class="mock-stage">
+                <div class="mock">
+                  <div class="mock-head">
+                    <h3>Budgets · October</h3>
+                    <span class="muted tiny num">₦184,500 of ₦250,000</span>
+                  </div>
+                  <div class="mock-body">
+                    <div class="budget-row">
+                      <div class="line">
+                        <span>Fuel &amp; Generator</span><span>₦72,000 of ₦80,000</span>
+                      </div>
+                      <div class="meter"><i style="width: 90%"></i></div>
+                    </div>
+                    <div class="budget-row">
+                      <div class="line"><span>Groceries</span><span>₦61,500 of ₦90,000</span></div>
+                      <div class="meter"><i style="width: 68%"></i></div>
+                    </div>
+                    <div class="budget-row">
+                      <div class="line">
+                        <span>Cooking Gas</span><span>₦16,000 of ₦15,000</span>
+                      </div>
+                      <div class="meter over"><i style="width: 100%"></i></div>
+                    </div>
+                    <div class="budget-row">
+                      <div class="line"><span>Water</span><span>₦18,000 of ₦30,000</span></div>
+                      <div class="meter"><i style="width: 60%"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="mock-caption">Example budgets</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+      <section class="section" aria-labelledby="cta-title">
+        <div class="wrap">
+          <div class="cta">
+            <h2 class="h2" id="cta-title">Already in? Sign in.</h2>
+            <p class="lede">
+              Have an invite link? Open it to create your account and join your household.
+            </p>
+            <div class="actions">
+              <a class="btn btn-light" href="https://hm-amber.vercel.app/sign-in">Sign in</a>
+              <a class="btn btn-outline-light" href="/join">How joining works</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <div class="threshold" aria-hidden="true"></div>
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div>
+          <p class="footer-brand" translate="no">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path
+                d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              /></svg
+            >Lintel
+          </p>
+          <p class="small" style="margin-top: 12px; max-width: 28em">
+            One shared place for a household’s money, kitchen, repairs and helpers.
+          </p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h2>Product</h2>
+            <ul>
+              <li><a href="/expenses">Expenses</a></li>
+              <li><a href="/kitchen">Kitchen</a></li>
+              <li><a href="/upkeep">Upkeep</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Household</h2>
+            <ul>
+              <li><a href="/together">Together</a></li>
+              <li><a href="/join">Joining</a></li>
+              <li><a href="/questions">Questions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>App</h2>
+            <ul>
+              <li><a href="https://hm-amber.vercel.app/sign-in">Sign in</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
