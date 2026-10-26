@@ -6,18 +6,24 @@ https://lintel-landing-sigma.vercel.app) with Root Directory `apps/landing`. `ve
 skips install and build, serves clean URLs (`/kitchen` for `kitchen.html`), and skips deploys of
 commits that don't change this folder.
 
-| Page                         | File             |
-| ---------------------------- | ---------------- |
-| Home                         | `index.html`     |
-| Expenses                     | `expenses.html`  |
-| Kitchen                      | `kitchen.html`   |
-| Upkeep (tasks and providers) | `upkeep.html`    |
-| Together (the household)     | `together.html`  |
-| Joining                      | `join.html`      |
-| Questions                    | `questions.html` |
-| Not found                    | `404.html`       |
+| Page                         | File                |
+| ---------------------------- | ------------------- |
+| Home                         | `index.html`        |
+| Expenses                     | `expenses.html`     |
+| Kitchen                      | `kitchen.html`      |
+| Upkeep (tasks and providers) | `upkeep.html`       |
+| Together (the household)     | `together.html`     |
+| Joining                      | `join.html`         |
+| Questions                    | `questions.html`    |
+| Early access                 | `early-access.html` |
+| Not found                    | `404.html`          |
 
 The header, menu and footer are repeated in each page: change them in all of them.
+
+"Get early access" (`early-access.html`) is the one page with JavaScript: its form calls
+`request_early_access` on the production Supabase project with the publishable key (public by
+design; it can only do what anonymous visitors may). Requests appear in the admin dashboard under
+Early access.
 
 Design ("the doorway", like Lintel's emails): each page opens under a deep navy beam with a lit
 blue edge, content sits in a white opening between fine jambs, and a threshold slab comes before the

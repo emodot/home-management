@@ -148,6 +148,36 @@ export type Database = {
           },
         ]
       }
+      early_access_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          note: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          note?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          note?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expense_categories: {
         Row: {
           household_id: string
@@ -1965,6 +1995,27 @@ export type Database = {
           has_recurring_task: boolean
           has_shopping_list: boolean
         }[]
+      }
+      request_early_access: {
+        Args: { p_name: string; p_email: string; p_note?: string | null }
+        Returns: undefined
+      }
+      admin_list_access_requests: {
+        Args: { p_status: string | null; p_limit: number; p_offset: number }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          note: string | null
+          status: string
+          created_at: string
+          updated_at: string
+          total_count: number
+        }[]
+      }
+      admin_set_access_request_status: {
+        Args: { p_id: string; p_status: string }
+        Returns: string | null
       }
       mark_onboarding: {
         Args: { p_key: string; p_version: number; p_status: string; p_last_step?: number | null }

@@ -9,6 +9,10 @@ const page = z.number().int().min(0).max(10_000).default(0)
 const userId = z.uuid()
 const householdId = z.uuid()
 
+/** Where an early-access request stands: new, invited (a household was set up) or declined. */
+export const ACCESS_REQUEST_STATUSES = ['new', 'invited', 'declined'] as const
+export type AccessRequestStatus = (typeof ACCESS_REQUEST_STATUSES)[number]
+
 /** The "add an admin" form: a separate admin-only account with a temporary password. */
 export const addAdminSchema = z.object({
   fullName: fullNameSchema,
@@ -46,6 +50,17 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('listAdmins') }),
   addAdminSchema.extend({ action: z.literal('addAdmin') }),
   z.object({ action: z.literal('removeAdmin'), userId }),
+  /** The marketing site's "Get early access" requests, newest first. */
+  z.object({
+    action: z.literal('listAccessRequests'),
+    status: z.enum([...ACCESS_REQUEST_STATUSES, 'all']).default('new'),
+    page,
+  }),
+  z.object({
+    action: z.literal('setAccessRequestStatus'),
+    requestId: z.uuid(),
+    status: z.enum(ACCESS_REQUEST_STATUSES),
+  }),
 ])
 export type AdminRequest = z.input<typeof adminRequestSchema>
 
@@ -70,7 +85,7 @@ export interface AdminOverview {
 export interface AdminAction {
   id: number
   action: string
-  targetType: 'user' | 'household'
+  targetType: 'user' | 'household' | 'access_request'
   targetId: string
   details: Record<string, unknown> | null
   createdAt: string
@@ -150,4 +165,15 @@ export interface AdminAccount {
 export interface AdminRemoveResult {
   /** True when the account was admin-only and has been deleted; false when it was kept. */
   deletedAccount: boolean
+}
+
+export interface AdminAccessRequest {
+  id: string
+  name: string
+  email: string
+  /** Who's in the house, where, what they hope to use it for. */
+  note: string | null
+  status: AccessRequestStatus
+  createdAt: string
+  updatedAt: string
 }

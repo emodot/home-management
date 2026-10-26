@@ -13,6 +13,7 @@ import {
   adminOverviewLoader,
   adminSignInLoader,
   adminUsersLoader,
+  adminAccessRequestsLoader,
   appLoader,
   authCallbackLoader,
   authedLoader,
@@ -69,6 +70,7 @@ const routes = {
   adminHouseholds: () => import('@/routes/admin-households'),
   adminSignIn: () => import('@/routes/admin-sign-in'),
   adminUsers: () => import('@/routes/admin-users'),
+  adminEarlyAccess: () => import('@/routes/admin-early-access'),
   authCallback: () => import('@/routes/auth-callback'),
   budgets: () => import('@/routes/budgets'),
   income: () => import('@/routes/income'),
@@ -171,6 +173,11 @@ export const router = createBrowserRouter([
                     path: 'households/:householdId',
                     loader: adminHouseholdLoader,
                     lazy: page(routes.adminHouseholds, 'AdminHouseholdPage'),
+                  },
+                  {
+                    path: 'early-access',
+                    loader: adminAccessRequestsLoader,
+                    lazy: page(routes.adminEarlyAccess, 'AdminEarlyAccessPage'),
                   },
                   {
                     path: 'admins',

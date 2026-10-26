@@ -9,6 +9,8 @@ import {
   setAdminMemberRole,
   sendAdminPasswordReset,
   setAdminUserDisabled,
+  setAdminAccessRequestStatus,
+  type AccessRequestStatus,
 } from '@home/shared'
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -120,4 +122,17 @@ export const useSetMemberRole = () =>
       role === 'admin'
         ? `${name} is now a household admin`
         : `${name} is no longer a household admin`,
+  )
+
+const ACCESS_STATUS_DONE: Record<AccessRequestStatus, string> = {
+  new: 'moved back to new',
+  invited: 'marked invited',
+  declined: 'declined',
+}
+
+export const useSetAccessRequestStatus = () =>
+  useAdminMutation(
+    ({ requestId, status }: { requestId: string; email: string; status: AccessRequestStatus }) =>
+      setAdminAccessRequestStatus(supabase, requestId, status),
+    (_, { email, status }) => `${email} ${ACCESS_STATUS_DONE[status]}`,
   )

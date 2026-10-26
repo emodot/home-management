@@ -17,6 +17,7 @@ const TABS = [
   { to: '/admin', label: 'Overview', end: true },
   { to: '/admin/users', label: 'Users', end: false },
   { to: '/admin/households', label: 'Households', end: false },
+  { to: '/admin/early-access', label: 'Early access', end: false },
   { to: '/admin/admins', label: 'Super-admins', end: false },
 ]
 
@@ -152,6 +153,10 @@ function describeAction({ action, details }: AdminAction): string {
       return `renamed a household to “${text('name')}”`
     case 'delete_household':
       return `deleted the household “${text('name')}”`
+    case 'set_access_request_status':
+      return text('status') === 'new'
+        ? `moved ${text('email')}’s early-access request back to new`
+        : `marked ${text('email')}’s early-access request ${text('status')}`
     default:
       return action.replaceAll('_', ' ')
   }

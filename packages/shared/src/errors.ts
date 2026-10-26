@@ -14,6 +14,7 @@ export const APP_ERROR_MESSAGES = {
   forbidden: "You don't have access to that.",
   household_not_found: "That household doesn't exist (it may have been deleted).",
   user_not_found: "That account doesn't exist (it may have been deleted).",
+  access_request_not_found: "That early-access request doesn't exist any more.",
   email_in_use:
     'That email already has a regular account. Admin accounts must use an email of their own.',
   already_admin: 'That email already belongs to an admin.',

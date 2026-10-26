@@ -11,6 +11,7 @@ import {
   setActiveHousehold,
   weekStartOf,
   type InviteDetails,
+  type AccessRequestStatus,
 } from '@home/shared'
 import { redirect, type LoaderFunctionArgs } from 'react-router'
 import {
@@ -40,6 +41,7 @@ import {
   adminHouseholdsQuery,
   adminOverviewQuery,
   adminUsersQuery,
+  adminAccessRequestsQuery,
   budgetsQuery,
   anyExpensesQuery,
   categoriesQuery,
@@ -508,6 +510,19 @@ export async function adminOverviewLoader() {
 export async function adminUsersLoader({ request }: LoaderFunctionArgs) {
   const { search, page } = adminListParams(request)
   await queryClient.query(adminUsersQuery(search, page))
+  return null
+}
+
+/** Which early-access requests to show: ?status=new (the default), invited, declined or all. */
+export function accessRequestStatusParam(params: URLSearchParams): AccessRequestStatus | 'all' {
+  const status = params.get('status')
+  return status === 'invited' || status === 'declined' || status === 'all' ? status : 'new'
+}
+
+export async function adminAccessRequestsLoader({ request }: LoaderFunctionArgs) {
+  const { page } = adminListParams(request)
+  const status = accessRequestStatusParam(new URL(request.url).searchParams)
+  await queryClient.query(adminAccessRequestsQuery(status, page))
   return null
 }
 

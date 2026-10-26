@@ -6,6 +6,7 @@ import {
   listAdminAccounts,
   listAdminHouseholds,
   listAdminUsers,
+  listAdminAccessRequests,
   expenseFiltersToParams,
   getCategoryTotals,
   getExpense,
@@ -36,6 +37,7 @@ import {
   listRecurringExpenses,
   listTaskHistory,
   listTasks,
+  type AccessRequestStatus,
   type ExpenseFilters,
 } from '@home/shared'
 import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query'
@@ -285,6 +287,13 @@ export const adminUsersQuery = (search: string, page: number) =>
   queryOptions({
     queryKey: [...adminKey, 'users', search, page],
     queryFn: () => listAdminUsers(supabase, { search, page }),
+    placeholderData: keepPreviousData,
+  })
+
+export const adminAccessRequestsQuery = (status: AccessRequestStatus | 'all', page: number) =>
+  queryOptions({
+    queryKey: [...adminKey, 'access-requests', status, page],
+    queryFn: () => listAdminAccessRequests(supabase, { status, page }),
     placeholderData: keepPreviousData,
   })
 

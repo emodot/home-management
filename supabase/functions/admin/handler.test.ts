@@ -339,3 +339,67 @@ Deno.test("deleting a household removes its files and nobody else's", async () =
     `${HOUSEHOLD_ID}/e2/c.png`,
   ])
 })
+
+Deno.test('lists early-access requests a page at a time, new ones by default', async () => {
+  const row = {
+    id: TARGET,
+    name: 'Bola Ade',
+    email: 'bola@example.com',
+    note: 'Four of us in Lekki.',
+    status: 'new',
+    created_at: '2026-10-26T08:00:00Z',
+    updated_at: '2026-10-26T08:00:00Z',
+    total_count: 31,
+  }
+  const { deps, rpcCalls } = setup({
+    rpc: (fn) => (fn === 'admin_list_access_requests' ? [row] : null),
+  })
+  const res = await handler(post({ action: 'listAccessRequests', page: 1 }), deps)
+  assertEquals(res.status, 200)
+  assertEquals(await res.json(), {
+    total: 31,
+    items: [
+      {
+        id: TARGET,
+        name: 'Bola Ade',
+        email: 'bola@example.com',
+        note: 'Four of us in Lekki.',
+        status: 'new',
+        createdAt: '2026-10-26T08:00:00Z',
+        updatedAt: '2026-10-26T08:00:00Z',
+      },
+    ],
+  })
+  assertEquals(rpcCalls[1]!.args, { p_status: 'new', p_limit: 25, p_offset: 25 })
+
+  const all = await handler(post({ action: 'listAccessRequests', status: 'all' }), deps)
+  await all.body?.cancel()
+  assertEquals(rpcCalls[3]!.args.p_status, null)
+})
+
+Deno.test('marks an early-access request and logs it; unknown ones are 404s', async () => {
+  const { deps, rpcCalls } = setup({
+    rpc: (fn, args) =>
+      fn === 'admin_set_access_request_status' && args.p_id === TARGET ? 'bola@example.com' : null,
+  })
+  const res = await handler(
+    post({ action: 'setAccessRequestStatus', requestId: TARGET, status: 'invited' }),
+    deps,
+  )
+  assertEquals(res.status, 200)
+  await res.body?.cancel()
+  const logged = rpcCalls.find((c) => c.fn === 'admin_log')!
+  assertEquals(logged.args.p_target_type, 'access_request')
+  assertEquals(logged.args.p_details, { email: 'bola@example.com', status: 'invited' })
+
+  const missing = await handler(
+    post({
+      action: 'setAccessRequestStatus',
+      requestId: '44444444-4444-4444-8444-444444444444',
+      status: 'declined',
+    }),
+    deps,
+  )
+  assertEquals(missing.status, 404)
+  assertEquals((await missing.json()).error.code, 'access_request_not_found')
+})

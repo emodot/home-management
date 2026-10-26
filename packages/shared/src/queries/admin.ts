@@ -2,6 +2,8 @@ import { unwrap, type HomeClient } from '../client.ts'
 import { invokeFunction } from '../functions.ts'
 import {
   adminRequestSchema,
+  type AccessRequestStatus,
+  type AdminAccessRequest,
   type AdminAccount,
   type AdminRemoveResult,
   type AdminHousehold,
@@ -87,3 +89,14 @@ export const setAdminMemberRole = (
   userId: string,
   role: 'admin' | 'member',
 ) => admin<{ ok: true }>(client, { action: 'setMemberRole', householdId, userId, role })
+
+export const listAdminAccessRequests = (
+  client: HomeClient,
+  input: { status?: AccessRequestStatus | 'all'; page?: number },
+) => admin<AdminPage<AdminAccessRequest>>(client, { action: 'listAccessRequests', ...input })
+
+export const setAdminAccessRequestStatus = (
+  client: HomeClient,
+  requestId: string,
+  status: AccessRequestStatus,
+) => admin<{ ok: true }>(client, { action: 'setAccessRequestStatus', requestId, status })

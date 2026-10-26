@@ -1,6 +1,8 @@
 import {
   ADMIN_PAGE_SIZE,
   adminRequestSchema,
+  type AccessRequestStatus,
+  type AdminAccessRequest,
   type AdminAccount,
   type AdminHousehold,
   type AdminHouseholdDetail,
@@ -39,7 +41,7 @@ export const handler = endpoint(adminRequestSchema, async (request, user, deps: 
   }
   const log = (
     action: string,
-    targetType: 'user' | 'household',
+    targetType: 'user' | 'household' | 'access_request',
     targetId: string,
     details?: Json,
   ) =>
@@ -331,6 +333,55 @@ export const handler = endpoint(adminRequestSchema, async (request, user, deps: 
       await log('delete_household', 'household', request.householdId, {
         name: detail.name,
         members: detail.members.length,
+      })
+      return OK
+    }
+
+    case 'listAccessRequests': {
+      const rows = await rpc<
+        {
+          id: string
+          name: string
+          email: string
+          note: string | null
+          status: AccessRequestStatus
+          created_at: string
+          updated_at: string
+          total_count: number
+        }[]
+      >(
+        db.rpc('admin_list_access_requests', {
+          p_status: request.status === 'all' ? null : request.status,
+          p_limit: ADMIN_PAGE_SIZE,
+          p_offset: request.page * ADMIN_PAGE_SIZE,
+        }),
+      )
+      const page: AdminPage<AdminAccessRequest> = {
+        total: Number(rows[0]?.total_count ?? 0),
+        items: rows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          note: r.note,
+          status: r.status,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        })),
+      }
+      return page
+    }
+
+    case 'setAccessRequestStatus': {
+      const email = await rpc<string | null>(
+        db.rpc('admin_set_access_request_status', {
+          p_id: request.requestId,
+          p_status: request.status,
+        }),
+      )
+      if (!email) throw new HttpError(404, 'access_request_not_found')
+      await log('set_access_request_status', 'access_request', request.requestId, {
+        email,
+        status: request.status,
       })
       return OK
     }

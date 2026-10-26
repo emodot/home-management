@@ -56,7 +56,8 @@ Super-admins have their own sign-in page, `/admin/sign-in`, and their own super-
 accounts: signing in there with a household account is refused, and a super-admin account that
 signs in to the regular app is sent to the dashboard. The regular app has no admin links.
 
-The dashboard has an overview (totals, weekly sign-ups, recent actions), every user (search, send
+The dashboard has an overview (totals, weekly sign-ups, recent actions), early-access requests from
+the marketing site (mark them invited once their household is set up, or decline), every user (search, send
 a password reset, disable/re-enable, delete), every household (create, members and their roles,
 household admin invites, rename, delete) and the super-admins themselves. Deleting a user removes
 them from their households; households are only ever deleted from the dashboard. Every action is

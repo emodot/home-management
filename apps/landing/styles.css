@@ -29,6 +29,7 @@
   --tint: #e6eefa;
   --threshold: #c9d1dc;
   --critical: #c23434;
+  --field-border: #b9c3d0;
 
   --radius: 12px;
   --radius-lg: 20px;
@@ -61,6 +62,7 @@
     --tint: #16264a;
     --threshold: #1d2840;
     --critical: #f08a8a;
+    --field-border: #3a4a68;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
     --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 32px 64px -24px rgb(0 0 0 / 0.8);
   }
@@ -133,6 +135,10 @@ dd {
 }
 [id] {
   scroll-margin-top: 24px;
+}
+/* `hidden` always wins over a component's own display. */
+[hidden] {
+  display: none !important;
 }
 :focus-visible {
   outline: 3px solid var(--edge);
@@ -1266,4 +1272,122 @@ a.card:hover {
   .footer-cols {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* ------------------------------------------------------------------ early access form */
+.early {
+  display: grid;
+  gap: 48px;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .early {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 72px;
+  }
+}
+.form {
+  display: grid;
+  gap: 24px;
+  max-width: 36rem;
+}
+.form .btn {
+  justify-self: start;
+}
+.field {
+  display: grid;
+  gap: 8px;
+}
+.field label {
+  font-weight: 600;
+}
+.field .optional {
+  font-weight: 400;
+  color: var(--soft);
+}
+.field input,
+.field textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+  background: var(--opening);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+.field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--soft);
+}
+.field input:focus-visible,
+.field textarea:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--edge) 40%, transparent);
+  outline-offset: 0;
+  border-color: var(--edge);
+}
+.field [aria-invalid='true'] {
+  border-color: var(--critical);
+}
+.field-hint {
+  font-size: 14px;
+  color: var(--muted);
+}
+.field-error {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--critical);
+}
+.form-status:empty {
+  display: none;
+}
+.form-status {
+  font-weight: 500;
+  color: var(--critical);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+/* The bot trap: off-screen, out of the tab order, hidden from assistive tech. */
+.hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.done-panel {
+  display: grid;
+  gap: 12px;
+  max-width: 36rem;
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+.done-panel:focus {
+  outline: none;
+}
+.early-aside {
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+.next-steps {
+  display: grid;
+  gap: 16px;
+  margin: 16px 0 20px;
+  padding-left: 20px;
+  list-style: decimal;
+  color: var(--muted);
+}
+.next-steps strong {
+  color: var(--text);
 }
