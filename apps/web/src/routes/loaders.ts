@@ -95,8 +95,7 @@ async function requireUser(request: Request) {
 /** Every signed-in route. Children read the user with `useCurrentUser()`. */
 export async function authedLoader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
-  // new_email is set while an email change waits for confirmation.
-  return { user: { id: user.id, email: user.email ?? '', newEmail: user.new_email ?? null } }
+  return { user: { id: user.id, email: user.email ?? '' } }
 }
 
 /** The main app: needs at least one household, and makes sure one is active. */

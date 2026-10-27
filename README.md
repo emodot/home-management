@@ -30,7 +30,9 @@ email change, sign-in link), which render to `supabase/templates/*.html` for
 
 People sign in with email and password only. "Forgot password?" emails a link to
 `/reset-password`. Locally new accounts can sign in straight away; the hosted project requires
-confirming the email first (`[remotes.production.auth.email]` in `supabase/config.toml`).
+confirming the email first (`[remotes.production.auth.email]` in `supabase/config.toml`). A sign-in
+email can't be changed afterwards: the Profile page doesn't offer it, and a trigger on `auth.users`
+(`refuse_email_change`) refuses it even through the API, since invites are made out to an email.
 
 Supabase's built-in email sender only allows a few emails an hour and is meant for testing. For
 real use, set custom SMTP (e.g. Resend: `smtp.resend.com`, port 465, user `resend`, your API key

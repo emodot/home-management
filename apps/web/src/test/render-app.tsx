@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { ActiveHouseholdContext } from '@/hooks/use-household'
 
-export const TEST_USER = { id: 'u1', email: 'bola@example.com', newEmail: null }
+export const TEST_USER = { id: 'u1', email: 'bola@example.com' }
 
 export const TEST_HOUSEHOLD: Household = {
   id: 'h1',

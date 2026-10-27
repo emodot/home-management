@@ -56,8 +56,3 @@ export const changePasswordSchema = z
     path: ['password'],
   })
 export type ChangePasswordInput = z.input<typeof changePasswordSchema>
-
-export const changeEmailSchema = z.object({
-  email: emailSchema,
-})
-export type ChangeEmailInput = z.input<typeof changeEmailSchema>

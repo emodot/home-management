@@ -1,6 +1,6 @@
--- Profile photos: users write only inside their own avatars folder; profiles follow email changes.
+-- Profile photos: users write only inside their own avatars folder; sign-in emails can't change.
 begin;
-select plan(8);
+select plan(9);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'ada@example.com', '{"full_name": "Ada Obi"}'),
@@ -43,11 +43,13 @@ select throws_ok(
 );
 
 reset role;
-update auth.users set email = 'ada.obi@example.com' where id = '11111111-1111-1111-1111-111111111111';
-select is(
-  (select email from public.profiles where id = '11111111-1111-1111-1111-111111111111'),
-  'ada.obi@example.com',
-  'a confirmed email change is copied to the profile'
+select throws_ok(
+  $$ update auth.users set email = 'ada.obi@example.com' where id = '11111111-1111-1111-1111-111111111111' $$,
+  '42501', 'email_change_not_allowed', 'sign-in emails can''t be changed'
+);
+select throws_ok(
+  $$ update auth.users set email_change = 'ada.obi@example.com' where id = '11111111-1111-1111-1111-111111111111' $$,
+  '42501', 'email_change_not_allowed', 'not even by asking for a change to confirm later'
 );
 
 select * from finish();

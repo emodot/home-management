@@ -36,11 +36,9 @@ select is(
   'bola@example.com',
   'sign-up copies the email'
 );
-update auth.users set email = 'bola@example.ng' where id = '22222222-2222-2222-2222-222222222222';
-select is(
-  (select email from public.profiles where id = '22222222-2222-2222-2222-222222222222'),
-  'bola@example.ng',
-  'email changes in auth are synced to the profile'
+select throws_ok(
+  $$ update auth.users set email = 'bola@example.ng' where id = '22222222-2222-2222-2222-222222222222' $$,
+  '42501', 'email_change_not_allowed', 'sign-in emails can''t be changed, so the profile''s stays put'
 );
 
 -- ---------------------------------------------------------------- Ada creates a household

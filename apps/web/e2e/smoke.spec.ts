@@ -514,6 +514,9 @@ test('super-admin creates a household → its admin joins → welcome tour, skip
     await page.getByRole('button', { name: 'Save', exact: true }).click()
     await expect(page.getByText('Name saved')).toBeVisible()
 
+    // The password lives on the Security tab.
+    await page.getByRole('link', { name: 'Security' }).click()
+    await expect(page).toHaveURL(/\/profile\?tab=security$/)
     await page.getByLabel('Current password', { exact: true }).fill(PASSWORD)
     await page.getByLabel('New password', { exact: true }).fill(NEW_PASSWORD)
     await page.getByLabel('Confirm new password', { exact: true }).fill(NEW_PASSWORD)

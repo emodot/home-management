@@ -1,11 +1,9 @@
 import {
-  changeEmailSchema,
   changePasswordSchema,
   removeAvatar,
   updateProfile,
   updateProfileSchema,
   uploadAvatar,
-  type ChangeEmailInput,
   type ChangePasswordInput,
   type Profile,
   type UpdateProfileInput,
@@ -15,7 +13,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CameraIcon, LogOutIcon, MonitorSmartphoneIcon, Trash2Icon } from 'lucide-react'
 import { useRef } from 'react'
 import { useForm } from 'react-hook-form'
-import { useRevalidator } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { ThemeSwitcher } from '@/components/theme-menu'
 import {
@@ -35,17 +33,19 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { UserAvatar } from '@/components/user-avatar'
 import { useCurrentUser, useProfile } from '@/hooks/use-household'
-import {
-  changeEmail,
-  changePassword,
-  requestPasswordReset,
-  signOut,
-  signOutEverywhere,
-} from '@/lib/auth'
+import { changePassword, requestPasswordReset, signOut, signOutEverywhere } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 import { prepareAvatar } from '@/lib/images'
 import { profileQuery } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
+import { cn } from '@/lib/utils'
+
+const TABS = [
+  { id: 'profile', label: 'Profile' },
+  { id: 'security', label: 'Security' },
+  { id: 'appearance', label: 'Appearance' },
+] as const
+type Tab = (typeof TABS)[number]['id']
 
 function Section({
   title,
@@ -78,6 +78,9 @@ function useProfileSaved() {
 }
 
 export function ProfilePage() {
+  const [params] = useSearchParams()
+  const tab: Tab = TABS.find((t) => t.id === params.get('tab'))?.id ?? 'profile'
+
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <div className="flex flex-col gap-1">
@@ -86,14 +89,50 @@ export function ProfilePage() {
           How you appear to your household, and how you sign in.
         </p>
       </div>
-      <PhotoAndName />
-      <EmailSection />
-      <PasswordSection />
-      <Section title="Appearance">
-        <ThemeSwitcher />
-      </Section>
-      <SessionsSection />
+      <ProfileTabs current={tab} />
+      {tab === 'profile' && (
+        <>
+          <PhotoAndName />
+          <EmailSection />
+        </>
+      )}
+      {tab === 'security' && (
+        <>
+          <PasswordSection />
+          <SessionsSection />
+        </>
+      )}
+      {tab === 'appearance' && (
+        <Section title="Appearance">
+          <ThemeSwitcher />
+        </Section>
+      )}
     </div>
+  )
+}
+
+/** Profile, Security and Appearance; the tab lives in the address (?tab=security) so it can be linked. */
+function ProfileTabs({ current }: { current: Tab }) {
+  return (
+    <nav aria-label="Profile sections" className="border-b">
+      <ul className="flex gap-1">
+        {TABS.map((t) => (
+          <li key={t.id}>
+            <Link
+              to={t.id === 'profile' ? '.' : `?tab=${t.id}`}
+              replace
+              aria-current={t.id === current ? 'page' : undefined}
+              className={cn(
+                '-mb-px flex h-11 items-center border-b-2 border-transparent px-3 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground',
+                t.id === current && 'border-primary text-primary hover:text-primary',
+              )}
+            >
+              {t.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
   )
 }
 
@@ -192,64 +231,15 @@ function PhotoAndName() {
   )
 }
 
+/** The sign-in email, for reference: it can't be changed. */
 function EmailSection() {
   const user = useCurrentUser()
-  const revalidator = useRevalidator()
-  const form = useForm<ChangeEmailInput>({
-    resolver: zodResolver(changeEmailSchema),
-    defaultValues: { email: '' },
-  })
-  const { errors, isSubmitting } = form.formState
-
-  const onSubmit = form.handleSubmit(async ({ email }) => {
-    if (email === user.email) {
-      form.setError('email', { message: "That's already your email" })
-      return
-    }
-    try {
-      await changeEmail(email)
-      form.reset()
-      toast.success('Check your email to confirm the change')
-      await revalidator.revalidate()
-    } catch (error) {
-      form.setError('email', { message: errorMessage(error) })
-    }
-  })
-
   return (
     <Section
       title="Email"
-      description="You sign in with this address, and invites and reminders are sent to it."
+      description="You sign in with this address, and invites and reminders are sent to it. It can’t be changed."
     >
-      <p className="text-sm">
-        Current: <span className="font-medium">{user.email}</span>
-      </p>
-      {user.newEmail && (
-        <p className="rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">
-          Waiting for you to confirm{' '}
-          <span className="font-medium text-foreground">{user.newEmail}</span>. Open the link we
-          emailed; you may need to confirm from your current address too.
-        </p>
-      )}
-      <form onSubmit={(e) => void onSubmit(e)} noValidate>
-        <Field data-invalid={!!errors.email}>
-          <FieldLabel htmlFor="new-email">New email</FieldLabel>
-          <div className="flex gap-2">
-            <Input
-              id="new-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              aria-invalid={!!errors.email}
-              {...form.register('email')}
-            />
-            <Button type="submit" variant="outline" disabled={isSubmitting}>
-              {isSubmitting ? 'Sending…' : 'Change'}
-            </Button>
-          </div>
-          <FieldError errors={[errors.email]} />
-        </Field>
-      </form>
+      <p className="text-sm font-medium break-all">{user.email}</p>
     </Section>
   )
 }
