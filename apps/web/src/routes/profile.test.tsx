@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { renderInApp } from '@/test/render-app'
@@ -37,8 +37,14 @@ describe('ProfilePage', () => {
     const { router } = renderInApp(<ProfilePage />, { path: '/profile', url: '/profile' })
     await userEvent.setup().click(await screen.findByRole('link', { name: 'Security' }))
     expect(router.state.location.search).toBe('?tab=security')
-    expect(screen.getByRole('link', { name: 'Security' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByLabelText('Current password')).toBeVisible()
+    // The page re-renders once the address has changed.
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: 'Security' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      ),
+    )
+    expect(await screen.findByLabelText('Current password')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Sessions' })).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'Photo and name' })).toBeNull()
   })
