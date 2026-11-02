@@ -1391,3 +1391,220 @@ a.card:hover {
 .next-steps strong {
   color: var(--text);
 }
+
+/* ------------------------------------------------------------------ motion
+   Only for people who haven't asked for less motion. The hero plays once on load; everything
+   else is tied to the scroll position, so it needs scroll-driven animations. Browsers without
+   them show the page exactly as it is above: nothing is hidden waiting for a script.
+   Movement uses `translate` and `scale`, which leave each element's `transform` (the card hover
+   lift, the pressed button) alone. */
+@media (prefers-reduced-motion: no-preference) {
+  /* The phone settles into the doorway, then the week's expenses arrive one by one. */
+  .phone {
+    animation: phone-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .phone-list li {
+    animation: row-in 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(450ms + var(--i, 0) * 120ms);
+  }
+  .phone-list li:nth-child(2) {
+    --i: 1;
+  }
+  .phone-list li:nth-child(3) {
+    --i: 2;
+  }
+  .phone-list li:nth-child(4) {
+    --i: 3;
+  }
+}
+@keyframes phone-in {
+  from {
+    opacity: 0;
+    translate: 0 40px;
+  }
+}
+@keyframes row-in {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* How far down the page you are: a thin line in the beam's lit-edge blue. */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 50;
+      height: 3px;
+      background: var(--edge);
+      transform-origin: 0 50%;
+      scale: 0 1;
+      pointer-events: none;
+      animation: grow-x linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    /* The phone climbs out of the doorway a little faster than the page. */
+    .hero-phone {
+      animation: drift linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 640px;
+    }
+
+    /* Things rise into place as they come into view. */
+    .section-head,
+    .card,
+    .steps li,
+    .feature-copy,
+    .feature figure,
+    .day-list li,
+    .faq-group,
+    .cta {
+      animation: rise cubic-bezier(0.2, 0.6, 0.3, 1) both;
+      animation-timeline: view(block);
+      animation-range: cover calc(var(--i, 0) * 3%) cover calc(22% + var(--i, 0) * 3%);
+    }
+
+    /* "A day with Lintel": the line draws down the day, and each hour lights up as it arrives.
+       Both follow a line 60% of the way down the window. */
+    .day-list {
+      position: relative;
+    }
+    .day-list::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -2px;
+      width: 2px;
+      background: var(--primary);
+      transform-origin: 50% 0;
+      scale: 1 0;
+      animation: grow-y linear both;
+      animation-timeline: view(block 0% 40%);
+      animation-range: entry-crossing;
+    }
+    .day-list li::after {
+      content: '';
+      position: absolute;
+      left: -4px;
+      top: 9px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      scale: 0;
+      animation: light linear both;
+      animation-timeline: view(block 0% 40%);
+      animation-range: entry-crossing;
+    }
+
+    /* Inside the app screens: rows land one after another, budgets fill to their amounts. */
+    .mock-stage {
+      view-timeline: --screen block;
+    }
+    .mock-rows li,
+    .week .meal {
+      animation: rise-small cubic-bezier(0.2, 0.6, 0.3, 1) both;
+      animation-timeline: --screen;
+      animation-range: cover calc(8% + var(--i, 0) * 3%) cover calc(20% + var(--i, 0) * 3%);
+    }
+    .mock-rows li:nth-child(2),
+    .week .meal:nth-of-type(2) {
+      --i: 1;
+    }
+    .mock-rows li:nth-child(3),
+    .week .meal:nth-of-type(3) {
+      --i: 2;
+    }
+    .mock-rows li:nth-child(4),
+    .week .meal:nth-of-type(4) {
+      --i: 3;
+    }
+    .mock-rows li:nth-child(n + 5),
+    .week .meal:nth-of-type(n + 5) {
+      --i: 4;
+    }
+    .meter i {
+      transform-origin: 0 50%;
+      animation: grow-x cubic-bezier(0.3, 0.7, 0.3, 1) both;
+      animation-timeline: --screen;
+      animation-range: cover 12% cover 32%;
+    }
+
+    /* Side by side, a card further along its row arrives a beat later. */
+    @media (min-width: 720px) {
+      .cards > :nth-child(2n) {
+        --i: 1;
+      }
+    }
+    @media (min-width: 900px) {
+      .steps li:nth-child(2) {
+        --i: 1;
+      }
+      .steps li:nth-child(3) {
+        --i: 2;
+      }
+    }
+    @media (min-width: 1024px) {
+      .cards-3 > :nth-child(3n + 2),
+      .cards-4 > :nth-child(4n + 2) {
+        --i: 1;
+      }
+      .cards-3 > :nth-child(3n),
+      .cards-4 > :nth-child(4n + 3) {
+        --i: 2;
+      }
+      .cards-4 > :nth-child(4n) {
+        --i: 3;
+      }
+      /* Feature rows come together from either side of the doorway. */
+      .feature-copy,
+      .feature.flip figure {
+        --from: -32px 0;
+      }
+      .feature figure,
+      .feature.flip .feature-copy {
+        --from: 32px 0;
+      }
+    }
+  }
+}
+@keyframes grow-x {
+  from {
+    scale: 0 1;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+@keyframes grow-y {
+  to {
+    scale: 1 1;
+  }
+}
+@keyframes light {
+  to {
+    scale: 1;
+  }
+}
+@keyframes drift {
+  to {
+    translate: 0 -72px;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: var(--from, 0 32px);
+  }
+}
+@keyframes rise-small {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
