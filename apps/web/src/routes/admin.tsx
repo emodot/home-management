@@ -14,11 +14,11 @@ import { adminOverviewQuery } from '@/lib/queries'
 import type { adminLoader } from './loaders'
 
 const TABS = [
-  { to: '/admin', label: 'Overview', end: true },
-  { to: '/admin/users', label: 'Users', end: false },
-  { to: '/admin/households', label: 'Households', end: false },
-  { to: '/admin/early-access', label: 'Early access', end: false },
-  { to: '/admin/admins', label: 'Super-admins', end: false },
+  { to: '/', label: 'Overview', end: true },
+  { to: '/users', label: 'Users', end: false },
+  { to: '/households', label: 'Households', end: false },
+  { to: '/early-access', label: 'Early access', end: false },
+  { to: '/admins', label: 'Super-admins', end: false },
 ]
 
 /** The operator admin area: its own header and tabs, outside any household. */
@@ -39,7 +39,7 @@ export function AdminLayout() {
             <div className="flex items-center gap-1">
               <span className="hidden text-sm text-muted-foreground sm:inline">{admin?.email}</span>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/admin/account">
+                <Link to="/account">
                   <UserRoundIcon aria-hidden />
                   Account
                 </Link>

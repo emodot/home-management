@@ -1,9 +1,10 @@
 import type { ComponentType } from 'react'
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, type RouteObject } from 'react-router'
 import { AppLayout } from '@/components/app-layout'
 import { FullPageSpinner } from '@/components/full-page-spinner'
 import { RootLayout } from '@/components/root-layout'
 import { RouteError } from '@/components/route-error'
+import { isAdminHost } from '@/lib/hosts'
 import {
   activityLoader,
   adminAccountsLoader,
@@ -42,6 +43,7 @@ import {
   kitchenRecipesLoader,
   kitchenOverviewLoader,
   membersLoader,
+  oldAdminLinkLoader,
   onboardingLoader,
   profileLoader,
   providerDetailLoader,
@@ -114,40 +116,39 @@ const routes = {
   tasks: () => import('@/routes/tasks'),
 }
 
-export const router = createBrowserRouter([
+const authCallbackRoute: RouteObject = {
+  path: 'auth/callback',
+  loader: authCallbackLoader,
+  lazy: page(routes.authCallback, 'AuthCallbackPage'),
+}
+
+// Password-reset emails sign you in and land here.
+const resetPasswordRoute: RouteObject = {
+  path: 'reset-password',
+  lazy: page(routes.resetPassword, 'ResetPasswordPage'),
+}
+
+/** The admin dashboard, served at the root of its own host (see lib/hosts.ts). */
+const adminRoutes: RouteObject[] = [
   {
     element: <RootLayout />,
     errorElement: <RouteError />,
     hydrateFallbackElement: <FullPageSpinner />,
     children: [
-      { path: 'sign-in', loader: signInLoader, lazy: page(routes.signIn, 'SignInPage') },
       {
-        path: 'admin/sign-in',
+        path: 'sign-in',
         loader: adminSignInLoader,
         lazy: page(routes.adminSignIn, 'AdminSignInPage'),
       },
+      authCallbackRoute,
       {
-        path: 'auth/callback',
-        loader: authCallbackLoader,
-        lazy: page(routes.authCallback, 'AuthCallbackPage'),
-      },
-      {
-        // Everything below requires a session.
         id: 'authed',
         loader: authedLoader,
         children: [
+          resetPasswordRoute,
           {
-            path: 'onboarding',
-            loader: onboardingLoader,
-            lazy: page(routes.onboarding, 'OnboardingPage'),
-          },
-          // Password-reset emails sign you in and land here.
-          { path: 'reset-password', lazy: page(routes.resetPassword, 'ResetPasswordPage') },
-          {
-            // Admin accounts only (the loader 404s for everyone else); signing in is at
-            // /admin/sign-in.
+            // Admin accounts only (the loader 404s for everyone else).
             id: 'admin',
-            path: 'admin',
             loader: adminLoader,
             lazy: page(routes.admin, 'AdminLayout'),
             children: [
@@ -189,6 +190,35 @@ export const router = createBrowserRouter([
               },
             ],
           },
+        ],
+      },
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
+]
+
+/** The household app. */
+const appRoutes: RouteObject[] = [
+  {
+    element: <RootLayout />,
+    errorElement: <RouteError />,
+    hydrateFallbackElement: <FullPageSpinner />,
+    children: [
+      { path: 'sign-in', loader: signInLoader, lazy: page(routes.signIn, 'SignInPage') },
+      authCallbackRoute,
+      // The admin dashboard used to live here: old links go to the same page on its own host.
+      { path: 'admin/*', loader: oldAdminLinkLoader },
+      {
+        // Everything below requires a session.
+        id: 'authed',
+        loader: authedLoader,
+        children: [
+          {
+            path: 'onboarding',
+            loader: onboardingLoader,
+            lazy: page(routes.onboarding, 'OnboardingPage'),
+          },
+          resetPasswordRoute,
           // Works with or without a household (new users join through here).
           { path: 'invite/:token', loader: inviteLoader, lazy: page(routes.invite, 'InvitePage') },
           {
@@ -426,4 +456,6 @@ export const router = createBrowserRouter([
       { path: '*', element: <NotFoundPage /> },
     ],
   },
-])
+]
+
+export const router = createBrowserRouter(isAdminHost() ? adminRoutes : appRoutes)

@@ -11,12 +11,18 @@ export function PasswordInput({ className, ...props }: Omit<ComponentProps<'inpu
   const [shown, setShown] = useState(false)
   return (
     <div className="relative">
-      <Input {...props} type={shown ? 'text' : 'password'} className={cn('pr-10', className)} />
+      {/* Edge draws its own reveal eye in password fields; this one replaces it. */}
+      <Input
+        {...props}
+        type={shown ? 'text' : 'password'}
+        className={cn('pr-10 [&::-ms-reveal]:hidden', className)}
+      />
       <button
         type="button"
         onClick={() => setShown((value) => !value)}
         aria-label="Show password"
         aria-pressed={shown}
+        title={shown ? 'Hide password' : 'Show password'}
         aria-controls={props.id}
         disabled={props.disabled}
         className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"

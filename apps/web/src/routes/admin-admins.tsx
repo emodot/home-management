@@ -150,7 +150,7 @@ function AddAdminDialog() {
     add.mutate(parsed.data, { onSuccess: () => setCreated(parsed.data) })
   }
 
-  const signInUrl = `${window.location.origin}/admin/sign-in`
+  const signInUrl = `${window.location.origin}/sign-in`
   const details = created
     ? `Admin sign-in: ${signInUrl}\nEmail: ${created.email}\nTemporary password: ${created.password}`
     : ''

@@ -33,6 +33,7 @@ import { getSessionUser } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
 import { errorMessage } from '@/lib/errors'
 import { expenseView } from '@/lib/expense-view'
+import { adminUrl } from '@/lib/hosts'
 import { budgetMonthParam, selectedMonth } from '@/lib/insights'
 import {
   activityFeedQuery,
@@ -75,15 +76,19 @@ import { supabase } from '@/lib/supabase'
 function signInRedirect(request: Request) {
   const url = new URL(request.url)
   const next = url.pathname + url.search
-  // The admin area has its own sign-in page.
-  const signIn = url.pathname.startsWith('/admin') ? '/admin/sign-in' : '/sign-in'
-  const home = signIn === '/sign-in' ? '/' : '/admin'
-  return redirect(next === home ? signIn : `${signIn}?next=${encodeURIComponent(next)}`)
+  return redirect(next === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(next)}`)
 }
 
-/** Admin accounts are admin-only: the regular app sends them to the admin area. */
+/** Admin accounts are admin-only: the household app sends them to the admin dashboard. */
 async function redirectAdmins(userId: string) {
-  if (await queryClient.query(isAppAdminQuery(userId))) throw redirect('/admin')
+  if (await queryClient.query(isAppAdminQuery(userId))) throw redirect(adminUrl('/'))
+}
+
+/** `/admin/...` in the household app: the same page on the admin dashboard's own host. */
+export function oldAdminLinkLoader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url)
+  const path = url.pathname.replace(/^\/admin/, '') || '/'
+  return redirect(adminUrl(path + url.search))
 }
 
 async function requireUser(request: Request) {
@@ -478,8 +483,8 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
   if (!(await queryClient.query(isAppAdminQuery(user.id)))) throw notFound()
   // New admins start with a temporary password and must choose their own first.
   const mustChange = user.user_metadata.must_change_password === true
-  if (mustChange && new URL(request.url).pathname !== '/admin/account') {
-    throw redirect('/admin/account')
+  if (mustChange && new URL(request.url).pathname !== '/account') {
+    throw redirect('/account')
   }
   return { email: user.email ?? '', mustChangePassword: mustChange }
 }
@@ -488,10 +493,8 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
 export async function adminSignInLoader({ request }: LoaderFunctionArgs) {
   const next = safeNextPath(new URL(request.url).searchParams.get('next'))
   const user = await getSessionUser()
-  if (user && (await queryClient.query(isAppAdminQuery(user.id)))) {
-    throw redirect(next.startsWith('/admin') ? next : '/admin')
-  }
-  return { next: next.startsWith('/admin') ? next : '/admin' }
+  if (user && (await queryClient.query(isAppAdminQuery(user.id)))) throw redirect(next)
+  return { next }
 }
 
 /** Search and page from the URL, shared by the admin lists. */

@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ShieldIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useLoaderData, useNavigate } from 'react-router'
+import { useLoaderData, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { AuthCard } from '@/components/auth-card'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { getSessionUser, requestPasswordReset, signInWithPassword, signOut } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
+import { appUrl } from '@/lib/hosts'
 import { supabase } from '@/lib/supabase'
 import type { adminSignInLoader } from './loaders'
 
@@ -73,9 +74,9 @@ export function AdminSignInPage() {
               className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm"
             >
               That isn&apos;t a super-admin account. Household members sign in on the{' '}
-              <Link to="/sign-in" className="font-medium underline underline-offset-4">
+              <a href={appUrl('/sign-in')} className="font-medium underline underline-offset-4">
                 main sign-in page
-              </Link>
+              </a>
               .
             </p>
           )}

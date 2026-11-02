@@ -4,12 +4,14 @@ export const PASSWORD = 'correct horse battery'
 // Seeded by CI (see .github/workflows/ci.yml); super-admins create households.
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? 'superadmin@example.com'
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? 'super-admin-e2e'
+// The admin dashboard has its own host (see src/lib/hosts.ts).
+const ADMIN_URL = 'http://admin.localhost:5173'
 
 /** A super-admin creates a household and returns the link that makes someone its admin. */
 export async function createHouseholdWithAdminInvite(browser: Browser, name: string) {
   const context = await browser.newContext()
   const admin = await context.newPage()
-  await admin.goto('/admin/sign-in')
+  await admin.goto(`${ADMIN_URL}/sign-in`)
   await admin.getByLabel('Email').fill(ADMIN_EMAIL)
   await admin.getByLabel('Password', { exact: true }).fill(ADMIN_PASSWORD)
   await admin.getByRole('button', { name: 'Sign in', exact: true }).click()

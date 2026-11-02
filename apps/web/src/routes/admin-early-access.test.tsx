@@ -29,8 +29,8 @@ beforeEach(() => {
 describe('AdminEarlyAccessPage', () => {
   it('lists new requests and marks one invited', async () => {
     renderInApp(<AdminEarlyAccessPage />, {
-      path: '/admin/early-access',
-      url: '/admin/early-access',
+      path: '/early-access',
+      url: '/early-access',
     })
     await screen.findByText('Bola Ade')
     const row = screen.getByRole('listitem')
@@ -57,8 +57,8 @@ describe('AdminEarlyAccessPage', () => {
 
   it('shows the other statuses from the filter', async () => {
     renderInApp(<AdminEarlyAccessPage />, {
-      path: '/admin/early-access',
-      url: '/admin/early-access?status=all',
+      path: '/early-access',
+      url: '/early-access?status=all',
     })
     await screen.findByText('Bola Ade')
     expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-current', 'page')

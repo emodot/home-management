@@ -42,7 +42,7 @@ export function AdminEarlyAccessPage() {
         <p className="text-sm text-muted-foreground">
           Requests from the website. To let someone in,{' '}
           <Link
-            to="/admin/households"
+            to="/households"
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
             create their household

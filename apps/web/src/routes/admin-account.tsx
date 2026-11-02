@@ -11,7 +11,7 @@ export function AdminAccountPage() {
   async function passwordChanged() {
     // Reload the admin area's data so it drops the temporary-password lock.
     await revalidator.revalidate()
-    await navigate('/admin', { replace: true })
+    await navigate('/', { replace: true })
   }
 
   return (

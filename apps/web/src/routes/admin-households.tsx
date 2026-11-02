@@ -77,7 +77,7 @@ export function AdminHouseholdsPage() {
             {households.data.items.map((h) => (
               <li key={h.id}>
                 <Link
-                  to={`/admin/households/${h.id}`}
+                  to={`/households/${h.id}`}
                   className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
                 >
                   <div className="min-w-0 flex-1">
@@ -110,7 +110,7 @@ export function AdminHouseholdPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <Button variant="ghost" size="sm" className="-ml-2 w-fit" asChild>
-          <Link to="/admin/households">
+          <Link to="/households">
             <ArrowLeftIcon aria-hidden />
             Households
           </Link>
@@ -229,7 +229,7 @@ function DeleteHousehold({ householdId, name }: { householdId: string; name: str
               onClick={() =>
                 deleteHousehold.mutate(
                   { householdId, name },
-                  { onSuccess: () => void navigate('/admin/households', { replace: true }) },
+                  { onSuccess: () => void navigate('/households', { replace: true }) },
                 )
               }
             >
@@ -258,7 +258,7 @@ function CreateHouseholdDialog() {
     }
     create.mutate(parsed.data, {
       // Next step: invite its household admin from the household's page.
-      onSuccess: ({ id }) => void navigate(`/admin/households/${id}`),
+      onSuccess: ({ id }) => void navigate(`/households/${id}`),
     })
   }
 
@@ -332,7 +332,7 @@ function MembersSection({ household }: { household: AdminHouseholdDetail }) {
               <li key={m.userId} className="flex flex-wrap items-center gap-3 px-4 py-3">
                 <UserAvatar name={name} />
                 <Link
-                  to={`/admin/users?q=${encodeURIComponent(m.email)}`}
+                  to={`/users?q=${encodeURIComponent(m.email)}`}
                   className="min-w-0 flex-1 basis-40 hover:underline"
                 >
                   <p className="flex flex-wrap items-center gap-1.5">

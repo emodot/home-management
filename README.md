@@ -40,7 +40,7 @@ as the password) under Authentication → Emails → SMTP Settings in the dashbo
 
 There are three kinds of people:
 
-- **Super-admins** run the app from the admin dashboard (`/admin`, below). Only they create
+- **Super-admins** run the app from the admin dashboard (its own host, below). Only they create
   households, and only they decide who is a household admin.
 - **Household admins** invite members from the Members page, with a link to share (WhatsApp,
   SMS…) or by email. Each link lets one person join and expires after 7 days; only a hash of the
@@ -54,9 +54,13 @@ household admin can't leave while others remain.
 
 ### Admin dashboard
 
-Super-admins have their own sign-in page, `/admin/sign-in`, and their own super-admin-only
-accounts: signing in there with a household account is refused, and a super-admin account that
-signs in to the regular app is sent to the dashboard. The regular app has no admin links.
+The dashboard has its own address: https://hm-amber-admin.vercel.app in production (a second
+domain on the same Vercel project) and http://admin.localhost:5173 in development. It's the same
+build; `apps/web/src/lib/hosts.ts` picks the admin routes or the household app by host, and old
+`/admin/...` links in the app forward to the same page there. Sessions are per host, so
+super-admins sign in at `/sign-in` on the dashboard's address. Those accounts are super-admin-only:
+signing in there with a household account is refused, and a super-admin account that signs in to
+the regular app is sent to the dashboard. The regular app has no admin links.
 
 The dashboard has an overview (totals, weekly sign-ups, recent actions), early-access requests from
 the marketing site (mark them invited once their household is set up, or decline), every user (search, send
