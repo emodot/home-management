@@ -3,8 +3,9 @@
 The marketing site: static HTML pages sharing one stylesheet (`styles.css`). No build step and no
 JavaScript. It deploys as its own Vercel project (`lintel-landing`,
 https://lintel-landing-sigma.vercel.app) with Root Directory `apps/landing`. `vercel.json` there
-skips install and build, serves clean URLs (`/kitchen` for `kitchen.html`), and skips deploys of
-commits that don't change this folder.
+skips install and build, serves clean URLs (`/kitchen` for `kitchen.html`), and skips a deploy
+when nothing in this folder changed since the last one (`VERCEL_GIT_PREVIOUS_SHA`), so a push
+whose newest commit is elsewhere still ships earlier landing commits.
 
 | Page                         | File                |
 | ---------------------------- | ------------------- |
